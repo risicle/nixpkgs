@@ -967,6 +967,29 @@ let
   };
 
 
+  billiard = buildPythonPackage rec {
+    name = "billiard-${version}";
+    version = "3.3.0.19";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/b/billiard/${name}.tar.gz";
+      sha256 = "6e6b8ec6e45b89389051737c7e6215d8e55a83896eb6212fa726ca76e80c7a19";
+      md5 = "7e473b9da01956ce91a650f99fe8d4ad";
+    };
+
+    buildInputs = with self; [ nose unittest2 mock ];
+    
+    # i can't imagine these were intentionally installed
+    postInstall = "rm -r $out/lib/${python.libPrefix}/site-packages/funtests";
+
+    meta = {
+      homepage = https://github.com/celery/billiard;
+      description = "Python multiprocessing fork with improvements and bugfixes";
+      license = licenses.bsd3;
+    };
+  };
+
+
   bitbucket_api = buildPythonPackage rec {
     name = "bitbucket-api-0.4.4";
 
@@ -1436,6 +1459,43 @@ let
     meta = {
       homepage = http://pypi.python.org/pypi/carrot;
       description = "AMQP Messaging Framework for Python";
+    };
+  };
+
+
+  celery_base = { target_version , fetchurl_override }: buildPythonPackage rec {
+    name = "celery-${version}";
+    version = target_version;
+
+    src = pkgs.fetchurl ( {
+      url = "https://pypi.python.org/packages/source/c/celery/${name}.tar.gz";
+    } // fetchurl_override );
+
+    propagatedBuildInputs = with self; [ self.kombu ];
+
+    # tests cheekily try to download other packages
+    doCheck = false;
+
+    meta = {
+      homepage = http://github.com/celery/celery/;
+      description = "Distributed task queue";
+      license = licenses.bsd3;
+    };
+  };
+
+  celery_2_3 = self.celery_base {
+    target_version = "2.3.5";
+    fetchurl_override = {
+      sha256 = "696501cda0fb0384624290028c3cd11fe2008cd47cfa8e09493c2d738fc44007";
+      md5 = "23893e021d172ebf330f850fe9366b99";
+    };
+  };
+
+  celery = self.celery_base {
+    target_version = "3.1.17";
+    fetchurl_override = {
+      sha256 = "cfe2b653268bd586e2d08a75e886f7be3be55ba372f72e2f5747aeb76c470362";
+      md5 = "e37f5d93b960bf68fc26c1325f30fd16";
     };
   };
 
@@ -5652,6 +5712,32 @@ let
     };
   };
 
+  kombu_base = amqp_library: buildPythonPackage rec {
+    name = "kombu-${version}";
+    version = "3.0.24";
+    
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/k/kombu/${name}.tar.gz";
+      sha256 = "b9ff0437607113aea701fd5122c2afa40c05dff6f1da4f58b2f1ea18d9f2bf8d";
+      md5 = "37c8b5084ac83b8a6f5ff9f157cac0e9";
+    };
+
+    # tests cheekily try to download other packages
+    doCheck = false;
+
+    propagatedBuildInputs = with self; [ amqp_library ];
+
+    meta = with stdenv.lib; {
+      description = "Messaging library for Python";
+      homepage    = "http://github.com/celery/kombu";
+      license     = licenses.bsd3;
+    };
+  };
+  
+  kombu = self.kombu_base self.librabbitmq;
+  
+  kombu_amqplib = self.kombu self.amqplib;
+
   konfig = buildPythonPackage rec {
     name = "konfig-${version}";
     version = "0.9";
@@ -5728,6 +5814,32 @@ let
       homepage = http://incubator.apache.org/libcloud/;
     };
   });
+
+
+  librabbitmq = buildPythonPackage rec {
+    name = "librabbitmq-${version}";
+    version = "1.6.1";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/l/librabbitmq/librabbitmq-${version}.tar.gz";
+      sha256 = "604a226b9fe3f9e439353702a731f2a39cf771882e68bca020cb224d9b990c49";
+      md5 = "716f05388d4747ea605c1a31f8541e3b";
+    };
+
+    buildInputs = with self; [ pkgs.rabbitmq-c ];
+
+    # tests cheekily try to download other packages
+    doCheck = false;
+    
+    # i can't imagine these were intentionally installed
+    postInstall = "rm -r $out/lib/${python.libPrefix}/site-packages/funtests";
+
+    meta = {
+      description = "Python AMQP Client using the rabbitmq-c library";
+      homepage = https://github.com/celery/librabbitmq;
+      license = licenses.mpl11;
+    };
+  };
 
 
   limnoria = buildPythonPackage (rec {
