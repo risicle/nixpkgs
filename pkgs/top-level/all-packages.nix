@@ -1058,6 +1058,8 @@ let
 
   dadadodo = callPackage ../tools/text/dadadodo { };
 
+  daemonize = callPackage ../tools/system/daemonize { };
+
   daq = callPackage ../applications/networking/ids/daq { };
 
   dar = callPackage ../tools/archivers/dar { };
