@@ -9031,6 +9031,26 @@ let
   });
 
 
+  pylibmc = buildPythonPackage rec {
+    name = "pylibmc-${version}";
+    version = "1.4.1";
+
+    src = pkgs.fetchurl {
+      url = "http://pypi.python.org/packages/source/p/pylibmc/${name}.tar.gz";
+      sha256 = "a00e75f5c76e573e95ac5b29cb8a816728930f29332c49c74dbfd326d598088f";
+      md5 = "eaed0ba707abc0eabb1356310febada1";
+    };
+
+    buildInputs = with self; [ pkgs.libmemcached pkgs.zlib ];
+
+    meta = {
+      description = "Quick and small memcached client for Python";
+      homepage = http://sendapatch.se/projects/pylibmc/;
+      license = licenses.bsd3;
+    };
+  };
+
+
   pymacs = buildPythonPackage rec {
     version = "0.25";
     name = "pymacs-${version}";
