@@ -379,6 +379,26 @@ let
   };
 
 
+  amqp = buildPythonPackage rec {
+    name = "amqp-${version}";
+    version = "1.4.6";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/a/amqp/${name}.tar.gz";
+      sha256 = "ebcfc867de5a68f9f5ba14d11dbad88e6aff8435a8d39339d5ceb0e5b06de640";
+      md5 = "a061581b6864f838bffd62b6a3d0fb9f";
+    };
+
+    buildInputs = with self; [ mock coverage nose-cover3 unittest2 ];
+
+    meta = {
+      homepage = http://github.com/celery/py-amqp;
+      description = "Python client for the Advanced Message Queuing Procotol (AMQP). This is a fork of amqplib which is maintained by the Celery project.";
+      license = licenses.lgpl21;
+    };
+  };
+
+
   amqplib = buildPythonPackage rec {
     name = "amqplib-0.6.1";
 
@@ -978,9 +998,6 @@ let
     };
 
     buildInputs = with self; [ nose unittest2 mock ];
-    
-    # i can't imagine these were intentionally installed
-    postInstall = "rm -r $out/lib/${python.libPrefix}/site-packages/funtests";
 
     meta = {
       homepage = https://github.com/celery/billiard;
@@ -1463,7 +1480,7 @@ let
   };
 
 
-  celery_base = { target_version , fetchurl_override }: buildPythonPackage rec {
+  celery_base = { target_version , fetchurl_override , extra_propagatedBuildInputs ? [] }: buildPythonPackage rec {
     name = "celery-${version}";
     version = target_version;
 
@@ -1471,10 +1488,7 @@ let
       url = "https://pypi.python.org/packages/source/c/celery/${name}.tar.gz";
     } // fetchurl_override );
 
-    propagatedBuildInputs = with self; [ self.kombu ];
-
-    # tests cheekily try to download other packages
-    doCheck = false;
+    propagatedBuildInputs = with self; [ kombu billiard dateutil_1_5 ] ++ extra_propagatedBuildInputs;
 
     meta = {
       homepage = http://github.com/celery/celery/;
@@ -1489,6 +1503,7 @@ let
       sha256 = "696501cda0fb0384624290028c3cd11fe2008cd47cfa8e09493c2d738fc44007";
       md5 = "23893e021d172ebf330f850fe9366b99";
     };
+    extra_propagatedBuildInputs = with self; [ pyparsing ];
   };
 
   celery = self.celery_base {
@@ -5722,8 +5737,7 @@ let
       md5 = "37c8b5084ac83b8a6f5ff9f157cac0e9";
     };
 
-    # tests cheekily try to download other packages
-    doCheck = false;
+    buildInputs = with self; [ anyjson mock unittest2 nose ];
 
     propagatedBuildInputs = with self; [ amqp_library ];
 
@@ -5734,9 +5748,9 @@ let
     };
   };
   
-  kombu = self.kombu_base self.librabbitmq;
+  kombu = self.kombu_base self.amqp;
   
-  kombu_amqplib = self.kombu self.amqplib;
+  kombu_librabbitmq = self.kombu_base self.librabbitmq;
 
   konfig = buildPythonPackage rec {
     name = "konfig-${version}";
@@ -5826,13 +5840,15 @@ let
       md5 = "716f05388d4747ea605c1a31f8541e3b";
     };
 
-    buildInputs = with self; [ pkgs.rabbitmq-c ];
+    buildInputs = with self; [ pkgs.rabbitmq-c nose unittest2 ];
+
+    propagatedBuildInputs = with self; [ amqp ];
 
     # tests cheekily try to download other packages
-    doCheck = false;
+    #doCheck = false;
     
     # i can't imagine these were intentionally installed
-    postInstall = "rm -r $out/lib/${python.libPrefix}/site-packages/funtests";
+    postInstall = "rm -r $out/${python.sitePackages}/funtests";
 
     meta = {
       description = "Python AMQP Client using the rabbitmq-c library";
@@ -6919,6 +6935,25 @@ let
     # AttributeError: 'module' object has no attribute 'collector'
     doCheck = false;
   });
+
+  nose-cover3 = buildPythonPackage rec {
+    name = "nose-cover3-${version}";
+    version = "0.1.0";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/n/nose-cover3/${name}.tar.gz";
+      sha256 = "81310a792285615418e749f6e7c60a4f2cfa6b2f13cf0d19bbf26b1f188444d1";
+      md5 = "82f981eaa007b430679899256050fa0c";
+    };
+
+    propagatedBuildInputs = with self; [ nose ];
+
+    meta = {
+      description = "Coverage 3.x support for Nose";
+      homepage = https://github.com/ask/nosecover3;
+      license = stdenv.lib.licenses.lgpl21;
+    };
+  };
 
   nosexcover = buildPythonPackage (rec {
     name = "nosexcover-1.0.10";
