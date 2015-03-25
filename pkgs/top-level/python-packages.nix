@@ -998,6 +998,9 @@ let
     };
 
     buildInputs = with self; [ nose unittest2 mock ];
+    
+    # i can't imagine these were intentionally installed
+    postInstall = "rm -r $out/${python.sitePackages}/funtests";
 
     meta = {
       homepage = https://github.com/celery/billiard;
@@ -1479,39 +1482,43 @@ let
     };
   };
 
-
-  celery_base = { target_version , fetchurl_override , extra_propagatedBuildInputs ? [] }: buildPythonPackage rec {
+  celery_meta = {
+    homepage = http://github.com/celery/celery/;
+    description = "Distributed task queue";
+    license = licenses.bsd3;
+  };
+  celery = buildPythonPackage rec {
     name = "celery-${version}";
-    version = target_version;
+    version = "3.1.17";
 
-    src = pkgs.fetchurl ( {
+    disabled = pythonOlder "2.6";
+
+    src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/c/celery/${name}.tar.gz";
-    } // fetchurl_override );
-
-    propagatedBuildInputs = with self; [ kombu billiard dateutil_1_5 ] ++ extra_propagatedBuildInputs;
-
-    meta = {
-      homepage = http://github.com/celery/celery/;
-      description = "Distributed task queue";
-      license = licenses.bsd3;
-    };
-  };
-
-  celery_2_3 = self.celery_base {
-    target_version = "2.3.5";
-    fetchurl_override = {
-      sha256 = "696501cda0fb0384624290028c3cd11fe2008cd47cfa8e09493c2d738fc44007";
-      md5 = "23893e021d172ebf330f850fe9366b99";
-    };
-    extra_propagatedBuildInputs = with self; [ pyparsing ];
-  };
-
-  celery = self.celery_base {
-    target_version = "3.1.17";
-    fetchurl_override = {
-      sha256 = "cfe2b653268bd586e2d08a75e886f7be3be55ba372f72e2f5747aeb76c470362";
+      sha256 = "0qh38xnbgbj7awpjxxvjlddyafxyyy3fhxcas3i8dmcb4r9vdqng";
       md5 = "e37f5d93b960bf68fc26c1325f30fd16";
     };
+
+    buildInputs = with self; [ mock nose unittest2 ];
+    propagatedBuildInputs = with self; [ kombu billiard pytz anyjson ];
+
+    meta = self.celery_meta;
+  };
+
+  celery_2_5 = buildPythonPackage rec {
+    name = "celery-${version}";
+    version = "2.5.5";
+    
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/c/celery/${name}.tar.gz";
+      sha256 = "10ww7gcqi36zinjgh56p569ij0hkf70ka80rwqxb7m9119kab9ha";
+      md5 = "9fa40c1300d18e176db63f833a378647";
+    };
+    
+    buildInputs = with self; [ unittest2 nose nose-cover3 coverage mock redis pymongo sqlalchemy pyopenssl ];
+    propagatedBuildInputs = with self; [ kombu dateutil_1_5 anyjson ];
+
+    meta = self.celery_meta;
   };
 
   certifi = buildPythonPackage rec {
@@ -4141,7 +4148,7 @@ let
 
     propagatedBuildInputs = with self; [ django_1_7 ];
     
-    # tests appear to be broken on 0.6.1 at least
+    # tests appear to be broken on 0.6.1 at least (ImportError: No module named runtests)
     doCheck = ( version != "0.6.1" );
 
     meta = with stdenv.lib; {
@@ -8713,13 +8720,13 @@ let
   };
 
 
-  pyparsing = buildPythonPackage rec {
-    name = "pyparsing-2.0.1";
+  pyparsing_base = {version, fetchurl_override}: buildPythonPackage rec {
+    inherit version;
+    name = "pyparsing-${version}";
 
-    src = pkgs.fetchurl {
+    src = pkgs.fetchurl ( {
       url = "http://pypi.python.org/packages/source/p/pyparsing/${name}.tar.gz";
-      sha256 = "1r742rjbagf2i166k2w0r192adfw7l9lnsqz7wh4mflf00zws1q0";
-    };
+    } // fetchurl_override );
 
     # error: invalid command 'test'
     doCheck = false;
@@ -8727,6 +8734,21 @@ let
     meta = {
       homepage = http://pyparsing.wikispaces.com/;
       description = "The pyparsing module is an alternative approach to creating and executing simple grammars, vs. the traditional lex/yacc approach, or the use of regular expressions.";
+    };
+  };
+  
+  pyparsing = self.pyparsing_base {
+    version = "2.0.1";
+    fetchurl_override = {
+      sha256 = "1r742rjbagf2i166k2w0r192adfw7l9lnsqz7wh4mflf00zws1q0";
+    };
+  };
+  
+  pyparsing_1_5 = self.pyparsing_base {
+    version = "1.5.7";
+    fetchurl_override = {
+      sha256 = "17z7ws076z977sclj628fvwrp8y9j2rvdjcsq42v129n1gwi8vk4";
+      md5 = "9be0fcdcc595199c646ab317c1d9a709";
     };
   };
 
