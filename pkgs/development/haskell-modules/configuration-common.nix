@@ -7,8 +7,8 @@ self: super: {
   # Some packages need a non-core version of Cabal.
   Cabal_1_18_1_6 = dontCheck super.Cabal_1_18_1_6;
   Cabal_1_20_0_3 = dontCheck super.Cabal_1_20_0_3;
-  Cabal_1_22_2_0 = dontCheck super.Cabal_1_22_2_0;
-  cabal-install = dontCheck (super.cabal-install.override { Cabal = self.Cabal_1_22_2_0; });
+  Cabal_1_22_3_0 = dontCheck super.Cabal_1_22_3_0;
+  cabal-install = dontCheck (super.cabal-install.override { Cabal = self.Cabal_1_22_3_0; });
 
   # Break infinite recursions.
   digest = super.digest.override { inherit (pkgs) zlib; };
@@ -21,6 +21,9 @@ self: super: {
   options = dontCheck super.options;
   statistics = dontCheck super.statistics;
   text = dontCheck super.text;
+
+  # https://github.com/bartavelle/hruby/issues/10
+  hruby = addExtraLibrary super.hruby pkgs.ruby_2_1;
 
   # Doesn't compile with lua 5.2.
   hslua = super.hslua.override { lua = pkgs.lua5_1; };
@@ -118,6 +121,7 @@ self: super: {
   # The Haddock phase fails for one reason or another.
   attoparsec-conduit = dontHaddock super.attoparsec-conduit;
   blaze-builder-conduit = dontHaddock super.blaze-builder-conduit;
+  BNFC-meta = dontHaddock super.BNFC-meta;
   bytestring-progress = dontHaddock super.bytestring-progress;
   comonads-fd = dontHaddock super.comonads-fd;
   comonad-transformers = dontHaddock super.comonad-transformers;
@@ -306,6 +310,7 @@ self: super: {
   stackage = dontCheck super.stackage;                  # http://hydra.cryp.to/build/501867/nixlog/1/raw
   warp = dontCheck super.warp;                          # http://hydra.cryp.to/build/501073/nixlog/5/raw
   wreq = dontCheck super.wreq;                          # http://hydra.cryp.to/build/501895/nixlog/1/raw
+  wreq-sb = dontCheck super.wreq-sb;                    # http://hydra.cryp.to/build/783948/log/raw
 
   # https://github.com/NICTA/digit/issues/3
   digit = dontCheck super.digit;
@@ -426,6 +431,7 @@ self: super: {
   Rlang-QQ = dontCheck super.Rlang-QQ;
   sai-shape-syb = dontCheck super.sai-shape-syb;
   scp-streams = dontCheck super.scp-streams;
+  sdl2-ttf = dontCheck super.sdl2-ttf; # as of version 0.2.1, the test suite requires user intervention
   separated = dontCheck super.separated;
   shadowsocks = dontCheck super.shadowsocks;
   shake-language-c = dontCheck super.shake-language-c;
@@ -762,36 +768,21 @@ self: super: {
            # Nix-specific workaround
            in appendPatch pkg ./mueval-nix.patch;
 
-} // {
+  # Test suite won't compile against tasty-hunit 0.9.x.
+  zlib_0_6_1_0 = dontCheck super.zlib_0_6_1_0;
 
-  # Not on Hackage.
-  cabal2nix = self.mkDerivation {
-    pname = "cabal2nix";
-    version = "20150414";
-    src = pkgs.fetchgit {
-      url = "http://github.com/NixOS/cabal2nix.git";
-      rev = "d08c2970e9c74948e81e7b926b64e5d7d1dd07b7";
-      sha256 = "1rqibfhvkvmfxj9k92brz87b4l40w8d7mq1s7zgfnrmay6h0956a";
-      deepClone = true;
-    };
-    isLibrary = false;
-    isExecutable = true;
-    buildDepends = with self; [
-      aeson base bytestring Cabal containers deepseq-generics directory
-      filepath hackage-db lens monad-par monad-par-extras mtl pretty
-      process regex-posix SHA split transformers utf8-string cartel
-    ] ++ pkgs.lib.optional (pkgs.lib.versionOlder self.ghc.version "7.10") prettyclass;
-    testDepends = with self; [
-      aeson base bytestring Cabal containers deepseq deepseq-generics
-      directory doctest filepath hackage-db hspec lens monad-par
-      monad-par-extras mtl pretty process QuickCheck
-      regex-posix SHA split transformers utf8-string
-    ];
-    buildTools = [ pkgs.gitMinimal ];
-    preConfigure = "runhaskell $setupCompileFlags generate-cabal-file >cabal2nix.cabal";
-    homepage = "http://github.com/NixOS/cabal2nix";
-    description = "Convert Cabal files into Nix build instructions";
-    license = pkgs.stdenv.lib.licenses.bsd3;
-  };
+  # Jailbreaking breaks the build.
+  QuickCheck_2_8_1 = dontJailbreak super.QuickCheck_2_8_1;
+
+  # Override the obsolete version from Hackage with our more up-to-date copy.
+  cabal2nix = pkgs.cabal2nix;
+
+  # https://github.com/urs-of-the-backwoods/HGamer3D/issues/7
+  HGamer3D-Bullet-Binding = dontDistribute super.HGamer3D-Bullet-Binding;
+  HGamer3D-Common = dontDistribute super.HGamer3D-Common;
+  HGamer3D-Data = markBroken super.HGamer3D-Data;
+
+  # https://github.com/ndmitchell/shake/issues/206
+  shake = overrideCabal super.shake (drv: { doCheck = !pkgs.stdenv.isDarwin; });
 
 }

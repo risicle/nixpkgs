@@ -702,6 +702,8 @@ let
 
   byobu = callPackage ../tools/misc/byobu { };
 
+  cabal2nix = haskellngPackages.callPackage ../development/tools/haskell/cabal2nix {};
+
   capstone = callPackage ../development/libraries/capstone { };
 
   catdoc = callPackage ../tools/text/catdoc { };
@@ -808,7 +810,7 @@ let
     krb5 = null;
     systemd = null;
     jemalloc = null;
-    mysql = null;
+    libmysql = null;
     postgresql = null;
     libdbi = null;
     net_snmp = null;
@@ -934,7 +936,15 @@ let
 
   cdrkit = callPackage ../tools/cd-dvd/cdrkit { };
 
+  # Only ever add ceph LTS releases
+  # The default should always be symlinked to the latest LTS
+  # Dev should always point to the latest versioned release
+  libceph = ceph.lib;
+  ceph-0_80 = callPackage ../tools/filesystems/ceph/0.80.nix { };
+  ceph-0_94 = callPackage ../tools/filesystems/ceph/0.94.nix { };
   ceph = callPackage ../tools/filesystems/ceph { };
+  ceph-dev = lowPrio (callPackage ../tools/filesystems/ceph/dev.nix { });
+  ceph-git = lowPrio (callPackage ../tools/filesystems/ceph/git.nix { });
 
   cfdg = builderDefsPackage ../tools/graphics/cfdg {
     inherit libpng bison flex ffmpeg;
@@ -1349,6 +1359,8 @@ let
     withGTK = true;
   };
 
+  foremost = callPackage ../tools/system/foremost { };
+
   forktty = callPackage ../os-specific/linux/forktty {};
 
   fortune = callPackage ../tools/misc/fortune { };
@@ -1634,6 +1646,8 @@ let
 
   hashcat = callPackage ../tools/security/hashcat { };
 
+  hal-flash = callPackage ../os-specific/linux/hal-flash { };
+
   halibut = callPackage ../tools/typesetting/halibut { };
 
   hddtemp = callPackage ../tools/misc/hddtemp { };
@@ -1729,6 +1743,8 @@ let
 
   isync = callPackage ../tools/networking/isync { };
 
+  jaaa = callPackage ../applications/audio/jaaa { };
+
   jd-gui = callPackage_i686 ../tools/security/jd-gui { };
 
   jdiskreport = callPackage ../tools/misc/jdiskreport { };
@@ -1756,6 +1772,8 @@ let
   kazam = callPackage ../applications/video/kazam { };
 
   kalibrate-rtl = callPackage ../tools/misc/kalibrate-rtl { };
+
+  kdbplus = callPackage_i686 ../applications/misc/kdbplus { };
 
   kexectools = callPackage ../os-specific/linux/kexectools { };
 
@@ -1817,11 +1835,17 @@ let
   nodejs-unstable = callPackage ../development/web/nodejs { libuv = libuvVersions.v1_2_0; unstableVersion = true; };
   nodejs-0_10 = callPackage ../development/web/nodejs/v0_10.nix { };
 
-  nodePackages = callPackage ./node-packages.nix { self = nodePackages; };
+  nodePackages_0_12 = callPackage ./node-packages.nix { self = nodePackages_0_12; };
+
+  nodePackages_0_10 = callPackage ./node-packages.nix { self = nodePackages_0_10; nodejs = nodejs-0_10; };
+
+  nodePackages = nodePackages_0_12;
 
   iojs = callPackage ../development/web/iojs { libuv = libuvVersions.v1_4_0; };
 
   iojsPackages = callPackage ./node-packages.nix { self = iojsPackages; nodejs = iojs; };
+
+  npm2nix = nodePackages_0_10.npm2nix;
 
   ldapvi = callPackage ../tools/misc/ldapvi { };
 
@@ -2695,6 +2719,8 @@ let
 
   simplescreenrecorder = callPackage ../applications/video/simplescreenrecorder { };
 
+  skydns = callPackage ../servers/dns/skydns { };
+
   sleuthkit = callPackage ../tools/system/sleuthkit {};
 
   slimrat = callPackage ../tools/networking/slimrat {
@@ -2720,10 +2746,6 @@ let
   sparsehash = callPackage ../development/libraries/sparsehash { };
 
   spiped = callPackage ../tools/networking/spiped { };
-
-  sproxy = haskellPackages.callPackage ../tools/networking/sproxy { };
-
-  sproxy-web = haskellPackages.callPackage ../tools/networking/sproxy-web { };
 
   sqliteman = callPackage ../applications/misc/sqliteman { };
 
@@ -2757,7 +2779,7 @@ let
 
   sudo = callPackage ../tools/security/sudo { };
 
-  suidChroot = builderDefsPackage (import ../tools/system/suid-chroot) { };
+  suidChroot = callPackage ../tools/system/suid-chroot { };
 
   super = callPackage ../tools/security/super { };
 
@@ -2888,6 +2910,8 @@ let
   tpm-quote-tools = callPackage ../tools/security/tpm-quote-tools { };
 
   tpm-tools = callPackage ../tools/security/tpm-tools { };
+
+  trace-cmd = callPackage ../os-specific/linux/trace-cmd { };
 
   traceroute = callPackage ../tools/networking/traceroute { };
 
@@ -3198,6 +3222,7 @@ let
   xflux = callPackage ../tools/misc/xflux { };
 
   xfsprogs = callPackage ../tools/filesystems/xfsprogs { };
+  libxfs = xfsprogs.lib;
 
   xml2 = callPackage ../tools/text/xml/xml2 { };
 
@@ -3720,7 +3745,7 @@ let
   haskellPackages = haskellPackages_ghc784;
 
   haskell-ng = callPackage ./haskell-ng.nix { };
-  haskellngPackages = haskell-ng.packages.ghc784.override {
+  haskellngPackages = haskell-ng.packages.ghc7101.override {
     overrides = config.haskellPackageOverrides or (self: super: {});
     provideOldAttributeNames = config.provideOldHaskellAttributeNames or false;
   };
@@ -3861,7 +3886,6 @@ let
   julia02 = callPackage ../development/compilers/julia/0.2.nix {
     liblapack = liblapack.override {shared = true;};
     llvm = llvm_33;
-    openblas = openblas_0_2_2;
     suitesparse = suitesparse_4_2;
   };
 
@@ -5421,6 +5445,8 @@ let
 
   aalib = callPackage ../development/libraries/aalib { };
 
+  accelio = callPackage ../development/libraries/accelio { };
+
   accountsservice = callPackage ../development/libraries/accountsservice { };
 
   acl = callPackage ../development/libraries/acl { };
@@ -6190,6 +6216,8 @@ let
   kf5_latest = kf57;
   kf5_stable = kf57;
 
+  kinetic-cpp-client = callPackage ../development/libraries/kinetic-cpp-client { };
+
   krb5 = callPackage ../development/libraries/kerberos/krb5.nix {
     openldap = openldap.override {
       cyrus_sasl = cyrus_sasl.override { kerberos = null; };
@@ -6251,6 +6279,8 @@ let
     automake = automake112x; # fails with 13 and 14
   };
 
+  libasyncns = callPackage ../development/libraries/libasyncns { };
+
   libatomic_ops = callPackage ../development/libraries/libatomic_ops {};
 
   libav = libav_11; # branch 11 is API-compatible with branch 10
@@ -6298,6 +6328,10 @@ let
 
   libcli = callPackage ../development/libraries/libcli { };
 
+  libclthreads = callPackage ../development/libraries/libclthreads  { };
+
+  libclxclient = callPackage ../development/libraries/libclxclient  { };
+
   libcm = callPackage ../development/libraries/libcm { };
 
   inherit (gnome3) libcroco;
@@ -6319,12 +6353,12 @@ let
   libdbi = callPackage ../development/libraries/libdbi { };
 
   libdbiDriversBase = callPackage ../development/libraries/libdbi-drivers {
-    mysql = null;
+    libmysql = null;
     sqlite = null;
   };
 
   libdbiDrivers = libdbiDriversBase.override {
-    inherit sqlite mysql;
+    inherit sqlite libmysql;
   };
 
   libdbusmenu_qt = callPackage ../development/libraries/libdbusmenu-qt { };
@@ -6451,9 +6485,7 @@ let
 
   libfixposix = callPackage ../development/libraries/libfixposix {};
 
-  libffcall = builderDefsPackage (import ../development/libraries/libffcall) {
-    inherit fetchcvs;
-  };
+  libffcall = callPackage ../development/libraries/libffcall { };
 
   libffi = callPackage ../development/libraries/libffi { };
 
@@ -6753,6 +6785,8 @@ let
   librsync = callPackage ../development/libraries/librsync { };
 
   librsync_0_9 = callPackage ../development/libraries/librsync/0.9.nix { };
+
+  libs3 = callPackage ../development/libraries/libs3 { };
 
   libsearpc = callPackage ../development/libraries/libsearpc { };
 
@@ -7462,6 +7496,8 @@ let
 
   rlog = callPackage ../development/libraries/rlog { };
 
+  rocksdb = callPackage ../development/libraries/rocksdb { };
+
   rubberband = callPackage ../development/libraries/rubberband {
     fftw = fftwSinglePrec;
     inherit (vamp) vampSDK;
@@ -7525,7 +7561,7 @@ let
 
   simgear = callPackage ../development/libraries/simgear { };
 
-  sfml_git = callPackage ../development/libraries/sfml { };
+  sfml = callPackage ../development/libraries/sfml { };
 
   skalibs = callPackage ../development/libraries/skalibs { };
 
@@ -7566,7 +7602,13 @@ let
 
   speech_tools = callPackage ../development/libraries/speech-tools {};
 
-  speex = callPackage ../development/libraries/speex { };
+  speex = callPackage ../development/libraries/speex {
+    fftw = fftwFloat;
+  };
+
+  speexdsp = callPackage ../development/libraries/speexdsp {
+    fftw = fftwFloat;
+  };
 
   sphinxbase = callPackage ../development/libraries/sphinxbase { };
 
@@ -7780,6 +7822,8 @@ let
 
   websocketpp = callPackage ../development/libraries/websocket++ { };
 
+  webrtc-audio-processing = callPackage ../development/libraries/webrtc-audio-processing { };
+
   wildmidi = callPackage ../development/libraries/wildmidi { };
 
   wiredtiger = callPackage ../development/libraries/wiredtiger { };
@@ -7808,8 +7852,6 @@ let
   x264 = callPackage ../development/libraries/x264 { };
 
   x265 = callPackage ../development/libraries/x265 { };
-
-  x265-hg = callPackage ../development/libraries/x265/hg.nix { };
 
   xapian = callPackage ../development/libraries/xapian { };
 
@@ -7891,6 +7933,8 @@ let
   cppzmq = callPackage ../development/libraries/cppzmq {};
 
   czmq = callPackage ../development/libraries/czmq { };
+
+  zita-alsa-pcmi = callPackage ../development/libraries/zita-alsa-pcmi { };
 
   zziplib = callPackage ../development/libraries/zziplib { };
 
@@ -8429,21 +8473,31 @@ let
 
   pshs = callPackage ../servers/http/pshs { };
 
-  pulseaudio = callPackage ../servers/pulseaudio {
-    gconf = gnome.GConf;
+  libpulseaudio = pulseaudioFull.override {
+    prefix = "lib";
+  };
+
+  pulseaudio = pulseaudioFull.override {
     # The following are disabled in the default build, because if this
     # functionality is desired, they are only needed in the PulseAudio
     # server.
-    bluez = null;
+    xlibs = null;
+    coreaudio = null;
+    esound = null;
+    libjack2 = null;
     avahi = null;
+    lirc = null;
+    bluez5 = null;
+    tdb = null;
+    gdbm = null;
   };
 
-  pulseaudioFull = pulseaudio.override {
-    bluez = bluez5;
-    avahi = avahi;
-    jackaudioSupport = true;
-    x11Support = true;
-    useSystemd = stdenv.isLinux;
+  pulseaudioFull = callPackage ../servers/pulseaudio {
+    gconf = gnome3.gconf;
+    fftw = fftwFloat;
+
+    # Disabled unless debugging
+    valgrind = null;
   };
 
   tomcat_connectors = callPackage ../servers/http/apache-modules/tomcat-connectors { };
@@ -8478,6 +8532,7 @@ let
   mysql55 = callPackage ../servers/sql/mysql/5.5.x.nix { };
 
   mysql = mariadb;
+  libmysql = mysql.lib;
 
   mysql_jdbc = callPackage ../servers/sql/mysql/jdbc { };
 
@@ -8599,7 +8654,7 @@ let
     cups = if stdenv.isDarwin then null else cups;
     pam = if stdenv.isDarwin then null else pam;
     libaio = if stdenv.isDarwin then null else libaio;
-    ceph = if stdenv.isDarwin then null else ceph;
+    libceph = if stdenv.isDarwin then null else libceph;
     glusterfs = if stdenv.isDarwin then null else glusterfs;
     dbus = if stdenv.isLinux then dbus else null;
     libibverbs = if stdenv.isLinux then libibverbs else null;
@@ -8633,7 +8688,7 @@ let
     acl = null;
     libaio = null;
     fam = null;
-    ceph = null;
+    libceph = null;
     glusterfs = null;
 
     # buildtools/wafsamba/wscript optionals
@@ -8771,9 +8826,7 @@ let
 
   alsaLib = callPackage ../os-specific/linux/alsa-lib { };
 
-  alsaPlugins = callPackage ../os-specific/linux/alsa-plugins {
-    jack2 = null;
-  };
+  alsaPlugins = callPackage ../os-specific/linux/alsa-plugins { };
 
   alsaPluginWrapper = callPackage ../os-specific/linux/alsa-plugins/wrapper.nix { };
 
@@ -8802,6 +8855,8 @@ let
   audit = callPackage ../os-specific/linux/audit { };
 
   b43Firmware_5_1_138 = callPackage ../os-specific/linux/firmware/b43-firmware/5.1.138.nix { };
+
+  b43Firmware_6_30_163_46 = callPackage ../os-specific/linux/firmware/b43-firmware/6.30.163.46.nix { };
 
   b43FirmwareCutter = callPackage ../os-specific/linux/firmware/b43-firmware-cutter { };
 
@@ -8946,6 +9001,7 @@ let
   fatrace = callPackage ../os-specific/linux/fatrace { };
 
   ffado = callPackage ../os-specific/linux/ffado { };
+  libffado = ffado.override { prefix = "lib"; };
 
   fbterm = callPackage ../os-specific/linux/fbterm { };
 
@@ -9187,6 +9243,8 @@ let
 
   linuxPackagesFor = kernel: self: let callPackage = newScope self; in rec {
     inherit kernel;
+
+    accelio = callPackage ../development/libraries/accelio { };
 
     acpi_call = callPackage ../os-specific/linux/acpi-call {};
 
@@ -9492,6 +9550,10 @@ let
 
   rtkit = callPackage ../os-specific/linux/rtkit { };
 
+  sassc = callPackage ../development/tools/sassc { };
+
+  schedtool = callPackage ../os-specific/linux/schedtool { };
+
   sdparm = callPackage ../os-specific/linux/sdparm { };
 
   sepolgen = callPackage ../os-specific/linux/sepolgen { };
@@ -9566,6 +9628,8 @@ let
     debug = false;
     guile = guile_1_8;
   };
+
+  trinity = callPackage ../os-specific/linux/trinity { };
 
   tunctl = callPackage ../os-specific/linux/tunctl { };
 
@@ -9886,6 +9950,8 @@ let
 
   posix_man_pages = callPackage ../data/documentation/man-pages-posix { };
 
+  powerline-fonts = callPackage ../data/fonts/powerline-fonts { };
+
   proggyfonts = callPackage ../data/fonts/proggyfonts { };
 
   pthreadmanpages = callPackage ../data/documentation/pthread-man-pages {
@@ -10087,6 +10153,8 @@ let
   backintime-qt4 = callPackage ../applications/networking/sync/backintime/qt4.nix { };
 
   backintime = backintime-qt4;
+
+  bandwidth = callPackage ../tools/misc/bandwidth { };
 
   bar = callPackage ../applications/window-managers/bar { };
 
@@ -10550,11 +10618,16 @@ let
     };
 
     external = {
-      inherit (haskellngPackages) ghc-mod structured-haskell-mode Agda;
+      # FIXME: revert when Agda and ghc-mod are fixed on 7.10
+      inherit (haskell-ng.packages.ghc784) ghc-mod Agda;
+      inherit (haskellngPackages) structured-haskell-mode;
     };
   };
 
   emacs24PackagesNg = recurseIntoAttrs (emacsPackagesNgGen emacs24);
+
+  emacsWithPackages = callPackage ../build-support/emacs/wrapper.nix { };
+  emacs24WithPackages = emacsWithPackages.override { emacs = emacs24; };
 
   inherit (gnome3) empathy;
 
@@ -11758,6 +11831,8 @@ let
 
   rtl-sdr = callPackage ../applications/misc/rtl-sdr { };
 
+  rtv = callPackage ../applications/misc/rtv { };
+
   rubyripper = callPackage ../applications/audio/rubyripper {};
 
   rxvt = callPackage ../applications/misc/rxvt { };
@@ -12478,6 +12553,8 @@ let
   xcompmgr = callPackage ../applications/window-managers/xcompmgr { };
 
   compton = callPackage ../applications/window-managers/compton { };
+
+  compton-git = callPackage ../applications/window-managers/compton/git.nix { };
 
   xdaliclock = callPackage ../tools/misc/xdaliclock {};
 
@@ -13390,16 +13467,9 @@ let
 
   liblbfgs = callPackage ../development/libraries/science/math/liblbfgs { };
 
-  # julia is pinned to specific versions of openblas, so keep old versions
-  # until they aren't needed. The un-versioned attribute may continue to track
-  # upstream development.
   openblas = callPackage ../development/libraries/science/math/openblas {
     liblapack = liblapack_3_5_0;
   };
-  openblas_0_2_10 = callPackage ../development/libraries/science/math/openblas/0.2.10.nix {
-    liblapack = liblapack_3_5_0;
-  };
-  openblas_0_2_2 = callPackage ../development/libraries/science/math/openblas/0.2.2.nix { };
 
   mathematica = callPackage ../applications/science/math/mathematica { };
   mathematica9 = callPackage ../applications/science/math/mathematica/9.nix { };
@@ -13831,7 +13901,10 @@ let
   # using the new configuration style proposal which is unstable
   jack1 = callPackage ../misc/jackaudio/jack1.nix { };
 
-  jack2 = callPackage ../misc/jackaudio { };
+  jack2 = callPackage ../misc/jackaudio {
+    libopus = libopus.override { withCustomModes = true; };
+  };
+  libjack2 = jack2.override { prefix = "lib"; };
 
   keynav = callPackage ../tools/X11/keynav { };
 
@@ -14147,6 +14220,12 @@ let
   });
 
   wine = wineStable;
+
+  wineStaging = callPackage_i686 ../misc/emulators/wine/staging.nix {
+    wine = pkgsi686Linux.wineUnstable;
+    # Patent issues
+    libtxc_dxtn = pkgsi686Linux.libtxc_dxtn_s2tc;
+  };
 
   winetricks = callPackage ../misc/emulators/wine/winetricks.nix {
     inherit (gnome2) zenity;
