@@ -3,11 +3,11 @@
 assert interactive -> readline != null && ncurses != null;
 
 stdenv.mkDerivation {
-  name = "sqlite-3.8.7.1";
+  name = "sqlite-3.8.10.2";
 
   src = fetchurl {
-    url = "http://www.sqlite.org/2014/sqlite-autoconf-3080701.tar.gz";
-    sha1 = "5601be1263842209d7c5dbf6128f1cc0b6bbe2e5";
+    url = "http://sqlite.org/2015/sqlite-autoconf-3081002.tar.gz";
+    sha1 = "c2f2c17d3dc4c4e179d35cc04e4420636d48a152";
   };
 
   buildInputs = lib.optionals interactive [ readline ncurses ];
@@ -20,6 +20,6 @@ stdenv.mkDerivation {
     homepage = http://www.sqlite.org/;
     description = "A self-contained, serverless, zero-configuration, transactional SQL database engine";
     platforms = stdenv.lib.platforms.unix;
-    maintainers = [ stdenv.lib.maintainers.eelco ];
+    maintainers = with stdenv.lib.maintainers; [ eelco np ];
   };
 }

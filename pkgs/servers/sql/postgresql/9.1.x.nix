@@ -1,20 +1,22 @@
-{ stdenv, fetchurl, zlib, readline }:
+{ stdenv, fetchurl, zlib, readline, openssl }:
 
-let version = "9.1.14"; in
+let version = "9.1.18"; in
 
 stdenv.mkDerivation rec {
   name = "postgresql-${version}";
 
   src = fetchurl {
     url = "mirror://postgresql/source/v${version}/${name}.tar.bz2";
-    sha256 = "d0647ce563d18ae02bf68c5dd646a4c75e8b45b3a4fada64d481371fdc16f522";
+    sha256 = "1a44hmcvfaa8j169ladsibmvjakw6maaxqkzz1ab8139cqkda9i7";
   };
 
-  buildInputs = [ zlib readline ];
+  buildInputs = [ zlib readline openssl ];
 
   enableParallelBuilding = true;
 
   LC_ALL = "C";
+
+  configureFlags = [ "--with-openssl" ];
 
   patches = [ ./less-is-more.patch ];
 

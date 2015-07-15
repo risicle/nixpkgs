@@ -17,13 +17,11 @@ let
 
   knownHosts = map (h: getAttr h cfg.knownHosts) (attrNames cfg.knownHosts);
 
-  knownHostsFile = pkgs.runCommand "ssh_known_hosts" {} ''
-    touch "$out"
-    ${flip concatMapStrings knownHosts (h: ''
-      pubkeyfile=${builtins.toFile "host.pub" (if h.publicKey == null then readFile h.publicKeyFile else h.publicKey)}
-      ${pkgs.gnused}/bin/sed 's/^/${concatStringsSep "," h.hostNames} /' $pubkeyfile >> "$out"
-    '')}
-  '';
+  knownHostsText = flip (concatMapStringsSep "\n") knownHosts
+    (h:
+      concatStringsSep "," h.hostNames + " "
+      + (if h.publicKey != null then h.publicKey else readFile h.publicKeyFile)
+    );
 
   userOptions = {
 
@@ -277,6 +275,16 @@ in
         };
       };
 
+      moduliFile = mkOption {
+        example = "services.openssh.moduliFile = /etc/my-local-ssh-moduli;";
+        type = types.path;
+        description = ''
+          Path to <literal>moduli</literal> file to install in
+          <literal>/etc/ssh/moduli</literal>. If this option is unset, then
+          the <literal>moduli</literal> file shipped with OpenSSH will be used.
+        '';
+      };
+
     };
 
     users.extraUsers = mkOption {
@@ -297,11 +305,13 @@ in
         home = "/var/empty";
       };
 
+    services.openssh.moduliFile = mkDefault "${cfgc.package}/etc/ssh/moduli";
+
     environment.etc = authKeysFiles ++ [
-      { source = "${cfgc.package}/etc/ssh/moduli";
+      { source = cfg.moduliFile;
         target = "ssh/moduli";
       }
-      { source = knownHostsFile;
+      { text = knownHostsText;
         target = "ssh/ssh_known_hosts";
       }
     ];

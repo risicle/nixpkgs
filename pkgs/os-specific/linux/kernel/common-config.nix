@@ -6,7 +6,9 @@ with stdenv.lib;
   # Power management and debugging.
   DEBUG_KERNEL y
   PM_ADVANCED_DEBUG y
-  PM_RUNTIME y
+  ${optionalString (versionOlder version "3.19") ''
+    PM_RUNTIME y
+  ''}
   TIMER_STATS y
   ${optionalString (versionOlder version "3.10") ''
     USB_SUSPEND y
@@ -16,7 +18,7 @@ with stdenv.lib;
   DEBUG_DEVRES n
   DEBUG_NX_TEST n
   DEBUG_STACK_USAGE n
-  ${optionalString (!(features.grsecurity or true)) ''
+  ${optionalString (!(features.grsecurity or false)) ''
     DEBUG_STACKOVERFLOW n
   ''}
   RCU_TORTURE_TEST n
@@ -146,7 +148,9 @@ with stdenv.lib;
   EXT2_FS_XATTR y
   EXT2_FS_POSIX_ACL y
   EXT2_FS_SECURITY y
-  EXT2_FS_XIP y # Ext2 execute in place support
+  ${optionalString (versionOlder version "4.0") ''
+    EXT2_FS_XIP y # Ext2 execute in place support
+  ''}
   EXT3_FS_POSIX_ACL y
   EXT3_FS_SECURITY y
   EXT4_FS_POSIX_ACL y

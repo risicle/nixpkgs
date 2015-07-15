@@ -114,6 +114,7 @@
   nathan-gs = "Nathan Bijnens <nathan@nathan.gs>";
   nckx = "Tobias Geerinckx-Rice <tobias.geerinckx.rice@gmail.com>";
   notthemessiah = "Brian Cohen <brian.cohen.88@gmail.com>";
+  np = "Nicolas Pouillard <np.nix@nicolaspouillard.fr>";
   nslqqq = "Nikita Mikhailov <nslqqq@gmail.com>";
   ocharles = "Oliver Charles <ollie@ocharles.org.uk>";
   offline = "Jaka Hudoklin <jakahudoklin@gmail.com>";
@@ -153,6 +154,7 @@
   smironov = "Sergey Mironov <ierton@gmail.com>";
   sprock = "Roger Mason <rmason@mun.ca>";
   spwhitt = "Spencer Whitt <sw@swhitt.me>";
+  stephenmw = "Stephen Weinberg <stephen@q5comm.com>";
   sztupi = "Attila Sztupak <attila.sztupak@gmail.com>";
   tailhook = "Paul Colomiets <paul@colomiets.name>";
   thammers = "Tobias Hammerschmidt <jawr@gmx.de>";

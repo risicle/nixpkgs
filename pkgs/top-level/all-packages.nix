@@ -1333,6 +1333,8 @@ let
 
   googleAuthenticator = callPackage ../os-specific/linux/google-authenticator { };
 
+  google-cloud-sdk = callPackage ../tools/admin/google-cloud-sdk { };
+
   gource = callPackage ../applications/version-management/gource { };
 
   gparted = callPackage ../tools/misc/gparted { };
@@ -1594,9 +1596,7 @@ let
 
   kzipmix = callPackage_i686 ../tools/compression/kzipmix { };
 
-  minidlna = callPackage ../tools/networking/minidlna {
-    ffmpeg = ffmpeg_0_10;
-  };
+  minidlna = callPackage ../tools/networking/minidlna { };
 
   mmv = callPackage ../tools/misc/mmv { };
 
@@ -1613,11 +1613,11 @@ let
   nodejs = callPackage ../development/web/nodejs { };
   nodejs-unstable = callPackage ../development/web/nodejs { unstableVersion = true; };
 
-  nodePackages = recurseIntoAttrs (callPackage ./node-packages.nix {
+  nodePackages = callPackage ./node-packages.nix {
     inherit pkgs stdenv nodejs fetchurl fetchgit;
     neededNatives = [python] ++ lib.optional (lib.elem system lib.platforms.linux) utillinux;
     self = pkgs.nodePackages;
-  });
+  };
 
   ldapvi = callPackage ../tools/misc/ldapvi { };
 
@@ -2103,6 +2103,8 @@ let
   pciutils = callPackage ../tools/system/pciutils { };
 
   pcsclite = callPackage ../tools/security/pcsclite { };
+
+  pcsctools = callPackage ../tools/security/pcsctools { };
 
   pdf2djvu = callPackage ../tools/typesetting/pdf2djvu { };
 
@@ -4064,7 +4066,6 @@ let
     glpk = null;
     suitesparse = null;
     openjdk = null;
-    gnuplot = null;
   };
   octaveFull = (lowPrio (callPackage ../development/interpreters/octave {
     fltk = fltk13;
@@ -5676,6 +5677,8 @@ let
 
   libarchive = callPackage ../development/libraries/libarchive { };
 
+  libasr = callPackage ../development/libraries/libasr { };
+
   libass = callPackage ../development/libraries/libass { };
 
   libassuan1 = callPackage ../development/libraries/libassuan1 { };
@@ -6147,6 +6150,8 @@ let
   libpaper = callPackage ../development/libraries/libpaper { };
 
   libpfm = callPackage ../development/libraries/libpfm { };
+
+  libpqxx = callPackage ../development/libraries/libpqxx { };
 
   libproxy = callPackage ../development/libraries/libproxy {
     stdenv = if stdenv.isDarwin
@@ -7516,7 +7521,7 @@ let
     packages = [];
   };
 
-  rPackages = import ../development/r-modules {
+  rPackages = callPackage ../development/r-modules {
     inherit pkgs;
     overrides = (config.rPackageOverrides or (p: {})) pkgs;
   };
@@ -7815,7 +7820,8 @@ let
 
   postgresql94beta2 = callPackage ../servers/sql/postgresql/9.4beta2.nix { };
   postgresql94beta3 = callPackage ../servers/sql/postgresql/9.4beta3.nix { };
-  postgresql94 = postgresql94beta3;
+
+  postgresql94 = callPackage ../servers/sql/postgresql/9.4.x.nix { };
 
   postgresql_jdbc = callPackage ../servers/sql/postgresql/jdbc { };
 
@@ -7936,6 +7942,8 @@ let
   xorgReplacements = callPackage ../servers/x11/xorg/replacements.nix { };
 
   xorgVideoUnichrome = callPackage ../servers/x11/xorg/unichrome/default.nix { };
+
+  xwayland = with xorg; callPackage ../servers/x11/xorg/xwayland.nix { };
 
   yaws = callPackage ../servers/http/yaws { };
 
@@ -8275,7 +8283,7 @@ let
 
   linux_3_14 = makeOverridable (import ../os-specific/linux/kernel/linux-3.14.nix) {
     inherit fetchurl stdenv perl buildLinux;
-    kernelPatches = [ kernelPatches.crc_regression ]
+    kernelPatches = [ ]
       ++ lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
         kernelPatches.mips_fpu_sigill
@@ -8283,7 +8291,7 @@ let
       ];
   };
 
-  linux_3_17 = makeOverridable (import ../os-specific/linux/kernel/linux-3.17.nix) {
+  linux_3_18 = makeOverridable (import ../os-specific/linux/kernel/linux-3.18.nix) {
     inherit fetchurl stdenv perl buildLinux;
     kernelPatches = lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -8292,7 +8300,16 @@ let
       ];
   };
 
-  linux_3_18 = makeOverridable (import ../os-specific/linux/kernel/linux-3.18.nix) {
+  linux_3_19 = makeOverridable (import ../os-specific/linux/kernel/linux-3.19.nix) {
+    inherit fetchurl stdenv perl buildLinux;
+    kernelPatches = lib.optionals ((platform.kernelArch or null) == "mips")
+      [ kernelPatches.mips_fpureg_emu
+        kernelPatches.mips_fpu_sigill
+        kernelPatches.mips_ext3_n32
+      ];
+  };
+
+  linux_4_0 = makeOverridable (import ../os-specific/linux/kernel/linux-4.0.nix) {
     inherit fetchurl stdenv perl buildLinux;
     kernelPatches = lib.optionals ((platform.kernelArch or null) == "mips")
       [ kernelPatches.mips_fpureg_emu
@@ -8350,7 +8367,7 @@ let
      for a specific kernel.  This function can then be called for
      whatever kernel you're using. */
 
-  linuxPackagesFor = kernel: self: let callPackage = newScope self; in {
+  linuxPackagesFor = kernel: self: let callPackage = newScope self; in rec {
     inherit kernel;
 
     acpi_call = callPackage ../os-specific/linux/acpi-call {};
@@ -8431,6 +8448,10 @@ let
       pulseSupport = config.pulseaudio or false;
     };
 
+    virtualboxHardened = lowPrio (virtualbox.override {
+      enableHardening = true;
+    });
+
     virtualboxGuestAdditions = callPackage ../applications/virtualization/virtualbox/guest-additions { };
 
     zfs = callPackage ../os-specific/linux/zfs { };
@@ -8442,8 +8463,8 @@ let
   linuxPackages = linuxPackages_3_14;
 
   # Update this when adding the newest kernel major version!
-  linux_latest = pkgs.linux_3_18;
-  linuxPackages_latest = pkgs.linuxPackages_3_18;
+  linux_latest = linuxPackages_latest.kernel;
+  linuxPackages_latest = pkgs.linuxPackages_4_0;
 
   # Build the kernel modules for the some of the kernels.
   linuxPackages_3_2 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_2 linuxPackages_3_2);
@@ -8453,8 +8474,9 @@ let
   linuxPackages_3_10_tuxonice = linuxPackagesFor pkgs.linux_3_10_tuxonice linuxPackages_3_10_tuxonice;
   linuxPackages_3_12 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_12 linuxPackages_3_12);
   linuxPackages_3_14 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_14 linuxPackages_3_14);
-  linuxPackages_3_17 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_17 linuxPackages_3_17);
   linuxPackages_3_18 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_18 linuxPackages_3_18);
+  linuxPackages_3_19 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_3_19 linuxPackages_3_19);
+  linuxPackages_4_0 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_0 linuxPackages_4_0);
   linuxPackages_testing = recurseIntoAttrs (linuxPackagesFor pkgs.linux_testing linuxPackages_testing);
 
   # grsecurity flavors
@@ -8589,6 +8611,8 @@ let
     firmware = config.pcmciaUtils.firmware or [];
     config = config.pcmciaUtils.config or null;
   };
+
+  perf-tools = callPackage ../os-specific/linux/perf-tools { };
 
   plymouth = callPackage ../os-specific/linux/plymouth {
     automake = automake113x;
@@ -10872,7 +10896,9 @@ let
 
   symlinks = callPackage ../tools/system/symlinks { };
 
-  syncthing = callPackage ../applications/networking/syncthing { };
+  syncthing = callPackage ../applications/networking/syncthing {
+    go = go_1_4;
+  };
 
   # linux only by now
   synergy = callPackage ../applications/misc/synergy { };
@@ -11397,7 +11423,10 @@ let
 
   libxpdf = callPackage ../applications/misc/xpdf/libxpdf.nix { };
 
-  xpra = callPackage ../tools/X11/xpra { };
+  xpra = callPackage ../tools/X11/xpra { inherit (texFunctions) fontsConf; };
+  libfakeXinerama = callPackage ../tools/X11/xpra/libfakeXinerama.nix { inherit (xlibs) libXinerama; };
+  #TODO: 'pil' is not available for python3, yet
+  xpraGtk3 = callPackage ../tools/X11/xpra/gtk3.nix { inherit (texFunctions) fontsConf; inherit (python3Packages) buildPythonPackage python cython pygobject3 pycairo; };
 
   xrestop = callPackage ../tools/X11/xrestop { };
 

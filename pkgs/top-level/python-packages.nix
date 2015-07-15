@@ -588,15 +588,15 @@ let
   }));
 
   azure = buildPythonPackage rec {
-    version = "0.9.0";
+    version = "0.11.0";
     name = "azure-${version}";
 
     src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/a/azure/${name}.zip";
-      md5 = "9616767cf45c1c00794624e2a0889f23";
+      md5 = "5499efd85c54c757c0e757b5407ee47f";
     };
 
-    propagatedBuildInputs = with self; [ dateutil ];
+    propagatedBuildInputs = with self; [ dateutil futures pyopenssl ];
 
     meta = with stdenv.lib; {
       description = "Microsoft Azure SDK for Python";
@@ -1038,15 +1038,19 @@ let
 
   boto = buildPythonPackage rec {
     name = "boto-${version}";
-    version = "2.34.0";
+    version = "2.38.0";
 
     src = pkgs.fetchurl {
       url = "https://github.com/boto/boto/archive/${version}.tar.gz";
-      sha256 = "08zavyn02qng9y0251a9mrlkb3aw33m7gx5kc97hwngl3xk3s777";
+      sha256 = "0l7m3lmxmnknnz9svzc7z26rklwckzwqgz6hgackl62gkndryrgj";
     };
 
-    # The tests seem to require AWS credentials.
-    doCheck = false;
+    checkPhase = ''
+      ${python.interpreter} tests/test.py default
+    '';
+
+    buildInputs = [ self.nose self.mock ];
+    propagatedBuildInputs = [ self.requests self.httpretty ];
 
     meta = {
       homepage = https://github.com/boto/boto;
@@ -2056,6 +2060,26 @@ let
     };
   });
 
+  ddar = buildPythonPackage {
+    name = "ddar-1.0";
+
+    src = pkgs.fetchurl {
+      url = "https://github.com/basak/ddar/archive/v1.0.tar.gz";
+      sha256 = "08lv7hrbhcv6hbl01sx8fgx3l8s2nn8rvcicdidafwm87bvi2nmr";
+    };
+
+    preBuild = ''
+      make -f Makefile.prep synctus/ddar_pb2.py
+    '';
+
+    propagatedBuildInputs = with self; [ protobuf modules.sqlite3 ];
+
+    meta = {
+      description = "Unix de-duplicating archiver";
+      license = licenses.gpl3;
+      homepage = https://github.com/basak/ddar;
+    };
+  };
 
   decorator = buildPythonPackage rec {
     name = "decorator-3.4.0";
@@ -3563,11 +3587,11 @@ let
 
   django_1_6 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.6.6";
+    version = "1.6.11";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.6/${name}.tar.gz";
-      sha256 = "143yp984n8a2bs1dflxjp1s7skmji0cwkw05s9ikbfikwmabsv2k";
+      sha256 = "0misvia78c14y07zs5xsb9lv54q0v217jpaindrmhhw4wiryal3y";
     };
 
     # error: invalid command 'test'
@@ -3581,11 +3605,11 @@ let
 
   django_1_5 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.5.9";
+    version = "1.5.12";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.5/${name}.tar.gz";
-      sha256 = "1lm0pa6m9f4cd6pv239lqj32z1snf8xjbvlbh8bqihs6a1f51kj7";
+      sha256 = "1vbcvn6ncg7hq5i1w95h746vkq9lmp120vx63h3p56z5nsz7gpmk";
     };
 
     # error: invalid command 'test'
@@ -3599,11 +3623,11 @@ let
 
   django_1_4 = buildPythonPackage rec {
     name = "Django-${version}";
-    version = "1.4.14";
+    version = "1.4.21";
 
     src = pkgs.fetchurl {
       url = "http://www.djangoproject.com/m/releases/1.4/${name}.tar.gz";
-      sha256 = "173ci9ml2vs1z2x51wahssfn8mrmhd02varmg9kibm8z460svvc1";
+      sha256 = "1x5wk3yh6ydbp4sgsxl4qjmdvcazphwkmmm99lfdb04645sijkwk";
     };
 
     # error: invalid command 'test'
@@ -4234,15 +4258,13 @@ let
   };
 
   gevent = buildPythonPackage rec {
-    name = "gevent-1.0.1";
+    name = "gevent-1.0.2";
     disabled = isPy3k || isPyPy;  # see https://github.com/surfly/gevent/issues/248
 
     src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/g/gevent/${name}.tar.gz";
-      sha256 = "0hyzfb0gcx9pm5c2igan8y57hqy2wixrwvdjwsaivxsqs0ay49s6";
+      sha256 = "0cds7yvwdlqmd590i59vzxaviwxk4js6dkhnmdxb3p1xac7wmq9s";
     };
- 
-    patches = [ ../development/python-modules/gevent_sslwrap.patch ];
 
     buildInputs = with self; [ pkgs.libev ];
     propagatedBuildInputs = optionals (!isPyPy) [ self.greenlet ];
@@ -4446,13 +4468,18 @@ let
 
   greenlet = buildPythonPackage rec {
     name = "greenlet-${version}";
-    version = "0.4.5";
+    version = "0.4.7";
     disabled = isPyPy;  # builtin for pypy
 
     src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/g/greenlet/${name}.zip";
-      sha256 = "1gidivqcpn6i6k01bf3hgcn0m68h4b9srhpff9kgnk0c287z145r";
+      sha256 = "1zlmsygjw69xlq56vz1z5ivzy9bwc7knjaykn2yy2hv4w2j4yb7k";
     };
+
+    # see https://github.com/python-greenlet/greenlet/issues/85
+    preCheck = ''
+      rm tests/test_leaks.py
+    '';
 
     meta = with stdenv.lib; {
       homepage = http://pypi.python.org/pypi/greenlet;
@@ -4551,12 +4578,12 @@ let
 
   hetzner = buildPythonPackage rec {
     name = "hetzner-${version}";
-    version = "0.7.2";
+    version = "0.7.3";
 
     src = pkgs.fetchurl {
       url = "https://github.com/RedMoonStudios/hetzner/archive/"
           + "v${version}.tar.gz";
-      sha256 = "07jnrgy9fkh1hwgsa8491ljz9spazmifqsg92m3xnamja1536qfl";
+      sha256 = "1a0kcwqd1pj5giwh75m2m3jcnr1kd38v40hh64wgly2zp485nm5m";
     };
 
     # not there yet, but coming soon.
@@ -4665,7 +4692,7 @@ let
     name = "httpretty-${version}";
     version = "0.8.3";
     disabled = isPy3k;
-    doCheck = !isPyPy;
+    doCheck = false;
 
     src = pkgs.fetchurl {
       url = "http://pypi.python.org/packages/source/h/httpretty/${name}.tar.gz";
@@ -4959,6 +4986,26 @@ let
       homepage = http://code.google.com/p/pylast/;
       description = "A python interface to last.fm (and compatibles)";
       license = licenses.asl20;
+    };
+  };
+
+
+  le = buildPythonPackage rec {
+    name = "le-${version}";
+    version = "1.4.13";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "logentries";
+      repo = "le";
+      rev = "v${version}";
+      sha256 = "12l6fqavykjinq286i9pgbbbrv5lq2mmiji91g0m05lfdx9pg4y1";
+    };
+
+    propagatedBuildInputs = with self; [ simplejson psutil ];
+
+    meta = {
+      homepage = "https://github.com/logentries/le";
+      description = "Logentries agent";
     };
   };
 
@@ -6479,11 +6526,11 @@ let
 
   pelican = buildPythonPackage rec {
     name = "pelican-${version}";
-    version = "3.4.0";
+    version = "3.5.0";
 
     src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/p/pelican/${name}.tar.gz";
-      md5 = "8e57bdd075503903125b14621b1e533d";
+      sha256 = "0dl8i26sa20iijlg3z9gxn3p6f1d9v44b9742929xfaqwj4amvdp";
     };
 
     preConfigure = ''
@@ -6495,13 +6542,16 @@ let
     #buildInputs = [nose mock];
     doCheck = false;
 
-    propagatedBuildInputs = with self; [jinja2 pygments docutils pytz unidecode six dateutil feedgenerator blinker pillow beautifulsoup4];
+    propagatedBuildInputs = with self; [
+      jinja2 pygments docutils pytz unidecode six dateutil feedgenerator
+      blinker pillow beautifulsoup4 markupsafe
+    ];
 
     meta = {
       homepage = http://getpelican.com/;
       description = "A tool to generate a static blog from reStructuredText or Markdown input files";
       license = licenses.agpl3;
-      maintainers = [ stdenv.lib.maintainers.offline ];
+      maintainers = with stdenv.lib.maintainers; [ offline prikhi ];
     };
   };
 
@@ -7180,6 +7230,32 @@ let
       description = "Allows to easily create both directed and non directed graphs from Python";
     };
   };
+
+
+  pyev = buildPythonPackage rec {
+    name = "pyev-0.9.0";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/p/pyev/${name}.tar.gz";
+      sha256 = "0rf603lc0s6zpa1nb25vhd8g4y337wg2wyz56i0agsdh7jchl0sx";
+    };
+
+    buildInputs = [ pkgs.libev ];
+
+    postPatch = ''
+      libev_so=${pkgs.libev}/lib/libev.so.4
+      test -f "$libev_so" || { echo "ERROR: File $libev_so does not exist, please fix nix expression for pyev"; exit 1; }
+      sed -i -e "s|libev_dll_name = find_library(\"ev\")|libev_dll_name = \"$libev_so\"|" setup.py
+    '';
+
+    meta = {
+      description = "Python bindings for libev";
+      homepage = https://code.google.com/p/pyev/;
+      license = licenses.gpl3;
+      maintainers = [ maintainers.bjornfor ];
+    };
+  };
+
 
   pyfeed = buildPythonPackage rec {
     url = "http://www.blarg.net/%7Esteveha/pyfeed-0.7.4.tar.gz";
@@ -8330,13 +8406,13 @@ let
   };
 
   robotframework = buildPythonPackage rec {
-    version = "2.8.6";
+    version = "2.8.7";
     name = "robotframework-${version}";
     disabled = isPy3k;
 
     src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/r/robotframework/${name}.tar.gz";
-      sha256 = "0hl44pwfkagr5272s90y0bkfllj0q1l4yw4rvkdrc6ikn6l61d9v";
+      sha256 = "0mfd0s989j3jrpl8q0lb4wsjy1x280chfr9r74m2dyi9c7rxzc58";
     };
 
     # error: invalid command 'test'
@@ -11880,18 +11956,18 @@ let
 
   libvirt = pkgs.stdenv.mkDerivation rec {
     name = "libvirt-python-${version}";
-    version = "1.2.9";
+    version = "1.2.12";
 
     src = pkgs.fetchurl {
       url = "http://libvirt.org/sources/python/${name}.tar.gz";
-      sha256 = "1vbrkwvsvcfgibdw4drcypg2n6zcpi3zv23zw20nkk5fjfp26w4g";
+      sha256 = "17w4mpsp4pxhbzs128ig3gxp12rr0j41mxch8i11dqjrjy7l6bs3";
     };
 
     buildInputs = with self; [ python pkgs.pkgconfig pkgs.libvirt lxml ];
 
-    buildPhase = "python setup.py build";
+    buildPhase = "${python.interpreter} setup.py build";
 
-    installPhase = "python setup.py install --prefix=$out";
+    installPhase = "${python.interpreter} setup.py install --prefix=$out";
 
     meta = {
       homepage = http://www.libvirt.org/;

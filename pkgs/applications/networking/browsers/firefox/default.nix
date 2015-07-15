@@ -15,14 +15,14 @@
 
 assert stdenv.gcc ? libc && stdenv.gcc.libc != null;
 
-let version = "35.0.1"; in
+let version = "39.0"; in
 
 stdenv.mkDerivation rec {
   name = "firefox-${version}";
 
   src = fetchurl {
     url = "http://ftp.mozilla.org/pub/mozilla.org/firefox/releases/${version}/source/firefox-${version}.source.tar.bz2";
-    sha1 = "cf256ee1491ee502eb4432ade5a879104ebceede";
+    sha1 = "32785daee7ddb9da8d7509ef095258fc58fe838e";
   };
 
   buildInputs =
@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
       xlibs.libX11 xlibs.libXrender xlibs.libXft xlibs.libXt file
       alsaLib nspr nss libnotify xlibs.pixman yasm mesa
       xlibs.libXScrnSaver xlibs.scrnsaverproto pysqlite
-      xlibs.libXext xlibs.xextproto sqlite unzip makeWrapper
+      xlibs.libXext xlibs.xextproto /* sqlite */ unzip makeWrapper
       hunspell libevent libstartup_notification libvpx cairo
       gstreamer gst_plugins_base icu
     ];
@@ -51,7 +51,7 @@ stdenv.mkDerivation rec {
       "--enable-system-ffi"
       "--enable-system-hunspell"
       "--enable-system-pixman"
-      "--enable-system-sqlite"
+      #"--enable-system-sqlite"
       "--enable-system-cairo"
       "--enable-gstreamer"
       "--enable-startup-notification"
