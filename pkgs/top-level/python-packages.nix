@@ -2738,11 +2738,13 @@ let
   };
 
   dateutil = buildPythonPackage (rec {
-    name = "dateutil-2.2";
+    name = "dateutil-${version}";
+    version = "2.4.2";
 
     src = pkgs.fetchurl {
       url = "http://pypi.python.org/packages/source/p/python-dateutil/python-${name}.tar.gz";
-      sha256 = "0s74ad6r789810s10dxgvaf48ni6adac2icrdad34zxygqq6bj7f";
+      md5 = "4ef68e1c485b09e9f034e10473e5add2";
+      sha256 = "3e95445c1db500a344079a47b171c45ef18f57d188dffdb0e4165c71bea8eb3d";
     };
 
     propagatedBuildInputs = with self; [ self.six ];
