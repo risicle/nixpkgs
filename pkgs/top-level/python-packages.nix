@@ -12028,13 +12028,14 @@ let
   };
 
   redis = buildPythonPackage rec {
-    name = "redis-2.9.1";
+    name = "redis-2.10.3";
 
     src = pkgs.fetchurl {
       url = "https://pypi.python.org/packages/source/r/redis/${name}.tar.gz";
-      sha256 = "1r7lrh4kxccyhr4pyp13ilymmvh22pi7aa9514dmnhi74zn4g5xg";
+      sha256 = "1701qjwn4n05q90fdg4bsg96s27xf5s4hsb4gxhv3xk052q3gyx4";
     };
 
+    # tests require a running redis
     doCheck = false;
 
     meta = {
