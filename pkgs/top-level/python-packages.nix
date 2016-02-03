@@ -5403,8 +5403,7 @@ let
     };
   }) {};
 
-
-  django_tagging = buildPythonPackage rec {
+  django_tagging = ({ django ? self.django }: buildPythonPackage rec {
     name = "django-tagging-0.3.1";
 
     src = pkgs.fetchurl {
@@ -5421,8 +5420,7 @@ let
       description = "A generic tagging application for Django projects";
       homepage = http://code.google.com/p/django-tagging/;
     };
-  };
-
+  }) {};
 
   django_classytags = buildPythonPackage rec {
     name = "django-classy-tags-${version}";
