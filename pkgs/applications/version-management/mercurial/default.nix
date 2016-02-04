@@ -20,7 +20,7 @@ stdenv.mkDerivation {
 
   buildInputs = [ python makeWrapper docutils unzip ];
 
-  propagatedBuildInputs = stdenv.lib.optional stdenv.isDarwin ApplicationServices;
+  propagatedBuildInputs = [ curses ] ++ stdenv.lib.optional stdenv.isDarwin ApplicationServices;
 
   makeFlags = "PREFIX=$(out)";
 
