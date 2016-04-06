@@ -2697,6 +2697,28 @@ let
     };
   };
 
+  pytestdjango = buildPythonPackage rec {
+    name = "pytest-django-${version}";
+    version = "2.9.1";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/p/pytest-django/${name}.tar.gz";
+      sha256 = "1mmc7zsz3dlhs6sx4sppkj1vgshabi362r1a8b8wpj1qfximpqcb";
+    };
+    
+    # doing this to allow depending packages to find
+    # pytest's binaries
+    pytest = self.pytest;
+
+    propagatedBuildInputs = with self; [ django pytest setuptools_scm_18 ];
+
+    meta = {
+      description = "py.test plugin for testing of Django applications";
+      homepage = http://pytest-django.readthedocs.org/en/latest/;
+      license = licenses.bsd3;
+    };
+  };
+
   cssselect = buildPythonPackage rec {
     name = "cssselect-0.7.1";
     src = pkgs.fetchurl {
@@ -12805,6 +12827,16 @@ let
       description = "Handles managing your python package versions in scm metadata";
       license = licenses.mit;
       maintainers = with maintainers; [ jgeerds ];
+    };
+  };
+
+  setuptools_scm_18 = self.setuptools_scm.override rec {
+    name = "setuptools_scm-${version}";
+    version = "1.8.0";
+
+    src = pkgs.fetchurl {
+      url = "https://pypi.python.org/packages/source/s/setuptools_scm/${name}.tar.bz2";
+      sha256 = "00p60v2yfqy1r58pjcx9wy6dvqd7wkpfs5z1dzwf7y75c1g3dgyx";
     };
   };
 
