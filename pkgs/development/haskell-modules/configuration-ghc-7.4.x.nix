@@ -34,19 +34,23 @@ self: super: {
   time = null;
   unix = null;
 
-  # transformers is not a core library for this compiler.
+  # These packages are core libraries in GHC 7.10.x, but not here.
+  haskeline = self.haskeline_0_7_2_1;
+  terminfo = self.terminfo_0_4_0_1;
   transformers = self.transformers_0_4_3_0;
-  mtl = self.mtl_2_2_1;
-  transformers-compat = disableCabalFlag super.transformers-compat "three";
+  xhtml = self.xhtml_3000_2_1;
 
   # https://github.com/haskell/cabal/issues/2322
-  Cabal_1_22_2_0 = super.Cabal_1_22_2_0.override { binary = self.binary_0_7_4_0; };
+  Cabal_1_22_4_0 = super.Cabal_1_22_4_0.override { binary = dontCheck self.binary_0_8_2_0; };
+
+  # Avoid inconsistent 'binary' versions from 'text' and 'Cabal'.
+  cabal-install = super.cabal-install.overrideScope (self: super: { binary = dontCheck self.binary_0_8_2_0; });
 
   # https://github.com/tibbe/hashable/issues/85
   hashable = dontCheck super.hashable;
 
-  # Needs Cabal >= 1.18.x.
-  jailbreak-cabal = super.jailbreak-cabal.override { Cabal = self.Cabal_1_18_1_6; };
+  # https://github.com/peti/jailbreak-cabal/issues/9
+  jailbreak-cabal = super.jailbreak-cabal.override { Cabal = dontJailbreak self.Cabal_1_20_0_4; };
 
   # Haddock chokes on the prologue from the cabal file.
   ChasingBottoms = dontHaddock super.ChasingBottoms;
@@ -65,5 +69,24 @@ self: super: {
 
   # Choose appropriate flags for our version of 'bytestring'.
   bytestring-builder = disableCabalFlag super.bytestring-builder "bytestring_has_builder";
+
+  # Newer versions require a more recent compiler.
+  control-monad-free = super.control-monad-free_0_5_3;
+
+  # Needs hashable on pre 7.10.x compilers.
+  nats_1 = addBuildDepend super.nats_1 self.hashable;
+  nats = addBuildDepend super.nats self.hashable;
+
+  # Test suite won't compile.
+  unix-time = dontCheck super.unix-time;
+
+  # Avoid depending on tasty-golden.
+  monad-par = dontCheck super.monad-par;
+
+  # Newer versions require bytestring >=0.10.
+  tar = super.tar_0_4_1_0;
+
+  # Needs void on pre 7.10.x compilers.
+  conduit = addBuildDepend super.conduit self.void;
 
 }

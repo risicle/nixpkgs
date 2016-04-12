@@ -196,23 +196,40 @@
       nylon = 168;
       apache-kafka = 169;
       panamax = 170;
-      marathon = 171;
       exim = 172;
       #fleet = 173; # unused
       #input = 174; # unused
       sddm = 175;
       tss = 176;
       memcached = 177;
-      nscd = 178;
       ntp = 179;
       zabbix = 180;
       redis = 181;
-      sshd = 182;
       unifi = 183;
       uptimed = 184;
       zope2 = 185;
       ripple-data-api = 186;
       mediatomb = 187;
+      rdnssd = 188;
+      ihaskell = 189;
+      i2p = 190;
+      lambdabot = 191;
+      asterisk = 192;
+      plex = 193;
+      bird = 195;
+      grafana = 196;
+      skydns = 197;
+      ripple-rest = 198;
+      nix-serve = 199;
+      tvheadend = 200;
+      uwsgi = 201;
+      gitit = 202;
+      riemanntools = 203;
+      subsonic = 204;
+      riak = 205;
+      shout = 206;
+      gateone = 207;
+      nm-openvpn = 217;
 
       # When adding a uid, make sure it doesn't match an existing gid. And don't use uids above 399!
 
@@ -369,7 +386,7 @@
       seeks = 148;
       prosody = 149;
       i2pd = 150;
-      #dnscrypt-proxy = 151; # unused
+      dnscrypt-proxy = 151;
       systemd-network = 152;
       systemd-resolve = 153;
       systemd-timesync = 154;
@@ -386,23 +403,41 @@
       gitlab = 165;
       nylon = 168;
       panamax = 170;
-      #marathon = 171; # unused
       exim = 172;
       fleet = 173;
       input = 174;
       sddm = 175;
       tss = 176;
       #memcached = 177; # unused
-      #nscd = 178; # unused
       #ntp = 179; # unused
       #zabbix = 180; # unused
       #redis = 181; # unused
-      #sshd = 182; # unused
       #unifi = 183; # unused
       #uptimed = 184; # unused
       #zope2 = 185; # unused
       #ripple-data-api = 186; #unused
       mediatomb = 187;
+      #rdnssd = 188; # unused
+      ihaskell = 189;
+      i2p = 190;
+      lambdabot = 191;
+      #asterisk = 192; # unused
+      plex = 193;
+      sabnzbd = 194;
+      bird = 195;
+      #grafana = 196; #unused
+      #skydns = 197; #unused
+      #ripple-rest = 198; #unused
+      #nix-serve = 199; #unused
+      #tvheadend = 200; #unused
+      uwsgi = 201;
+      gitit = 202;
+      riemanntools = 203;
+      subsonic = 204;
+      riak = 205;
+      #shout = 206; #unused
+      gateone = 207;
+      nm-openvpn = 217;
 
       # When adding a gid, make sure it doesn't match an existing
       # uid. Users and groups with the same name should have equal

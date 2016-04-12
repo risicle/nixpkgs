@@ -35,11 +35,11 @@ let
   phononBackendPackages = flip concatMap cfg.phononBackends
     (name: attrByPath [name] (throw "unknown phonon backend `${name}'") phononBackends);
 
-  kf5 = plasma5.kf5;
+  kf5 = pkgs.kf5_stable;
 
-  plasma5 = pkgs.plasma5_stable;
+  plasma5 = pkgs.plasma5_stable.override { inherit kf5; };
 
-  kdeApps = pkgs.kdeApps_stable;
+  kdeApps = pkgs.kdeApps_stable.override { inherit kf5; };
 
 in
 
@@ -76,7 +76,15 @@ in
     services.xserver.desktopManager.session = singleton {
       name = "kde5";
       bgSupport = true;
-      start = ''exec ${plasma5.startkde}/bin/startkde;'';
+      start = ''
+        # Load PulseAudio module for routing support.
+        # See http://colin.guthr.ie/2009/10/so-how-does-the-kde-pulseaudio-support-work-anyway/
+        ${optionalString config.hardware.pulseaudio.enable ''
+          ${config.hardware.pulseaudio.package}/bin/pactl load-module module-device-manager "do_routing=1"
+        ''}
+
+        exec ${plasma5.plasma-workspace}/bin/startkde
+      '';
     };
 
     security.setuidOwners = singleton {

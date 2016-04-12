@@ -4,7 +4,7 @@
 , channel ? "stable"
 , enableSELinux ? false
 , enableNaCl ? false
-, useOpenSSL ? false
+, enableHotwording ? false
 , gnomeSupport ? false
 , gnomeKeyringSupport ? false
 , proprietaryCodecs ? true
@@ -19,20 +19,17 @@ let
   callPackage = newScope chromium;
 
   chromium = {
-    source = callPackage ./source {
-      inherit channel;
-      # XXX: common config
-      inherit useOpenSSL;
-    };
+    upstream-info = (import ./update.nix {
+      inherit (stdenv) system;
+    }).getChannel channel;
 
     mkChromiumDerivation = callPackage ./common.nix {
-      inherit enableSELinux enableNaCl useOpenSSL gnomeSupport
-              gnomeKeyringSupport proprietaryCodecs cupsSupport
-              pulseSupport hiDPISupport;
+      inherit enableSELinux enableNaCl enableHotwording gnomeSupport
+              gnomeKeyringSupport proprietaryCodecs cupsSupport pulseSupport
+              hiDPISupport;
     };
 
     browser = callPackage ./browser.nix { };
-    sandbox = callPackage ./sandbox.nix { };
 
     plugins = callPackage ./plugins.nix {
       inherit enablePepperFlash enableWideVine;
@@ -41,8 +38,8 @@ let
 
   desktopItem = makeDesktopItem {
     name = "chromium";
-    exec = "chromium";
-    icon = "${chromium.browser}/share/icons/hicolor/48x48/apps/chromium.png";
+    exec = "chromium %U";
+    icon = "chromium";
     comment = "An open source web browser from Google";
     desktopName = "Chromium";
     genericName = "Web browser";
@@ -59,6 +56,9 @@ let
       "x-scheme-handler/unknown"
     ];
     categories = "Network;WebBrowser";
+    extraEntries = ''
+      StartupWMClass=chromium-browser
+    '';
   };
 
   suffix = if channel != "stable" then "-" + channel else "";
@@ -70,18 +70,14 @@ in stdenv.mkDerivation {
 
   buildCommand = let
     browserBinary = "${chromium.browser}/libexec/chromium/chromium";
-    sandboxBinary = "${chromium.sandbox}/bin/chromium-sandbox";
     mkEnvVar = key: val: "--set '${key}' '${val}'";
     envVars = chromium.plugins.settings.envVars or {};
-    isVer42 = !stdenv.lib.versionOlder chromium.browser.version "42.0.0.0";
     flags = chromium.plugins.settings.flags or [];
-    setBinPath = "--set CHROMIUM_SANDBOX_BINARY_PATH \"${sandboxBinary}\"";
   in with stdenv.lib; ''
     mkdir -p "$out/bin" "$out/share/applications"
 
     ln -s "${chromium.browser}/share" "$out/share"
     makeWrapper "${browserBinary}" "$out/bin/chromium" \
-      ${optionalString (!isVer42) setBinPath} \
       ${concatStrings (mapAttrsToList mkEnvVar envVars)} \
       --add-flags "${concatStringsSep " " flags}"
 

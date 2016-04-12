@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pkgconfig, x11, glib, cairo, libpng, harfbuzz
+{ stdenv, fetchurl, pkgconfig, xlibsWrapper, glib, cairo, libpng, harfbuzz
 , fontconfig, freetype, libintlOrEmpty, gobjectIntrospection
 }:
 
@@ -14,12 +14,11 @@ stdenv.mkDerivation rec {
     sha256 = "01rdzjh68w8l5zn0648yibyarj8p6g7yfn59nw5awaz1i8dvbnqq";
   };
 
-  buildInputs = with stdenv.lib;
-    optional (!stdenv.isDarwin) gobjectIntrospection # build problems of itself and flex
+  buildInputs = with stdenv.lib; [ gobjectIntrospection ]
     ++ optionals stdenv.isDarwin [ fontconfig ];
   nativeBuildInputs = [ pkgconfig ];
 
-  propagatedBuildInputs = [ x11 glib cairo libpng fontconfig freetype harfbuzz ] ++ libintlOrEmpty;
+  propagatedBuildInputs = [ xlibsWrapper glib cairo libpng fontconfig freetype harfbuzz ] ++ libintlOrEmpty;
 
   enableParallelBuilding = true;
 

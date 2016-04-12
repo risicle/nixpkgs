@@ -2,15 +2,16 @@
 , libnetfilter_conntrack, libnl, libpcap, libsodium, liburcu, ncurses, perl
 , pkgconfig, zlib }:
 
-stdenv.mkDerivation rec {
-  version = "v0.5.9-rc4-53-gdd5d906";
+let version = "0.5.9-86-gd84a6b7"; in
+stdenv.mkDerivation {
   name = "netsniff-ng-${version}";
 
-  src = fetchFromGitHub rec { # Upstream recommends and supports git
+  # Upstream recommends and supports git
+  src = fetchFromGitHub rec {
     repo = "netsniff-ng";
     owner = repo;
-    rev = "dd5d906c40db5264d8d33c37565b39540f0258c8";
-    sha256 = "0iwnfjbxiv10zk5mfpnvs2xb88f14hv1a156kn9mhasszknp0a57";
+    rev = "d84a6b7139f3c6d0eb70615543cf368350000e5b";
+    sha256 = "1vn84scds93chidcq1dvbwlwzyb935f3116hlgq1q4rwm0225g64";
   };
 
   buildInputs = [ bison flex geoip geolite-legacy libcli libnet libnl
@@ -32,14 +33,15 @@ stdenv.mkDerivation rec {
   postInstall = ''
     ln -sv ${geolite-legacy}/share/GeoIP/GeoIP.dat		$out/etc/netsniff-ng/country4.dat
     ln -sv ${geolite-legacy}/share/GeoIP/GeoIPv6.dat		$out/etc/netsniff-ng/country6.dat
-    ln -sv ${geolite-legacy}/share/GeoIP/GeoLiteCity.dat	$out/etc/netsniff-ng/city4.dat
-    ln -sv ${geolite-legacy}/share/GeoIP/GeoLiteCityv6.dat	$out/etc/netsniff-ng/city6.dat
+    ln -sv ${geolite-legacy}/share/GeoIP/GeoIPCity.dat		$out/etc/netsniff-ng/city4.dat
+    ln -sv ${geolite-legacy}/share/GeoIP/GeoIPCityv6.dat	$out/etc/netsniff-ng/city6.dat
     ln -sv ${geolite-legacy}/share/GeoIP/GeoIPASNum.dat		$out/etc/netsniff-ng/asname4.dat
     ln -sv ${geolite-legacy}/share/GeoIP/GeoIPASNumv6.dat	$out/etc/netsniff-ng/asname6.dat
     rm -v $out/etc/netsniff-ng/geoip.conf # updating databases after installation is impossible
   '';
 
   meta = with stdenv.lib; {
+    inherit version;
     description = "Swiss army knife for daily Linux network plumbing";
     longDescription = ''
       netsniff-ng is a free Linux networking toolkit. Its gain of performance
@@ -49,7 +51,7 @@ stdenv.mkDerivation rec {
       development and analysis, debugging, auditing or network reconnaissance.
     '';
     homepage = http://netsniff-ng.org/;
-    license = with licenses; gpl2;
+    license = licenses.gpl2;
     platforms = with platforms; linux;
     maintainers = with maintainers; [ nckx ];
   };

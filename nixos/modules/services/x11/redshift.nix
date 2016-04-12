@@ -14,24 +14,24 @@ in {
 
     services.redshift.latitude = mkOption {
       description = "Your current latitude";
-      type = types.uniq types.string;
+      type = types.str;
     };
 
     services.redshift.longitude = mkOption {
       description = "Your current longitude";
-      type = types.uniq types.string;
+      type = types.str;
     };
 
     services.redshift.temperature = {
       day = mkOption {
         description = "Colour temperature to use during day time";
         default = 5500;
-        type = types.uniq types.int;
+        type = types.int;
       };
       night = mkOption {
         description = "Colour temperature to use during night time";
         default = 3700;
-        type = types.uniq types.int;
+        type = types.int;
       };
     };
 
@@ -39,13 +39,20 @@ in {
       day = mkOption {
         description = "Screen brightness to apply during the day (between 0.1 and 1.0)";
         default = "1";
-        type = types.uniq types.string;
+        type = types.str;
       };
       night = mkOption {
         description = "Screen brightness to apply during the night (between 0.1 and 1.0)";
         default = "1";
-        type = types.uniq types.string;
+        type = types.str;
       };
+    };
+
+    services.redshift.extraOptions = mkOption {
+      type = types.listOf types.str;
+      default = [];
+      example = [ "-v" "-m randr" ];
+      description = "Additional command-line arguments to pass to the redshift(1) command";
     };
   };
 
@@ -59,7 +66,8 @@ in {
         ${pkgs.redshift}/bin/redshift \
           -l ${cfg.latitude}:${cfg.longitude} \
           -t ${toString cfg.temperature.day}:${toString cfg.temperature.night} \
-          -b ${toString cfg.brightness.day}:${toString cfg.brightness.night}
+          -b ${toString cfg.brightness.day}:${toString cfg.brightness.night} \
+          ${lib.strings.concatStringsSep " " cfg.extraOptions}
       '';
       environment = { DISPLAY = ":0"; };
       serviceConfig.Restart = "always";

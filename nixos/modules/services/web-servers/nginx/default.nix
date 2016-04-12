@@ -8,9 +8,12 @@ let
   configFile = pkgs.writeText "nginx.conf" ''
     user ${cfg.user} ${cfg.group};
     daemon off;
+
     ${cfg.config}
+
     ${optionalString (cfg.httpConfig != "") ''
     http {
+      include ${cfg.package}/conf/mime.types;
       ${cfg.httpConfig}
     }
     ''}
@@ -102,6 +105,7 @@ in
         '';
       serviceConfig = {
         ExecStart = "${nginx}/bin/nginx -c ${configFile} -p ${cfg.stateDir}";
+        ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
         Restart = "on-failure";
         RestartSec = "10s";
         StartLimitInterval = "1min";

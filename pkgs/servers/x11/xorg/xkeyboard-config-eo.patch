@@ -24,8 +24,8 @@ index 97c816d..d7e3a4e 100644
  ca cd \
  ch cn cz \
  de dk \
--ee es et epo \
-+ee eo es et epo \
+-ee es et epo eu \
++ee eo es et epo eu \
  fi fo fr \
  gb ge gh gn \
  gr hr hu \
@@ -37,8 +37,8 @@ index b5be077..5cddcc7 100644
  ca cd \
  ch cn cz \
  de dk \
--ee es et epo \
-+ee eo es et epo \
+-ee es et epo eu \
++ee eo es et epo eu \
  fi fo fr \
  gb ge gh gn \
  gr hr hu \

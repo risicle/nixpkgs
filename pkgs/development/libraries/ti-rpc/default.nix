@@ -1,19 +1,20 @@
-{ fetchurl, stdenv, kerberos }:
+{ fetchurl, stdenv, autoreconfHook, libkrb5 }:
 
 stdenv.mkDerivation rec {
-  name = "libtirpc-0.2.5";
+  name = "libtirpc-0.3.2";
 
   src = fetchurl {
     url = "mirror://sourceforge/libtirpc/${name}.tar.bz2";
-    sha256 = "1nq2w227j9nh8qsz7b3c1pha00k5yvzf2c3pfmlcb1l65iydxyb2";
+    sha256 = "1z1z8xnlqgqznxzmyc6sypjc6b220xkv0s55hxd5sb3zydws6210";
   };
 
-  buildInputs = [ kerberos ];
+  nativeBuildInputs = [ autoreconfHook ];
+  propagatedBuildInputs = [ libkrb5 ];
 
-  # http://www.sourcemage.org/projects/grimoire/repository/revisions/d6344b6a3a94b88ed67925a474de5930803acfbf
+  # http://sourceforge.net/p/libtirpc/mailman/libtirpc-devel/thread/5581CB06.5020604%40email.com/#msg34216933
+  patches = [ ./fix_missing_rpc_get_default_domain.patch ];
+
   preConfigure = ''
-    echo "" > src/des_crypt.c
-
     sed -es"|/etc/netconfig|$out/etc/netconfig|g" -i doc/Makefile.in tirpc/netconfig.h
   '';
 
@@ -25,6 +26,7 @@ stdenv.mkDerivation rec {
     homepage = "http://sourceforge.net/projects/libtirpc/";
     description = "The transport-independent Sun RPC implementation (TI-RPC)";
     license = licenses.bsd3;
+    platforms = platforms.linux;
     maintainers = with maintainers; [ abbradar ];
     longDescription = ''
        Currently, NFS commands use the SunRPC routines provided by the

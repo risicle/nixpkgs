@@ -1,14 +1,14 @@
-{ stdenv, fetchurl, erlang, rebar, makeWrapper, coreutils, curl, bash, cacert }:
+{ stdenv, fetchurl, erlang, rebar, makeWrapper, coreutils, curl, bash }:
 
 let
-  version = "1.0.3";
+  version = "1.0.5";
 in
 stdenv.mkDerivation {
   name = "elixir-${version}";
 
   src = fetchurl {
     url = "https://github.com/elixir-lang/elixir/archive/v${version}.tar.gz";
-    sha256 = "ec6c4eaffcb771d91bdea9fb274600c624fd16b1891d194b3fcb2b521f52cc75";
+    sha256 = "1f419pzlcgqx68rygwwyp2hzh4vgp0avjydd84dpa7finckc5raw";
   };
 
   buildInputs = [ erlang rebar makeWrapper ];
@@ -32,8 +32,8 @@ stdenv.mkDerivation {
      b=$(basename $f)
       if [ $b == "mix" ]; then continue; fi
       wrapProgram $f \
-      --prefix PATH ":" "${erlang}/bin:${coreutils}/bin:${curl}/bin:${bash}/bin" \
-      --set CURL_CA_BUNDLE "${cacert}/etc/ca-bundle.crt"
+        --prefix PATH ":" "${erlang}/bin:${coreutils}/bin:${curl}/bin:${bash}/bin" \
+        --set CURL_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
     done
   '';
 

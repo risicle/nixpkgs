@@ -1,13 +1,13 @@
 {stdenv, fetchurl, makeWrapper, gettext, python3, python3Packages, rsync, cron, openssh, sshfsFuse, encfs }:
 
 stdenv.mkDerivation rec {
-  version = "1.1.0";
+  version = "1.1.6";
 
   name = "backintime-common-${version}";
 
   src = fetchurl {
     url = "https://launchpad.net/backintime/1.1/${version}/+download/backintime-${version}.tar.gz";
-    md5 = "21e15538c38d0c440c1281457319c7f1";
+    sha256 = "04yw1v6h959mmvc67mhh0km7vkxjzb7j1mniv5xfjdy27ryii1ig";
   };
 
   buildInputs = [ makeWrapper gettext python3 python3Packages.dbus python3Packages.keyring openssh cron rsync sshfsFuse encfs ];

@@ -96,6 +96,14 @@ fi
 # If ‘--upgrade’ is given, run ‘nix-channel --update nixos’.
 if [ -n "$upgrade" -a -z "$_NIXOS_REBUILD_REEXEC" ]; then
     nix-channel --update nixos
+
+    # If there are other channels that contain a file called
+    # ".update-on-nixos-rebuild", update them as well.
+    for channelpath in /nix/var/nix/profiles/per-user/root/channels/*; do
+        if [ -e "$channelpath/.update-on-nixos-rebuild" ]; then
+            nix-channel --update "$(basename "$channelpath")"
+        fi
+    done
 fi
 
 # Make sure that we use the Nix package we depend on, not something
@@ -149,9 +157,9 @@ if [ -n "$buildNix" ]; then
             if ! nix-build '<nixpkgs>' -A nix -o $tmpDir/nix "${extraBuildFlags[@]}" > /dev/null; then
                 machine="$(uname -m)"
                 if [ "$machine" = x86_64 ]; then
-                    nixStorePath=/nix/store/ffig6yaggbh12dh9y5pnf1grf5lqyipz-nix-1.8
+                    nixStorePath=/nix/store/xryr9g56h8yjddp89d6dw12anyb4ch7c-nix-1.10
                 elif [[ "$machine" =~ i.86 ]]; then
-                    nixStorePath=/nix/store/lglhfp4mimfa5wzjjf1kqz6f5wlsj2mn-nix-1.8
+                    nixStorePath=/nix/store/2w92k5wlpspf0q2k9mnf2z42prx3bwmv-nix-1.10
                 else
                     echo "$0: unsupported platform"
                     exit 1

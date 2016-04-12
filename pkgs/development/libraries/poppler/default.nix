@@ -1,83 +1,55 @@
-{ stdenv, fetchurl, fetchpatch, pkgconfig, cmake, libiconv, libintlOrEmpty
+{ stdenv, lib, fetchurl, fetchpatch, pkgconfig, libiconv, libintlOrEmpty
 , zlib, curl, cairo, freetype, fontconfig, lcms, libjpeg, openjpeg
-, qt4Support ? false, qt4 ? null, qt5
+, minimal ? false, qt4Support ? false, qt4 ? null, qt5Support ? false, qt5 ? null
+, utils ? false, suffix ? "glib"
 }:
 
-let
-  version = "0.28.1"; # even major numbers are stable
-  sha256 = "01pxjdbhvpxf00ncf8d9wxc8gkcqcxz59lwrpa151ah988inxkrc";
+let # beware: updates often break cups_filters build
+  version = "0.34.0"; # even major numbers are stable
+  sha256 = "1c2wa4pfzqmvzq1jpp3ps5nmzz745gcg8dnpwqpfdccy5ydbm90v";
+in
+stdenv.mkDerivation rec {
+  name = "poppler-${suffix}-${version}";
 
-  # This is for Okular (and similar) to support subpixel rendering.
-  # It's kept from upstream because of political reasons.
-  qtcairo_patch = fetchpatch {
-    url = "https://github.com/giddie/poppler-qt4-cairo-backend/compare/"
-      + "fa1d636...b30f96c.diff"; # update to current maint...qt4-lcd
-    sha256 = "0g18y247k2vcz1n56rnfpy226f22v4r9c7pk8cf2h9l12vz2qxkm";
+  src = fetchurl {
+    url = "${meta.homepage}/poppler-${version}.tar.xz";
+    inherit sha256;
   };
 
-  poppler_drv = nameSuff: merge: stdenv.mkDerivation (stdenv.lib.mergeAttrsByFuncDefaultsClean [
-  rec {
-    name = "poppler-${nameSuff}-${version}";
+  outputs = [ "out" ] ++ lib.optional (!minimal) "doc";
 
-    src = fetchurl {
-      url = "${meta.homepage}/poppler-${version}.tar.xz";
-      inherit sha256;
-    };
+  patches = [ ./datadir_env.patch ];
 
-    propagatedBuildInputs = [ zlib cairo freetype fontconfig libjpeg lcms curl openjpeg ];
+  # TODO: reduce propagation to necessary libs
+  propagatedBuildInputs = with lib;
+    [ zlib freetype fontconfig libjpeg lcms curl openjpeg ]
+    ++ optional (!minimal) cairo
+    ++ optional qt4Support qt4
+    ++ optional qt5Support qt5.base;
 
-    nativeBuildInputs = [ pkgconfig cmake libiconv ] ++ libintlOrEmpty;
+  nativeBuildInputs = [ pkgconfig libiconv ] ++ libintlOrEmpty;
 
-    cmakeFlags = "-DENABLE_XPDF_HEADERS=ON -DENABLE_LIBCURL=ON -DENABLE_ZLIB=ON";
+  configureFlags = with lib;
+    [
+      "--enable-xpdf-headers"
+      "--enable-libcurl"
+      "--enable-zlib"
+    ]
+    ++ optionals minimal [ "--disable-poppler-glib" "--disable-poppler-cpp" ]
+    ++ optional (!utils) "--disable-utils";
 
-    patches = [ ./datadir_env.patch ./poppler-glib.patch ];
+  enableParallelBuilding = true;
 
-    # XXX: The Poppler/Qt4 test suite refers to non-existent PDF files
-    # such as `../../../test/unittestcases/UseNone.pdf'.
-    #doCheck = !qt4Support;
-    checkTarget = "test";
+  meta = with lib; {
+    homepage = http://poppler.freedesktop.org/;
+    description = "A PDF rendering library";
 
-    enableParallelBuilding = true;
-
-    meta = {
-      homepage = http://poppler.freedesktop.org/;
-      description = "A PDF rendering library";
-
-      longDescription = ''
-        Poppler is a PDF rendering library based on the xpdf-3.0 code base.
-      '';
-
-      license = stdenv.lib.licenses.gpl2;
-      platforms = stdenv.lib.platforms.all;
-    };
-  } merge ]); # poppler_drv
-
-  /* We always use cairo in poppler, so we always depend on glib,
-     so we always build the glib wrapper (~350kB).
-     We also always build the cpp wrapper (<100kB).
-     ToDo: around half the size could be saved by splitting out headers and tools (1.5 + 0.5 MB).
-  */
-
-  poppler_glib = poppler_drv "glib" { };
-
-  poppler_qt4 = poppler_drv "qt4" {
-    #patches = [ qtcairo_patch ]; # text rendering artifacts in recent versions
-    propagatedBuildInputs = [ qt4 poppler_glib ];
-    NIX_LDFLAGS = "-lpoppler";
-    postConfigure = ''
-      mkdir -p "$out/lib/pkgconfig"
-      install -c -m 644 poppler-qt4.pc "$out/lib/pkgconfig"
-      cd qt4
+    longDescription = ''
+      Poppler is a PDF rendering library based on the xpdf-3.0 code base.
     '';
-  };
 
-  poppler_qt5 = poppler_drv "qt5" {
-    propagatedBuildInputs = [ qt5.base poppler_glib ];
-    postConfigure = ''
-      mkdir -p "$out/lib/pkgconfig"
-      install -c -m 644 poppler-qt5.pc "$out/lib/pkgconfig"
-      cd qt5
-    '';
+    license = licenses.gpl2;
+    platforms = platforms.all;
+    maintainers = with maintainers; [ ttuegel ];
   };
-
-in { inherit poppler_glib poppler_qt4 poppler_qt5; } // poppler_glib
+}

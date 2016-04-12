@@ -23,41 +23,33 @@
 , ghc, gmp
 , jailbreak-cabal
 
+, runCommand
 , nodejs, stdenv, filepath, HTTP, HUnit, mtl, network, QuickCheck, random, stm
 , time
 , zlib, aeson, attoparsec, bzlib, hashable
 , lens
 , parallel, safe, shelly, split, stringsearch, syb
 , tar, terminfo
-, vector, yaml, fetchgit, Cabal
+, vector, yaml, fetchgit, fetchFromGitHub, Cabal
 , alex, happy, git, gnumake, autoconf, patch
 , automake, libtool
 , cryptohash
 , haddock, hspec, xhtml, primitive, cacert, pkgs
 , coreutils
 , libiconv
+
+, ghcjsBoot ? import ./ghcjs-boot.nix { inherit fetchgit runCommand; }
+, shims ? import ./shims.nix { inherit fetchFromGitHub; }
 }:
-let
-  version = "0.1.0";
-  libDir = "share/ghcjs/${pkgs.stdenv.system}-${version}-${ghc.version}/ghcjs";
-  ghcjsBoot = fetchgit {
-    url = git://github.com/ghcjs/ghcjs-boot.git;
-    rev = "8cd6144870470258fb037b3e04a0a2a98c2b6551"; # 7.10 branch
-    sha256 = "16cbncx179n5khf8hkj9r221wf73rc8isffk8rv3n9psshv1jiji";
-    fetchSubmodules = true;
-  };
-  shims = fetchgit {
-    url = git://github.com/ghcjs/shims.git;
-    rev = "6ada4bf1a084d1b80b993303d35ed863d219b031"; # master branch
-    sha256 = "0dhfnjj3rxdbb2m1pbnjc2yp4xcgsfdrsinljgdmg0hpqkafp4vc";
-  };
-in mkDerivation (rec {
+let version = "0.2.0"; in
+mkDerivation (rec {
   pname = "ghcjs";
   inherit version;
-  src = fetchgit {
-    url = git://github.com/ghcjs/ghcjs.git;
-    rev = "35a59743c4027f26a227635cb24a6246bd851f8d"; # master branch
-    sha256 = "107sh36ji3psdl3py84vxgqbywjyzglj3p0akzpvcmbarxwfr1mw";
+  src = fetchFromGitHub {
+    owner = "ghcjs";
+    repo = "ghcjs";
+    rev = "561365ba1667053b5dc5846e2a8edb33eaa3f6dd";
+    sha256 = "1vfa7j0ql3sng29m944iznjw9hcmyl57nfkgxa33dvi2ival8dl2";
   };
   isLibrary = true;
   isExecutable = true;
@@ -81,14 +73,19 @@ in mkDerivation (rec {
   ];
   patches = [ ./ghcjs.patch ];
   postPatch = ''
-    substituteInPlace Setup.hs --replace "/usr/bin/env" "${coreutils}/bin/env"
-    substituteInPlace src/Compiler/Info.hs --replace "@PREFIX@" "$out"
+    substituteInPlace Setup.hs \
+      --replace "/usr/bin/env" "${coreutils}/bin/env"
+
+    substituteInPlace src/Compiler/Info.hs \
+      --replace "@PREFIX@" "$out"          \
+      --replace "@VERSION@" "${version}"
+
     substituteInPlace src-bin/Boot.hs \
       --replace "@PREFIX@" "$out"     \
       --replace "@CC@"     "${stdenv.cc}/bin/cc"
   '';
   preBuild = ''
-    local topDir=$out/${libDir}
+    local topDir=$out/lib/ghcjs-${version}
     mkdir -p $topDir
 
     cp -r ${ghcjsBoot} $topDir/ghcjs-boot
@@ -99,30 +96,32 @@ in mkDerivation (rec {
 
     # Make the patches be relative their corresponding package's directory.
     # See: https://github.com/ghcjs/ghcjs-boot/pull/12
-    for patch in $topDir/ghcjs-boot/patches/*.patch; do
+    for patch in "$topDir/ghcjs-boot/patches/"*.patch; do
       echo "fixing patch: $patch"
       sed -i -e 's@ \(a\|b\)/boot/[^/]\+@ \1@g' $patch
     done
   '';
+  # We build with --quick so we can build stage 2 packages separately.
+  # This is necessary due to: https://github.com/haskell/cabal/commit/af19fb2c2d231d8deff1cb24164a2bf7efb8905a
+  # Cabal otherwise fails to build: http://hydra.nixos.org/build/31824079/nixlog/1/raw
   postInstall = ''
     PATH=$out/bin:$PATH LD_LIBRARY_PATH=${gmp}/lib:${stdenv.cc}/lib64:$LD_LIBRARY_PATH \
       env -u GHC_PACKAGE_PATH $out/bin/ghcjs-boot \
         --dev \
+        --quick \
         --with-cabal ${cabal-install}/bin/cabal \
         --with-gmp-includes ${gmp}/include \
         --with-gmp-libraries ${gmp}/lib
   '';
   passthru = {
-    inherit libDir;
     isGhcjs = true;
     nativeGhc = ghc;
+    inherit nodejs ghcjsBoot;
   };
 
   homepage = "https://github.com/ghcjs/ghcjs";
-  description = "GHCJS is a Haskell to JavaScript compiler that uses the GHC API";
+  description = "A Haskell to JavaScript compiler that uses the GHC API";
   license = stdenv.lib.licenses.bsd3;
   platforms = ghc.meta.platforms;
-  maintainers = with stdenv.lib.maintainers; [
-    jwiegley cstrahan
-  ];
+  maintainers = with stdenv.lib.maintainers; [ jwiegley cstrahan ];
 })

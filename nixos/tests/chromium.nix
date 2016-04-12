@@ -2,15 +2,20 @@ import ./make-test.nix (
 { pkgs
 , channelMap ? {
     stable = pkgs.chromium;
-    beta   = pkgs.chromiumBeta;
-    dev    = pkgs.chromiumDev;
+    #beta   = pkgs.chromiumBeta;
+    #dev    = pkgs.chromiumDev;
   }
 , ...
 }: rec {
   name = "chromium";
+  meta = with pkgs.stdenv.lib.maintainers; {
+    maintainers = [ aszlig ];
+  };
+
+  enableOCR = true;
 
   machine.imports = [ ./common/x11.nix ];
-  machine.virtualisation.memorySize = 1024;
+  machine.virtualisation.memorySize = 2047;
 
   startupHTML = pkgs.writeText "chromium-startup.html" ''
     <!DOCTYPE html>
@@ -106,10 +111,11 @@ import ./make-test.nix (
         "ulimit -c unlimited; ".
         "$pkg/bin/chromium $args \"$url\" & disown"
       );
+      $machine->waitForText(qr/Type to search or enter a URL to navigate/);
       $machine->waitUntilSucceeds("${xdo "check-startup" ''
         search --sync --onlyvisible --name "startup done"
         # close first start help popup
-        key Escape
+        key -delay 1000 Escape
         windowfocus --sync
         windowactivate --sync
       ''}");
@@ -154,10 +160,11 @@ import ./make-test.nix (
 
           my $clipboard = $machine->succeed("${pkgs.xclip}/bin/xclip -o");
           die "sandbox not working properly: $clipboard"
-          unless $clipboard =~ /(?:suid|namespace) sandbox.*yes/mi
+          unless $clipboard =~ /namespace sandbox.*yes/mi
               && $clipboard =~ /pid namespaces.*yes/mi
               && $clipboard =~ /network namespaces.*yes/mi
-              && $clipboard =~ /seccomp.*sandbox.*yes/mi;
+              && $clipboard =~ /seccomp.*sandbox.*yes/mi
+              && $clipboard =~ /you are adequately sandboxed/mi;
         };
       };
     }

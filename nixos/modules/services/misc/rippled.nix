@@ -12,7 +12,7 @@ let
     path=${db.path}
     ${optionalString (db.compression != null) ("compression=${b2i db.compression}") }
     ${optionalString (db.onlineDelete != null) ("online_delete=${toString db.onlineDelete}")}
-    ${optionalString (db.advisoryDelete != null) ("advisory_delete=${toString db.advisoryDelete}")}
+    ${optionalString (db.advisoryDelete != null) ("advisory_delete=${b2i db.advisoryDelete}")}
     ${db.extraOpts}
   '';
 
@@ -27,7 +27,7 @@ let
     protocol=${concatStringsSep "," p.protocol}
     ${optionalString (p.user != "") "user=${p.user}"}
     ${optionalString (p.password != "") "user=${p.password}"}
-    admin=${if p.admin then "allow" else "no"}
+    admin=${concatStringsSep "," p.admin}
     ${optionalString (p.ssl.key != null) "ssl_key=${p.ssl.key}"}
     ${optionalString (p.ssl.cert != null) "ssl_cert=${p.ssl.cert}"}
     ${optionalString (p.ssl.chain != null) "ssl_chain=${p.ssl.chain}"}
@@ -71,6 +71,13 @@ let
     [sntp_servers]
     ${concatStringsSep "\n" cfg.sntpServers}
 
+    ${optionalString cfg.statsd.enable ''
+    [insight]
+    server=statsd
+    address=${cfg.statsd.address}
+    prefix=${cfg.statsd.prefix}
+    ''}
+
     [rpc_startup]
     { "command": "log_level", "severity": "${cfg.logLevel}" }
   '' + cfg.extraConfig;
@@ -111,9 +118,9 @@ let
       };
 
       admin = mkOption {
-	description = "Controls whether or not administrative commands are allowed.";
-	type = types.bool;
-	default = false;
+	description = "A comma-separated list of admin IP addresses.";
+	type = types.listOf types.str;
+	default = ["127.0.0.1"];
       };
 
       ssl = {
@@ -142,7 +149,6 @@ let
 	  default = null;
 	  type = types.nullOr types.path;
 	};
-
       };
     };
   };
@@ -150,7 +156,7 @@ let
   dbOptions = {
     type = mkOption {
       description = "Rippled database type.";
-      type = types.enum ["rocksdb" "nudb" "sqlite"];
+      type = types.enum ["rocksdb" "nudb"];
       default = "rocksdb";
     };
 
@@ -196,7 +202,7 @@ in
 
   options = {
     services.rippled = {
-      enable = mkEnableOption "Whether to enable rippled";
+      enable = mkEnableOption "rippled";
 
       package = mkOption {
 	description = "Which rippled package to use.";
@@ -211,7 +217,7 @@ in
 	default = {
 	  rpc = {
 	    port = 5005;
-	    admin = true;
+	    admin = ["127.0.0.1"];
 	    protocol = ["http"];
 	  };
 
@@ -317,7 +323,7 @@ in
 	  Path to the ripple database.
 	'';
 	type = types.path;
-	default = "/var/lib/rippled/db";
+	default = "/var/lib/rippled";
       };
 
       validationQuorum = mkOption {
@@ -366,6 +372,22 @@ in
 	default = "error";
       };
 
+      statsd = {
+        enable = mkEnableOption "statsd monitoring for rippled";
+
+        address = mkOption {
+          description = "The UDP address and port of the listening StatsD server.";
+          default = "127.0.0.1:8125";
+          type = types.str;
+        };
+
+        prefix = mkOption {
+          description = "A string prepended to each collected metric.";
+          default = "";
+          type = types.str;
+        };
+      };
+
       extraConfig = mkOption {
         default = "";
 	description = ''
@@ -400,6 +422,8 @@ in
       serviceConfig = {
         ExecStart = "${cfg.package}/bin/rippled --fg --conf ${cfg.config}";
         User = "rippled";
+	Restart = "on-failure";
+	LimitNOFILE=10000;
       };
     };
 

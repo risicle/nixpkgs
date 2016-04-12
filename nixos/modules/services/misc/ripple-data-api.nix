@@ -35,12 +35,30 @@ let
 in {
   options = {
     services.rippleDataApi = {
-      enable = mkEnableOption "Whether to enable ripple data api.";
+      enable = mkEnableOption "ripple data api";
 
       port = mkOption {
         description = "Ripple data api port";
         default = 5993;
         type = types.int;
+      };
+
+      importMode = mkOption {
+        description = "Ripple data api import mode.";
+        default = "liveOnly";
+        type = types.enum ["live" "liveOnly"];
+      };
+
+      minLedger = mkOption {
+        description = "Ripple data api minimal ledger to fetch.";
+        default = null;
+        type = types.nullOr types.int;
+      };
+
+      maxLedger = mkOption {
+        description = "Ripple data api maximal ledger to fetch.";
+        default = null;
+        type = types.nullOr types.int;
       };
 
       redis = {
@@ -129,6 +147,7 @@ in {
 
       serviceConfig = {
         ExecStart = "${pkgs.ripple-data-api}/bin/api";
+        Restart = "always";
         User = "ripple-data-api";
       };
     };
@@ -145,8 +164,15 @@ in {
         LOG_FILE = "/dev/null";
       };
 
-      serviceConfig = {
-        ExecStart = "${pkgs.ripple-data-api}/bin/importer live debug2";
+      serviceConfig = let
+        importMode =
+          if cfg.minLedger != null && cfg.maxLedger != null then
+            "${toString cfg.minLedger} ${toString cfg.maxLedger}"
+          else
+            cfg.importMode;
+      in {
+        ExecStart = "${pkgs.ripple-data-api}/bin/importer ${importMode} debug";
+        Restart = "always";
         User = "ripple-data-api";
       };
 

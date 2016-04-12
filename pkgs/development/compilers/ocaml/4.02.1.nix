@@ -24,6 +24,8 @@ stdenv.mkDerivation rec {
     sha256 = "1p7lqvh64xpykh99014mz21q8fs3qyjym2qazhhbq8scwldv1i38";
   };
 
+  patches = [ ./ocamlbuild.patch ];
+
   prefixKey = "-prefix ";
   configureFlags = optionals useX11 [ "-x11lib" x11lib
                                       "-x11include" x11inc ];
@@ -44,10 +46,13 @@ stdenv.mkDerivation rec {
     nativeCompilers = useNativeCompilers;
   };
 
-  meta = {
+  meta = with stdenv.lib; {
     homepage = http://caml.inria.fr/ocaml;
     branch = "4.02";
-    license = [ "QPL" /* compiler */ "LGPLv2" /* library */ ];
+    license = with licenses; [
+      qpl /* compiler */
+      lgpl2 /* library */
+    ];
     description = "Most popular variant of the Caml language";
 
     longDescription =
@@ -69,7 +74,7 @@ stdenv.mkDerivation rec {
         and a documentation generator (ocamldoc).
       '';
 
-    platforms = stdenv.lib.platforms.linux ++ stdenv.lib.platforms.darwin;
+    platforms = with platforms; linux ++ darwin;
   };
 
 }

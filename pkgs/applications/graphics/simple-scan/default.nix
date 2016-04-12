@@ -1,14 +1,27 @@
-{ stdenv, fetchurl, cairo, colord, glib, gtk3, intltool, itstool, libxml2
-, makeWrapper, pkgconfig, saneBackends, systemd, vala }:
+{ stdenv, fetchurl, cairo, colord, glib, gtk3, gusb, intltool, itstool, libusb, libxml2
+, makeWrapper, packagekit, pkgconfig, saneBackends, systemd, vala }:
 
-let version = "3.16.0.1"; in
+let version = "3.17.90"; in
 stdenv.mkDerivation rec {
   name = "simple-scan-${version}";
 
   src = fetchurl {
-    sha256 = "0p1knmbrdwrnjjk5x0szh3ja2lfamaaynj2ai92zgci2ma5xh2ma";
-    url = "https://launchpad.net/simple-scan/3.16/${version}/+download/${name}.tar.xz";
+    sha256 = "0xc3ln97dgvxrwy2qn82k9qvsr5kxksms4igzkivya3xpq2kx85c";
+    url = "https://launchpad.net/simple-scan/3.17/${version}/+download/${name}.tar.xz";
   };
+
+  buildInputs = [ cairo colord glib gusb gtk3 libusb libxml2 packagekit
+    saneBackends systemd vala ];
+  nativeBuildInputs = [ intltool itstool makeWrapper pkgconfig ];
+
+  enableParallelBuilding = true;
+
+  doCheck = true;
+
+  preFixup = ''
+    wrapProgram "$out/bin/simple-scan" \
+      --prefix XDG_DATA_DIRS : "$GSETTINGS_SCHEMAS_PATH"
+  '';
 
   meta = with stdenv.lib; {
     description = "Simple scanning utility";
@@ -21,20 +34,8 @@ stdenv.mkDerivation rec {
       interface is well tested.
     '';
     homepage = https://launchpad.net/simple-scan;
-    license = with licenses; gpl3Plus;
+    license = licenses.gpl3Plus;
     platforms = with platforms; linux;
     maintainers = with maintainers; [ nckx ];
   };
-
-  buildInputs = [ cairo colord glib gtk3 intltool itstool libxml2 makeWrapper
-    pkgconfig saneBackends systemd vala ];
-
-  enableParallelBuilding = true;
-
-  doCheck = true;
-
-  preFixup = ''
-    wrapProgram "$out/bin/simple-scan" \
-      --prefix XDG_DATA_DIRS : "$GSETTINGS_SCHEMAS_PATH"
-  '';
 }

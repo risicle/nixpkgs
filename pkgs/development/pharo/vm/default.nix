@@ -1,29 +1,34 @@
-{ stdenv, fetchurl, cmake, bash, unzip, glibc, openssl, gcc, mesa, freetype, xlibs, alsaLib, cairo }:
+{ stdenv, fetchurl, cmake, bash, unzip, glibc, openssl, gcc, mesa, freetype, xorg, alsaLib, cairo }:
 
 stdenv.mkDerivation rec {
 
-  version = "2014.11.29";
+  version = "2015.08.06";
 
   name = "pharo-vm-core-i386-${version}";
   system = "x86_32-linux";
   src = fetchurl {
     url = "http://files.pharo.org/vm/src/vm-unix-sources/blessed/pharo-vm-${version}.tar.bz2";
-    md5 = "529cff4639cee313ddf55fd377bd6fb3";
+    sha256 = "1kmb6phxb94d37awwldwbkj704l6m0c6sv0m54mcz6d4rx41fqgp";
   };
 
   sources10Zip = fetchurl {
     url = http://files.pharo.org/sources/PharoV10.sources.zip;
-    md5 = "3476222a0345a6f8f8b6093b5e3b30fb";
+    sha256 = "0aijhr3w5w3jzmnpl61g6xkwyi2l1mxy0qbvr9k3whz8zlrsijh2";
   };
 
   sources20Zip = fetchurl {
     url = http://files.pharo.org/sources/PharoV20.sources.zip;
-    md5 = "a145b0733f9d68d9ce6a76270b6b9ec8";
+    sha256 = "1xsc0p361pp8iha5zckppw29sbapd706wbvzvgjnkv2n6n1q5gj7";
   };
 
   sources30Zip = fetchurl {
     url = http://files.pharo.org/sources/PharoV30.sources.zip;
-    md5 = "bb0a66b8968ef7d0da97ec86331f68c8";
+    sha256 = "08d9a7gggwpwgrfbp7iv5896jgqz3vgjfrq19y3jw8k10pva98ak";
+  };
+
+  sources40Zip = fetchurl {
+    url = http://files.pharo.org/sources/PharoV40.sources.zip;
+    sha256 = "1xq1721ql19hpgr8ir372h92q7g8zwd6k921b21dap4wf8djqnpd";
   };
 
   # Building
@@ -74,9 +79,10 @@ stdenv.mkDerivation rec {
     unzip ${sources10Zip} -d $prefix/lib/pharo-vm/
     unzip ${sources20Zip} -d $prefix/lib/pharo-vm/
     unzip ${sources30Zip} -d $prefix/lib/pharo-vm/
+    unzip ${sources40Zip} -d $prefix/lib/pharo-vm/
   '';
 
-  buildInputs = [ bash unzip cmake glibc openssl gcc mesa freetype xlibs.libX11 xlibs.libICE xlibs.libSM alsaLib cairo ];
+  buildInputs = [ bash unzip cmake glibc openssl gcc mesa freetype xorg.libX11 xorg.libICE xorg.libSM alsaLib cairo ];
 
   meta = {
     description = "Clean and innovative Smalltalk-inspired environment";

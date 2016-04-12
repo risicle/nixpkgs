@@ -50,7 +50,7 @@ let
 
         ln -s ${config.system.build.initialRamdisk}/initrd $out/initrd
 
-        ln -s ${config.hardware.firmware} $out/firmware
+        ln -s ${config.hardware.firmware}/lib/firmware $out/firmware
       ''}
 
       echo "$activationScript" > $out/activate
@@ -81,6 +81,8 @@ let
       substituteAll ${./switch-to-configuration.pl} $out/bin/switch-to-configuration
       chmod +x $out/bin/switch-to-configuration
 
+      echo -n "${toString config.system.extraDependencies}" > $out/extra-dependencies
+
       ${config.system.extraSystemBuilderCmds}
     '';
 
@@ -99,6 +101,7 @@ let
     if [] == failed then pkgs.stdenv.mkDerivation {
       name = "nixos-${config.system.nixosVersion}";
       preferLocalBuild = true;
+      allowSubstitutes = false;
       buildCommand = systemBuilder;
 
       inherit (pkgs) utillinux coreutils;
@@ -173,9 +176,10 @@ in
       default = false;
       description = ''
         If enabled, copies the NixOS configuration file
-        <literal>$NIXOS_CONFIG</literal> (usually
-        <filename>/etc/nixos/configuration.nix</filename>)
-        to the system store path.
+        (usually <filename>/etc/nixos/configuration.nix</filename>)
+        and links it from the resulting system
+        (getting to <filename>/run/current-system/configuration.nix</filename>).
+        Note that only this single file is copied, even if it imports others.
       '';
     };
 
@@ -185,6 +189,16 @@ in
       default = "";
       description = ''
         This code will be added to the builder creating the system store path.
+      '';
+    };
+
+    system.extraDependencies = mkOption {
+      type = types.listOf types.package;
+      default = [];
+      description = ''
+        A list of packages that should be included in the system
+        closure but not otherwise made available to users. This is
+        primarily used by the installation tests.
       '';
     };
 
@@ -223,7 +237,9 @@ in
     system.extraSystemBuilderCmds =
       optionalString
         config.system.copySystemConfiguration
-        "cp ${maybeEnv "NIXOS_CONFIG" "/etc/nixos/configuration.nix"} $out";
+        ''ln -s '${import ../../../lib/from-env.nix "NIXOS_CONFIG" <nixos-config>}' \
+            "$out/configuration.nix"
+        '';
 
     system.build.toplevel = system;
 

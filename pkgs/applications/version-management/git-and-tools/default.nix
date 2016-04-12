@@ -46,17 +46,18 @@ rec {
     sendEmailSupport = !stdenv.isDarwin;
   };
 
-  gitAnnex = pkgs.haskellngPackages.git-annex;
+  git-annex = pkgs.haskellPackages.git-annex-with-assistant;
+  gitAnnex = git-annex;
 
   qgit = import ./qgit {
     inherit fetchurl stdenv;
-    inherit (xlibs) libXext libX11;
+    inherit (xorg) libXext libX11;
     qt = qt4;
   };
 
   qgitGit = import ./qgit/qgit-git.nix {
     inherit fetchurl sourceFromHead stdenv;
-    inherit (xlibs) libXext libX11;
+    inherit (xorg) libXext libX11;
     qt = qt4;
   };
 
@@ -102,4 +103,8 @@ rec {
   git-extras = callPackage ./git-extras { };
 
   git-cola = callPackage ./git-cola { };
+
+  git-imerge = callPackage ./git-imerge { };
+
+  git-crypt = callPackage ./git-crypt { };
 }

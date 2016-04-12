@@ -70,6 +70,12 @@ let
       copy_bin_and_libs ${pkgs.kmod}/bin/kmod
       ln -sf kmod $out/bin/modprobe
 
+      # Copy resize2fs if needed.
+      ${optionalString (any (fs: fs.autoResize) (attrValues config.fileSystems)) ''
+        # We need mke2fs in the initrd.
+        copy_bin_and_libs ${pkgs.e2fsprogs}/sbin/resize2fs
+      ''}
+
       ${config.boot.initrd.extraUtilsCommands}
 
       # Copy ld manually since it isn't detected correctly
@@ -197,7 +203,7 @@ let
     inherit (config.boot) resumeDevice devSize runSize;
 
     inherit (config.boot.initrd) checkJournalingFS
-      preLVMCommands postDeviceCommands postMountCommands kernelModules;
+      preLVMCommands preDeviceCommands postDeviceCommands postMountCommands kernelModules;
 
     resumeDevices = map (sd: if sd ? device then sd.device else "/dev/disk/by-label/${sd.label}")
                     (filter (sd: sd ? label || hasPrefix "/dev/" sd.device) config.swapDevices);
@@ -240,6 +246,9 @@ let
             src = "${pkgs.kmod-blacklist-ubuntu}/modprobe.conf";
           };
           symlink = "/etc/modprobe.d/ubuntu.conf";
+        }
+        { object = pkgs.kmod-debian-aliases;
+          symlink = "/etc/modprobe.d/debian.conf";
         }
       ];
   };
@@ -291,6 +300,15 @@ in
       type = types.lines;
       description = ''
         Shell commands to be executed immediately before LVM discovery.
+      '';
+    };
+
+    boot.initrd.preDeviceCommands = mkOption {
+      default = "";
+      type = types.lines;
+      description = ''
+        Shell commands to be executed before udev is started to create
+        device nodes.
       '';
     };
 
@@ -358,7 +376,7 @@ in
     boot.initrd.supportedFilesystems = mkOption {
       default = [ ];
       example = [ "btrfs" ];
-      type = types.listOf types.string;
+      type = types.listOf types.str;
       description = "Names of supported filesystem types in the initial ramdisk.";
     };
 
@@ -389,7 +407,6 @@ in
           + " Old \"x:y\" style is no longer supported.";
       }
     ];
-
 
     system.build.bootStage1 = bootStage1;
     system.build.initialRamdisk = initialRamdisk;

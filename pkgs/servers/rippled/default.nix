@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   name = "rippled-${version}";
-  version = "0.27.3-sp2";
+  version = "0.28.1";
 
   src = fetchFromGitHub {
     owner = "ripple";
     repo = "rippled";
     rev = version;
-    sha256 = "1q4i87cc7yks9slpgrfnlimngm45n3h035ssjvywmfwhhh7r9m3y";
+    sha256 = "0wh8dwdg0gp7smcx40cpqanl2m2hihmx3irqh692svakbl3df3vz";
   };
 
   postPatch = ''
@@ -17,7 +17,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ scons pkgconfig openssl protobuf boost zlib ];
 
-  buildPhase = "scons build/rippled";
+  buildPhase = "scons";
 
   installPhase = ''
     mkdir -p $out/bin
@@ -27,8 +27,8 @@ stdenv.mkDerivation rec {
   meta = with stdenv.lib; {
     description = "Ripple P2P payment network reference server";
     homepage = https://ripple.com;
-    maintainers = [ maintainers.emery maintainers.offline ];
+    maintainers = with maintainers; [ ehmry offline ];
     license = licenses.isc;
-    platforms = platforms.linux;
+    platforms = [ "x86_64-linux" ];
   };
 }

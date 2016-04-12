@@ -1,33 +1,43 @@
-{ stdenv, fetchurl, intltool, pkgconfig, gtk, libglade, libosip, libexosip
-, speex, readline, mediastreamer, libsoup, udev, libnotify }:
+{ stdenv, fetchurl, intltool, pkgconfig, readline, openldap, cyrus_sasl, libupnp
+, zlib, libxml2, gtk2, libnotify, speex, ffmpeg, libX11, polarssl, libsoup, udev
+, ortp, mediastreamer, sqlite, belle-sip, libosip, libexosip
+, mediastreamer-openh264, makeWrapper
+}:
 
 stdenv.mkDerivation rec {
-  name = "linphone-3.6.1";
+  name = "linphone-3.8.5";
 
   src = fetchurl {
-    url = "mirror://savannah/linphone/3.6.x/sources/${name}.tar.gz";
-    sha256 = "186jm4nd4ggb0j8cs8wnpm4sy9cr7chq0c6kx2yc6y4k7qi83fh5";
+    url = "mirror://savannah/linphone/3.8.x/sources/${name}.tar.gz";
+    sha256 = "10brlbwkk61nhd5v2sim1vfv11xm138l1cqqh3imhs2sigmzzlax";
   };
 
-  buildInputs = [ gtk libglade libosip libexosip readline mediastreamer speex libsoup udev
-    libnotify ];
+  buildInputs = [
+    readline openldap cyrus_sasl libupnp zlib libxml2 gtk2 libnotify speex ffmpeg libX11
+    polarssl libsoup udev ortp mediastreamer sqlite belle-sip libosip libexosip
+  ];
 
-  nativeBuildInputs = [ intltool pkgconfig ];
+  nativeBuildInputs = [ intltool pkgconfig makeWrapper ];
 
-  preConfigure = ''
-    rm -r mediastreamer2 oRTP
-    sed -i s,/bin/echo,echo, coreapi/Makefile*
+  configureFlags = [
+    "--enable-ldap"
+    "--with-ffmpeg=${ffmpeg}"
+    "--with-polarssl=${polarssl}"
+    "--enable-lime"
+    "--enable-external-ortp"
+    "--enable-external-mediastreamer"
+  ];
+
+  postInstall = ''
+    for i in $(cd $out/bin && ls); do
+      wrapProgram $out/bin/$i --set MEDIASTREAMER_PLUGINS_DIR ${mediastreamer-openh264}/lib/mediastreamer/plugins
+    done
   '';
 
-  configureFlags = "--enable-external-ortp --enable-external-mediastreamer";
-
-  NIX_CFLAGS_COMPILE = "-Wno-error=deprecated-declarations"; # I'm lazy to fix these for them
-
-  meta = {
+  meta = with stdenv.lib; {
     homepage = http://www.linphone.org/;
     description = "Open Source video SIP softphone";
-    license = stdenv.lib.licenses.gpl2Plus;
-    platforms = stdenv.lib.platforms.gnu;
-    broken = true;
+    license = licenses.gpl2Plus;
+    platforms = platforms.linux;
   };
 }

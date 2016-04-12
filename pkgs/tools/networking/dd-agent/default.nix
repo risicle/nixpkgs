@@ -2,17 +2,29 @@
 , makeWrapper }:
 
 stdenv.mkDerivation rec {
-  version = "5.1.1";
+  version = "5.5.2";
   name = "dd-agent-${version}";
 
   src = fetchFromGitHub {
-    owner = "DataDog";
-    repo = "dd-agent";
-    rev = version;
-    sha256 = "17gj2bsnidwwmwfc0m2ll90sh28izpxz2wkczpnvzfiq0askdxmp";
+    owner  = "datadog";
+    repo   = "dd-agent";
+    rev    = version;
+    sha256 = "0ga7h3rdg6q2pi4dxxkird5nf6s6hc13mj1xd9awwpli48gyvxn7";
   };
 
-  buildInputs = [ python unzip makeWrapper pythonPackages.psycopg2 pythonPackages.ntplib pythonPackages.simplejson pythonPackages.pyyaml pythonPackages.requests ];
+  buildInputs = [
+    python
+    unzip
+    makeWrapper
+    pythonPackages.psycopg2
+    pythonPackages.psutil
+    pythonPackages.ntplib
+    pythonPackages.simplejson
+    pythonPackages.pyyaml
+    pythonPackages.requests
+    pythonPackages.pymongo
+    pythonPackages.docker
+  ];
   propagatedBuildInputs = [ python tornado ];
 
   buildCommand = ''

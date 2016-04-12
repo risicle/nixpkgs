@@ -1,11 +1,11 @@
 { stdenv, fetchurl, automake, autoconf, libtool, pkgconfig, libzen, libmediainfo, zlib }:
 
 stdenv.mkDerivation rec {
-  version = "0.7.72";
+  version = "0.7.76";
   name = "mediainfo-${version}";
   src = fetchurl {
-    url = "http://mediaarea.net/download/source/mediainfo/${version}/mediainfo_${version}.tar.bz2";
-    sha256 = "04sqm2cziqvnghbla89f83vy46bmsfcvlq7f4m4kfcs24bjzfwr1";
+    url = "http://mediaarea.net/download/source/mediainfo/${version}/mediainfo_${version}.tar.xz";
+    sha256 = "14vy2a9bjjwxyk8zh0ysin8fb1lj9yz17yd82vxrp1zvxsgyg5ck";
   };
 
   buildInputs = [ automake autoconf libtool pkgconfig libzen libmediainfo zlib ];
@@ -13,7 +13,7 @@ stdenv.mkDerivation rec {
   sourceRoot = "./MediaInfo/Project/GNU/CLI/";
 
   configureFlags = [ "--with-libmediainfo=${libmediainfo}" ];
-  preConfigure = "sh autogen";
+  preConfigure = "sh autogen.sh";
 
   meta = {
     description = "Supplies technical and tag information about a video or audio file";
@@ -23,7 +23,7 @@ stdenv.mkDerivation rec {
     '';
     homepage = http://mediaarea.net/;
     license = stdenv.lib.licenses.bsd2;
-    platforms = stdenv.lib.platforms.linux;
+    platforms = stdenv.lib.platforms.unix;
     maintainers = [ stdenv.lib.maintainers.devhell ];
   };
 }

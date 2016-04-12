@@ -8,14 +8,14 @@
 
 let
   ver_branch = "2.0";
-  version = "2.0.0";
+  version = "2.0.1";
 in
 stdenv.mkDerivation rec {
   name = "lightdm-gtk-greeter-${version}";
 
   src = fetchurl {
     url = "${meta.homepage}/${ver_branch}/${version}/+download/${name}.tar.gz";
-    sha256 = "1134q8qd7gr34jkivqxckdnwbpa8pl7dhjpdi9fci0pcs4hh22jc";
+    sha256 = "031iv7zrpv27zsvahvfyrm75zdrh7591db56q89k8cjiiy600r1j";
   };
 
   buildInputs = [ pkgconfig lightdm intltool makeWrapper ]
@@ -26,20 +26,17 @@ stdenv.mkDerivation rec {
     "--sysconfdir=/etc"
   ] ++ stdenv.lib.optional useGTK2 "--with-gtk2";
 
-  installFlags = [ "DESTDIR=\${out}" ];
+  installFlags = [
+    "localstatedir=\${TMPDIR}"
+    "sysconfdir=\${out}/etc"
+  ];
 
   postInstall = ''
-      mv $out/$out/* $out
-      DIR=$out/$out
-      while rmdir $DIR 2>/dev/null; do
-        DIR="$(dirname "$DIR")"
-      done
-
-      substituteInPlace "$out/share/xgreeters/lightdm-gtk-greeter.desktop" \
-        --replace "Exec=lightdm-gtk-greeter" "Exec=$out/sbin/lightdm-gtk-greeter"
-      wrapProgram "$out/sbin/lightdm-gtk-greeter" \
-        --prefix XDG_DATA_DIRS ":" "${hicolor_icon_theme}/share"
-    '';
+    substituteInPlace "$out/share/xgreeters/lightdm-gtk-greeter.desktop" \
+      --replace "Exec=lightdm-gtk-greeter" "Exec=$out/sbin/lightdm-gtk-greeter"
+    wrapProgram "$out/sbin/lightdm-gtk-greeter" \
+      --prefix XDG_DATA_DIRS ":" "${hicolor_icon_theme}/share"
+  '';
 
   meta = with stdenv.lib; {
     homepage = http://launchpad.net/lightdm-gtk-greeter;

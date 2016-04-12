@@ -120,6 +120,15 @@ in
               '';
             };
 
+            interfaces = mkOption {
+              type = types.listOf types.string;
+              default = [];
+              example = [ "eth1" "eth2" ];
+              description = ''
+                The list of interfaces to be moved into the container.
+              '';
+            };
+
             autoStart = mkOption {
               type = types.bool;
               default = false;
@@ -218,6 +227,10 @@ in
               extraFlags+=" --network-veth"
             fi
 
+            for iface in $INTERFACES; do
+              extraFlags+=" --network-interface=$iface"
+            done
+
             for iface in $MACVLANS; do
               extraFlags+=" --network-macvlan=$iface"
             done
@@ -286,7 +299,7 @@ in
             ''
               #! ${pkgs.stdenv.shell} -e
               ${nixos-container}/bin/nixos-container run "$INSTANCE" -- \
-                bash --login -c "/nix/var/nix/profiles/system/bin/switch-to-configuration test"
+                bash --login -c "''${SYSTEM_PATH:-/nix/var/nix/profiles/system}/bin/switch-to-configuration test"
             '';
 
           SyslogIdentifier = "container %i";
@@ -331,6 +344,7 @@ in
                 LOCAL_ADDRESS=${cfg.localAddress}
               ''}
             ''}
+             INTERFACES="${toString cfg.interfaces}"
            ${optionalString cfg.autoStart ''
              AUTO_START=1
            ''}

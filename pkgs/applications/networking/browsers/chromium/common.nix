@@ -1,11 +1,11 @@
-{ stdenv, fetchurl, ninja, which
+{ stdenv, ninja, which
 
 # default dependencies
-, bzip2, flac, speex, icu, libopus
+, bzip2, flac, speex, libopus
 , libevent, expat, libjpeg, snappy
-, libpng, libxml2, libxslt
+, libpng, libxml2, libxslt, libcap
 , xdg_utils, yasm, minizip, libwebp
-, libusb1, libexif, pciutils
+, libusb1, libexif, pciutils, nss
 
 , python, pythonPackages, perl, pkgconfig
 , nspr, udev, kerberos
@@ -21,16 +21,15 @@
 # package customization
 , enableSELinux ? false, libselinux ? null
 , enableNaCl ? false
-, useOpenSSL ? false, nss ? null, openssl ? null
+, enableHotwording ? false
 , gnomeSupport ? false, gnome ? null
 , gnomeKeyringSupport ? false, libgnome_keyring3 ? null
 , proprietaryCodecs ? true
 , cupsSupport ? true
-, pulseSupport ? false, pulseaudio ? null
+, pulseSupport ? false, libpulseaudio ? null
 , hiDPISupport ? false
 
-, source
-, plugins
+, upstream-info
 }:
 
 buildFun:
@@ -64,7 +63,6 @@ let
     use_system_opus = true;
     use_system_snappy = true;
     use_system_speex = true;
-    use_system_ssl = useOpenSSL;
     use_system_stlport = true;
     use_system_xdg_utils = true;
     use_system_yasm = true;
@@ -84,9 +82,9 @@ let
   };
 
   defaultDependencies = [
-    bzip2 flac speex icu opusWithCustomModes
+    bzip2 flac speex opusWithCustomModes
     libevent expat libjpeg snappy
-    libpng libxml2 libxslt
+    libpng libxml2 libxslt libcap
     xdg_utils yasm minizip libwebp
     libusb1 libexif
   ];
@@ -99,15 +97,22 @@ let
 
   base = rec {
     name = "${packageName}-${version}";
-    inherit (source) version;
+    inherit (upstream-info) version;
     inherit packageName buildType buildPath;
-    src = source;
+
+    src = upstream-info.main;
+
+    unpackCmd = ''
+      tar xf "$src" \
+        --anchored \
+        --no-wildcards-match-slash \
+        --exclude='*/tools/gyp'
+    '';
 
     buildInputs = defaultDependencies ++ [
       which
       python perl pkgconfig
-      nspr udev
-      (if useOpenSSL then openssl else nss)
+      nspr nss udev
       utillinux alsaLib
       bison gperf kerberos
       glib gtk dbus_glib
@@ -118,28 +123,23 @@ let
       ++ optionals gnomeSupport [ gnome.GConf libgcrypt ]
       ++ optional enableSELinux libselinux
       ++ optionals cupsSupport [ libgcrypt cups ]
-      ++ optional pulseSupport pulseaudio;
+      ++ optional pulseSupport libpulseaudio;
 
-    # XXX: Wait for https://crbug.com/239107 and https://crbug.com/239181 to
-    #      be fixed, then try again to unbundle everything into separate
-    #      derivations.
-    prePatch = ''
-      cp -dsr --no-preserve=mode "${source.main}"/* .
-      cp -dsr --no-preserve=mode "${source.sandbox}" sandbox
-      cp -dr "${source.bundled}" third_party
-      chmod -R u+w third_party
+    patches = [
+      ./patches/build_fixes_46.patch
+      ./patches/widevine.patch
+      (if versionOlder version "50.0.0.0"
+       then ./patches/nix_plugin_paths_46.patch
+       else ./patches/nix_plugin_paths_50.patch)
+    ];
 
-      # Hardcode source tree root in all gyp files
-      find -iname '*.gyp*' \( -type f -o -type l \) \
-        -exec sed -i -e 's|<(DEPTH)|'"$(pwd)"'|g' {} + \
-        -exec chmod u+w {} +
-    '';
+    postPatch = ''
+      sed -i -r \
+        -e 's/-f(stack-protector)(-all)?/-fno-\1/' \
+        -e 's|/bin/echo|echo|' \
+        -e "/python_arch/s/: *'[^']*'/: '""'/" \
+        build/common.gypi chrome/chrome_tests.gypi
 
-    postPatch = optionalString (versionOlder version "42.0.0.0") ''
-      sed -i -e '/base::FilePath exe_dir/,/^ *} *$/c \
-        sandbox_binary = base::FilePath(getenv("CHROMIUM_SANDBOX_BINARY_PATH"));
-      ' sandbox/linux/suid/client/setuid_sandbox_client.cc
-    '' + ''
       sed -i -e '/module_path *=.*libexif.so/ {
         s|= [^;]*|= base::FilePath().AppendASCII("${libexif}/lib/libexif.so")|
       }' chrome/utility/media_galleries/image_metadata_extractor.cc
@@ -157,17 +157,16 @@ let
       linux_use_gold_binary = false;
       linux_use_gold_flags = false;
       proprietary_codecs = false;
+      use_sysroot = false;
       use_gnome_keyring = gnomeKeyringSupport;
       use_gconf = gnomeSupport;
       use_gio = gnomeSupport;
       use_pulseaudio = pulseSupport;
       linux_link_pulseaudio = pulseSupport;
       disable_nacl = !enableNaCl;
-      use_openssl = useOpenSSL;
+      enable_hotwording = enableHotwording;
       selinux = enableSELinux;
       use_cups = cupsSupport;
-    } // optionalAttrs (versionOlder version "42.0.0.0") {
-      linux_sandbox_chrome_path="${libExecPath}/${packageName}";
     } // {
       werror = "";
       clang = false;
@@ -200,7 +199,7 @@ let
       # This is to ensure expansion of $out.
       libExecPath="${libExecPath}"
       python build/linux/unbundle/replace_gyp_files.py ${gypFlags}
-      python build/gyp_chromium -f ninja --depth "$(pwd)" ${gypFlags}
+      python build/gyp_chromium -f ninja --depth . ${gypFlags}
     '';
 
     buildPhase = let

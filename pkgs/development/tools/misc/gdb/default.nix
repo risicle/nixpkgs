@@ -8,7 +8,7 @@
 
 let
 
-  basename = "gdb-7.8.2";
+  basename = "gdb-7.10.1";
 
   # Whether (cross-)building for GNU/Hurd.  This is an approximation since
   # having `stdenv ? cross' doesn't tell us if we're building `crossDrv' and
@@ -27,10 +27,8 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://gnu/gdb/${basename}.tar.xz";
-    sha256 = "11a4fj1vpsny71kz7xqqbqk3kgzbs5cfjj3z9gm0hpvxfkam8nb0";
+    sha256 = "1mfnjcwnwm5cg4rc9pncs9v356a0bz6ymjyac56mbj6784yjzir5";
   };
-
-  patches = [ ./edit-signals.patch ];
 
   # I think python is not a native input, but I leave it
   # here while I will not need it cross building
@@ -46,6 +44,7 @@ stdenv.mkDerivation rec {
   configureFlags = with stdenv.lib;
     '' --with-gmp=${gmp} --with-mpfr=${mpfr} --with-system-readline
        --with-expat --with-libexpat-prefix=${expat}
+       --with-separate-debug-dir=/run/current-system/sw/lib/debug
     ''
     + optionalString (target != null) " --target=${target.config}"
     + optionalString (elem stdenv.system platforms.cygwin) "  --without-python";
@@ -61,7 +60,7 @@ stdenv.mkDerivation rec {
 
   postInstall =
     '' # Remove Info files already provided by Binutils and other packages.
-       rm -v $out/share/info/{standards,configure,bfd}.info
+       rm -v $out/share/info/bfd.info
     '';
 
   # TODO: Investigate & fix the test failures.

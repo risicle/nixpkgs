@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, alsaLib, bash, help2man, pkgconfig, x11, python3 }:
+{ stdenv, fetchurl, alsaLib, bash, help2man, pkgconfig, xlibsWrapper, python3 }:
 
 stdenv.mkDerivation rec {
   name = "lirc-0.9.2a";
@@ -14,15 +14,21 @@ stdenv.mkDerivation rec {
 
   preBuild = "patchShebangs .";
 
-  buildInputs = [ alsaLib help2man pkgconfig x11 python3 ];
+  buildInputs = [ alsaLib help2man pkgconfig xlibsWrapper python3 ];
 
   configureFlags = [
     "--with-driver=devinput"
-    "--sysconfdir=$(out)/etc"
+    "--sysconfdir=/etc"
+    "--localstatedir=/var"
     "--enable-sandboxed"
   ];
 
   makeFlags = [ "m4dir=$(out)/m4" ];
+
+  installFlags = [
+    "sysconfdir=\${out}/etc"
+    "localstatedir=\${TMPDIR}"
+  ];
 
   meta = with stdenv.lib; {
     description = "Allows to receive and send infrared signals";

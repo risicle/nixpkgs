@@ -7,7 +7,7 @@ let
 
   fileSystems = attrValues config.fileSystems;
 
-  prioOption = prio: optionalString (prio !=null) " pri=${toString prio}";
+  prioOption = prio: optionalString (prio != null) " pri=${toString prio}";
 
   fileSystemOpts = { name, config, ... }: {
 
@@ -41,9 +41,9 @@ let
       };
 
       options = mkOption {
-        default = "defaults,relatime";
+        default = "defaults";
         example = "data=journal";
-        type = types.commas;
+        type = types.commas; # FIXME: should be a list
         description = "Options used to mount the file system.";
       };
 
@@ -58,6 +58,17 @@ let
         '';
       };
 
+      autoResize = mkOption {
+        default = false;
+        type = types.bool;
+        description = ''
+          If set, the filesystem is grown to its maximum size before
+          being mounted. (This is typically the size of the containing
+          partition.) This is currently only supported for ext2/3/4
+          filesystems that are mounted during early boot.
+        '';
+      };
+
       noCheck = mkOption {
         default = false;
         type = types.bool;
@@ -69,6 +80,7 @@ let
     config = {
       mountPoint = mkDefault name;
       device = mkIf (config.fsType == "tmpfs") (mkDefault config.fsType);
+      options = mkIf config.autoResize "x-nixos.autoresize";
     };
 
   };
@@ -121,7 +133,7 @@ in
     boot.supportedFilesystems = mkOption {
       default = [ ];
       example = [ "btrfs" ];
-      type = types.listOf types.string;
+      type = types.listOf types.str;
       description = "Names of supported filesystem types.";
     };
 
@@ -137,13 +149,11 @@ in
     # Add the mount helpers to the system path so that `mount' can find them.
     system.fsPackages = [ pkgs.dosfstools ];
 
-    environment.systemPackages =
-      [ pkgs.ntfs3g pkgs.fuse ]
-      ++ config.system.fsPackages;
+    environment.systemPackages = [ pkgs.fuse ] ++ config.system.fsPackages;
 
     environment.etc.fstab.text =
       let
-        fsToSkipCheck = [ "none" "btrfs" "zfs" "tmpfs" "nfs" ];
+        fsToSkipCheck = [ "none" "btrfs" "zfs" "tmpfs" "nfs" "vboxsf" ];
         skipCheck = fs: fs.noCheck || fs.device == "none" || builtins.elem fs.fsType fsToSkipCheck;
       in ''
         # This is a generated file.  Do not edit!

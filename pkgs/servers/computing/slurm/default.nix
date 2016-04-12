@@ -7,11 +7,11 @@ stdenv.mkDerivation rec {
   version = "14.11.5";
 
   src = fetchurl {
-    url = "http://www.schedmd.com/download/latest/slurm-${version}.tar.bz2";
+    url = "http://www.schedmd.com/download/archive/slurm-${version}.tar.bz2";
     sha256 = "0xx1q9ximsyyipl0xbj8r7ajsz4xrxik8xmhcb1z9nv0aza1rff2";
   };
 
-  buildInputs = [ python munge perl pam openssl mysql ];
+  buildInputs = [ python munge perl pam openssl mysql.lib ];
 
   configureFlags = ''
     --with-munge=${munge}

@@ -88,10 +88,10 @@
 /* Maximum stacking for havoc-stage tweaks. The actual value is calculated
    like this: 
 
-   n = random between 0 and HAVOC_STACK_POW2
+   n = random between 1 and HAVOC_STACK_POW2
    stacking = 2^n
 
-   In other words, the default (n = 7) produces 1, 2, 4, 8, 16, 32, 64, or
+   In other words, the default (n = 7) produces 2, 4, 8, 16, 32, 64, or
    128 stacked tweaks: */
 
 #define HAVOC_STACK_POW2    7
@@ -137,6 +137,11 @@
 /* The same, for the test case minimizer: */
 
 #define TMIN_MAX_FILE       (10 * 1024 * 1024)
+
+/* Block normalization steps for afl-tmin: */
+
+#define TMIN_SET_MIN_SIZE   4
+#define TMIN_SET_STEPS      128
 
 /* Maximum dictionary token size (-x), in bytes: */
 
@@ -245,9 +250,10 @@
 
 #define RESEED_RNG          10000
 
-/* Maximum line length passed from GCC to 'as': */
+/* Maximum line length passed from GCC to 'as' and used for parsing
+   configuration files: */
 
-#define MAX_AS_LINE         8192
+#define MAX_LINE            8192
 
 /* Environment variable used to pass SHM ID to the called program. */
 

@@ -16,6 +16,10 @@ stdenv.mkDerivation {
         + "-CVE-2014-9112.patch?h=f21&id=b475b4d6f31c95e073edc95c742a33a39ef4ec95";
       sha256 = "0c9yrysvpwbmiq7ph84dk6mv46hddiyvkgya1zsmj76n9ypb1b4i";
     })
+
+    # Report: http://www.openwall.com/lists/oss-security/2016/01/19/4
+    # Patch from https://lists.gnu.org/archive/html/bug-cpio/2016-01/msg00005.html
+    ./CVE-2016-2037-out-of-bounds-write.patch
   ] ++ stdenv.lib.optional stdenv.isDarwin ./darwin-fix.patch;
 
   postPatch = let pp =
@@ -27,9 +31,14 @@ stdenv.mkDerivation {
     # one "<" and one "&" sign get mangled in the patch
     in "cat ${pp} | sed 's/&lt;/</;s/&amp;/\\&/' | patch -p1";
 
+  preConfigure = if stdenv.isCygwin then ''
+    sed -i gnu/fpending.h -e 's,include <stdio_ext.h>,,'
+  '' else null;
+
   meta = {
     homepage = http://www.gnu.org/software/cpio/;
     description = "A program to create or extract from cpio archives";
     platforms = stdenv.lib.platforms.all;
+    priority = 6; # resolves collision with gnutar's "libexec/rmt"
   };
 }

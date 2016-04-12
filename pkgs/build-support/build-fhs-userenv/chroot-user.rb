@@ -1,21 +1,27 @@
 #!/usr/bin/env ruby
 
-# Bind mounts hierarchy: [from, to (relative)]
+# Bind mounts hierarchy: from => to (relative)
 # If 'to' is nil, path will be the same
-mounts = [ ['/nix/store', nil],
-           ['/dev', nil],
-           ['/proc', nil],
-           ['/sys', nil],
-           ['/etc', 'host-etc'],
-           ['/home', nil],
-           ['/var', nil],
-           ['/run', nil],
-           ['/root', nil],
-         ].map! { |x| [ x[0], x[1].nil? ? x[0].sub(/^\/*/, '') : x[1] ] }
+mounts = { '/nix/store' => nil,
+           '/dev' => nil,
+           '/proc' => nil,
+           '/sys' => nil,
+           '/etc' => 'host-etc',
+           '/tmp' => 'host-tmp',
+           '/home' => nil,
+           '/var' => nil,
+           '/run' => nil,
+           '/root' => nil,
+         }
 
-# Create directories
-mkdirs = ['tmp',
-         ]
+# Propagate environment variables
+envvars = [ 'TERM',
+            'DISPLAY',
+            'HOME',
+            'XDG_RUNTIME_DIR',
+            'LANG',
+            'SSL_CERT_FILE',
+          ]
 
 require 'tmpdir'
 require 'fileutils'
@@ -59,6 +65,23 @@ abort "Usage: chrootenv swdir program args..." unless ARGV.length >= 2
 swdir = Pathname.new ARGV[0]
 execp = ARGV.drop 1
 
+# Populate extra mounts
+if not ENV["CHROOTENV_EXTRA_BINDS"].nil?
+  for extra in ENV["CHROOTENV_EXTRA_BINDS"].split(':')
+    paths = extra.split('=')
+    if not paths.empty?
+      if paths.size <= 2
+        mounts[paths[0]] = paths[1]
+      else
+        $stderr.puts "Ignoring invalid entry in CHROOTENV_EXTRA_BINDS: #{extra}"
+      end
+    end
+  end
+end
+
+# Set destination paths for mounts
+mounts = mounts.map { |k, v| [k, v.nil? ? k.sub(/^\/*/, '') : v] }.to_h
+
 # Create temporary directory for root and chdir
 root = Dir.mktmpdir 'chrootenv'
 
@@ -87,14 +110,11 @@ if $cpid == 0
   write_file '/proc/self/uid_map', "#{uid} #{uid} 1"
   write_file '/proc/self/gid_map', "#{gid} #{gid} 1"
 
-  # Do mkdirs
-  mkdirs.each { |x| FileUtils.mkdir_p x }
-
   # Do rbind mounts.
-  mounts.each do |x|
-    to = "#{root}/#{x[1]}"
+  mounts.each do |from, rto|
+    to = "#{root}/#{rto}"
     FileUtils.mkdir_p to
-    $mount.call x[0], to, nil, MS_BIND | MS_REC, nil
+    $mount.call from, to, nil, MS_BIND | MS_REC, nil
   end
 
   # Chroot!
@@ -102,7 +122,7 @@ if $cpid == 0
   Dir.chdir '/'
 
   # Symlink swdir hierarchy
-  mount_dirs = Set.new mounts.map { |x| Pathname.new x[1] }
+  mount_dirs = Set.new mounts.map { |_, v| Pathname.new v }
   link_swdir = lambda do |swdir, prefix|
     swdir.find do |path|
       rel = prefix.join path.relative_path_from(swdir)
@@ -120,12 +140,7 @@ if $cpid == 0
   link_swdir.call swdir, Pathname.new('')
 
   # New environment
-  ENV.replace({ 'TERM' => ENV['TERM'],
-                'DISPLAY' => ENV['DISPLAY'],
-                'HOME' => ENV['HOME'],
-                'XDG_RUNTIME_DIR' => ENV['XDG_RUNTIME_DIR'],
-                'LANG' => ENV['LANG'],
-              })
+  ENV.replace(Hash[ envvars.map { |x| [x, ENV[x]] } ])
 
   # Finally, exec!
   exec *execp

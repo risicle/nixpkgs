@@ -1,4 +1,4 @@
-{ stdenv, runCommand, nettools, bc, perl, kmod, writeTextFile, ubootChooser }:
+{ stdenv, runCommand, nettools, bc, perl, kmod, openssl, writeTextFile, ubootChooser }:
 
 let
   readConfig = configfile: import (runCommand "config.nix" {} ''
@@ -49,7 +49,8 @@ let
 
   commonMakeFlags = [
     "O=$(buildRoot)"
-  ];
+  ] ++ stdenv.lib.optionals (stdenv.platform ? kernelMakeFlags)
+    stdenv.platform.kernelMakeFlags;
 
   drvAttrs = config_: platform: kernelPatches: configfile:
     let
@@ -75,7 +76,7 @@ let
         (isModular || (config.isDisabled "FIRMWARE_IN_KERNEL"));
     in (optionalAttrs isModular { outputs = [ "out" "dev" ]; }) // {
       passthru = {
-        inherit version modDirVersion config kernelPatches;
+        inherit version modDirVersion config kernelPatches configfile;
       };
 
       inherit src;
@@ -116,13 +117,16 @@ let
       ++ optional installsFirmware "INSTALL_FW_PATH=$(out)/lib/firmware";
 
       # Some image types need special install targets (e.g. uImage is installed with make uinstall)
-      installTargets = [ (if platform.kernelTarget == "uImage" then "uinstall" else "install") ];
+      installTargets = [ (if platform.kernelTarget == "uImage" then "uinstall" else
+                          if platform.kernelTarget == "zImage" then "zinstall" else
+                          "install") ];
 
       postInstall = (optionalString installsFirmware ''
         mkdir -p $out/lib/firmware
       '') + (if (platform ? kernelDTB && platform.kernelDTB) then ''
  	make $makeFlags "''${makeFlagsArray[@]}" dtbs
-        cp $buildRoot/arch/$karch/boot/dts/*dtb $out
+        mkdir -p $out/dtbs
+        cp $buildRoot/arch/$karch/boot/dts/*.dtb $out/dtbs
       '' else "") + (if isModular then ''
         make modules_install $makeFlags "''${makeFlagsArray[@]}" \
           $installFlags "''${installFlagsArray[@]}"
@@ -205,7 +209,6 @@ let
         homepage = http://www.kernel.org/;
         repositories.git = https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git;
         maintainers = [
-          maintainers.shlevy
           maintainers.thoughtpolice
         ];
         platforms = platforms.linux;
@@ -218,7 +221,7 @@ stdenv.mkDerivation ((drvAttrs config stdenv.platform (kernelPatches ++ nativeKe
 
   enableParallelBuilding = true;
 
-  nativeBuildInputs = [ perl bc nettools ] ++ optional (stdenv.platform.uboot != null)
+  nativeBuildInputs = [ perl bc nettools openssl ] ++ optional (stdenv.platform.uboot != null)
     (ubootChooser stdenv.platform.uboot);
 
   makeFlags = commonMakeFlags ++ [

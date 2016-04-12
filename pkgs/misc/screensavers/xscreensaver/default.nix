@@ -4,12 +4,12 @@
 }:
 
 stdenv.mkDerivation rec {
-  version = "5.32";
+  version = "5.34";
   name = "xscreensaver-${version}";
 
   src = fetchurl {
     url = "http://www.jwz.org/xscreensaver/${name}.tar.gz";
-    sha256 = "1gckra8lsd383av15r7lv9rszw6mp8n1gpcb5qs5nbrdkl3sclj2";
+    sha256 = "09sy5v8bn62hiq4ib3jyvp8lipqcvn3rdsj74q25qgklpv27xzvg";
   };
 
   buildInputs =

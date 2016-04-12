@@ -8,10 +8,12 @@ stdenv.mkDerivation rec {
     sha256 = "16z74q422jmprhyvy7c9x909li8cqzmvzyr8cgbm52xcsp6pqs1z";
   };
 
+  outputs = [ "out" "doc" ];
+
   meta = with stdenv.lib; {
     homepage = http://xiph.org/ogg/;
     license = licenses.bsd3;
-    maintainers = [ maintainers.emery ];
+    maintainers = [ maintainers.ehmry ];
     platforms = platforms.all;
   };
 }

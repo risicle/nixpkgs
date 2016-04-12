@@ -40,7 +40,6 @@ let
     polkit.addRule(function(action, subject) {
       if (
         subject.isInGroup("networkmanager")
-        && subject.active
         && (action.id.indexOf("org.freedesktop.NetworkManager.") == 0
             || action.id.indexOf("org.freedesktop.ModemManager")  == 0
         ))
@@ -98,17 +97,27 @@ in {
         '';
       };
 
+      # Ugly hack for using the correct gnome3 packageSet
+      basePackages = mkOption {
+        type = types.attrsOf types.path;
+        default = { inherit networkmanager modemmanager wpa_supplicant
+                            networkmanager_openvpn networkmanager_vpnc
+                            networkmanager_openconnect
+                            networkmanager_pptp networkmanager_l2tp; };
+        internal = true;
+      };
+
       packages = mkOption {
         type = types.listOf types.path;
         default = [ ];
         description = ''
           Extra packages that provide NetworkManager plugins.
         '';
-        apply = list: [ networkmanager modemmanager wpa_supplicant ] ++ list;
+        apply = list: (attrValues cfg.basePackages) ++ list;
       };
 
       appendNameservers = mkOption {
-        type = types.listOf types.string;
+        type = types.listOf types.str;
         default = [];
         description = ''
           A list of name servers that should be appended
@@ -117,7 +126,7 @@ in {
       };
 
       insertNameservers = mkOption {
-        type = types.listOf types.string;
+        type = types.listOf types.str;
         default = [];
         description = ''
           A list of name servers that should be inserted before
@@ -164,7 +173,7 @@ in {
 
     boot.kernelModules = [ "ppp_mppe" ]; # Needed for most (all?) PPTP VPN connections.
 
-    environment.etc = [
+    environment.etc = with cfg.basePackages; [
       { source = ipUpScript;
         target = "NetworkManager/dispatcher.d/01nixos-ip-up";
       }
@@ -195,19 +204,20 @@ in {
         target = "NetworkManager/dispatcher.d/${dispatcherTypesSubdirMap.${s.type}}03userscript${lib.fixedWidthNumber 4 i}";
       }) cfg.dispatcherScripts;
 
-    environment.systemPackages = cfg.packages ++ [
-        networkmanager_openvpn
-        networkmanager_vpnc
-        networkmanager_openconnect
-        networkmanager_pptp
-        networkmanager_l2tp
-        modemmanager
-        ];
+    environment.systemPackages = cfg.packages;
 
-    users.extraGroups = singleton {
+    users.extraGroups = [{
       name = "networkmanager";
       gid = config.ids.gids.networkmanager;
-    };
+    }
+    {
+      name = "nm-openvpn";
+      gid = config.ids.gids.nm-openvpn;
+    }];
+    users.extraUsers = [{
+      name = "nm-openvpn";
+      uid = config.ids.uids.nm-openvpn;
+    }];
 
     systemd.packages = cfg.packages;
 
@@ -238,15 +248,7 @@ in {
 
     security.polkit.extraConfig = polkitConf;
 
-    # openvpn plugin has only dbus interface
-    services.dbus.packages = cfg.packages ++ [
-        networkmanager_openvpn
-        networkmanager_vpnc
-        networkmanager_openconnect
-        networkmanager_pptp
-        networkmanager_l2tp
-        modemmanager
-        ];
+    services.dbus.packages = cfg.packages;
 
     services.udev.packages = cfg.packages;
   };

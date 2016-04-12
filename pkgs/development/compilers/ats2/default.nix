@@ -2,14 +2,16 @@
 
 stdenv.mkDerivation rec {
   name    = "ats2-${version}";
-  version = "0.1.9";
+  version = "0.1.12";
 
   src = fetchurl {
     url = "mirror://sourceforge/ats2-lang/ATS2-Postiats-${version}.tgz";
-    sha256 = "0zcki97zj9r1dvlfriwfckp9b9z7iavw09q21v6i5ld90hw9588q";
+    sha256 = "1jiki88mzhki74xh5ffw3pali5zs74pa0nylcb8n4ypfvdpqvlhb";
   };
 
   buildInputs = [ gmp ];
+
+  setupHook = ./setup-hook.sh;
 
   meta = {
     description = "Functional programming language with dependent types";

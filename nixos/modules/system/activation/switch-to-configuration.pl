@@ -97,7 +97,7 @@ sub parseFstab {
 sub parseUnit {
     my ($filename) = @_;
     my $info = {};
-    parseKeyValues($info, read_file($filename));
+    parseKeyValues($info, read_file($filename)) if -f $filename;
     parseKeyValues($info, read_file("${filename}.d/overrides.conf")) if -f "${filename}.d/overrides.conf";
     return $info;
 }
@@ -157,7 +157,8 @@ while (my ($unit, $state) = each %{$activePrev}) {
 
     if (-e $prevUnitFile && ($state->{state} eq "active" || $state->{state} eq "activating")) {
         if (! -e $newUnitFile || abs_path($newUnitFile) eq "/dev/null") {
-            $unitsToStop{$unit} = 1;
+            my $unitInfo = parseUnit($prevUnitFile);
+            $unitsToStop{$unit} = 1 if boolIsTrue($unitInfo->{'X-StopOnRemoval'} // "yes");
         }
 
         elsif ($unit =~ /\.target$/) {
@@ -322,7 +323,9 @@ foreach my $device (keys %$prevSwaps) {
 
 
 # Should we have systemd re-exec itself?
-my $restartSystemd = abs_path("/proc/1/exe") ne abs_path("@systemd@/lib/systemd/systemd");
+my $prevSystemd = abs_path("/proc/1/exe") or die;
+my $newSystemd = abs_path("@systemd@/lib/systemd/systemd") or die;
+my $restartSystemd = $prevSystemd ne $newSystemd;
 
 
 sub filterUnits {

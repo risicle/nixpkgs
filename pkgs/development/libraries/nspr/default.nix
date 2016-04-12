@@ -1,23 +1,27 @@
 { stdenv, fetchurl }:
 
-let version = "4.10.8"; in
+let version = "4.12"; in
 
 stdenv.mkDerivation {
   name = "nspr-${version}";
 
   src = fetchurl {
     url = "http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v${version}/src/nspr-${version}.tar.gz";
-    sha256 = "507ea57c525c0c524dae4857a642b4ef5c9d795518754c7f83422d22fe544a15";
+    sha256 = "1pk98bmc5xzbl62q5wf2d6mryf0v95z6rsmxz27nclwiaqg0mcg0";
   };
 
-  preConfigure = "cd nspr";
+  preConfigure = ''
+    cd nspr
+  '';
 
-  configureFlags = "--enable-optimize --disable-debug ${if stdenv.is64bit then "--enable-64bit" else ""}";
+  configureFlags = [
+    "--enable-optimize"
+    "--disable-debug"
+  ] ++ stdenv.lib.optional stdenv.is64bit "--enable-64bit";
 
-  postInstall =
-    ''
-      find $out -name "*.a" | xargs rm
-    '';
+  postInstall = ''
+    find $out -name "*.a" -delete
+  '';
 
   enableParallelBuilding = true;
 

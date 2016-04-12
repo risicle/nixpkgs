@@ -23,14 +23,6 @@ in
         EDITOR = mkDefault "nano";
       };
 
-    environment.sessionVariables =
-      { NIX_PATH =
-          [ "/nix/var/nix/profiles/per-user/root/channels/nixos"
-            "nixpkgs=/etc/nixos/nixpkgs"
-            "nixos-config=/etc/nixos/configuration.nix"
-          ];
-      };
-
     environment.profiles =
       [ "$HOME/.nix-profile"
         "/nix/var/nix/profiles/default"
@@ -39,7 +31,7 @@ in
 
     # TODO: move most of these elsewhere
     environment.profileRelativeEnvVars =
-      { PATH = [ "/bin" "/lib/kde4/libexec" ];
+      { PATH = [ "/bin" "/sbin" "/lib/kde4/libexec" ];
         INFOPATH = [ "/info" "/share/info" ];
         PKG_CONFIG_PATH = [ "/lib/pkgconfig" ];
         TERMINFO_DIRS = [ "/share/terminfo" ];

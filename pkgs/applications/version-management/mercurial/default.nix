@@ -1,8 +1,9 @@
-{ stdenv, fetchurl, python, makeWrapper, docutils, unzip
-, guiSupport ? false, tk ? null, curses }:
+{ stdenv, fetchurl, python, makeWrapper, docutils, unzip, hg-git, dulwich
+, guiSupport ? false, tk ? null, curses
+, ApplicationServices }:
 
 let
-  version = "3.3.2";
+  version = "3.4.2";
   name = "mercurial-${version}";
 in
 
@@ -11,13 +12,15 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "http://mercurial.selenic.com/release/${name}.tar.gz";
-    sha256 = "1yi72lv05p6hr8ngplz56rncs9wv6c16z8ki6f96yw5c833igik7";
+    sha256 = "1kcfznv990mj30y4yk59hz4wkd3050h0hg7iib69w53nhi50xjfw";
   };
 
   inherit python; # pass it so that the same version can be used in hg2git
   pythonPackages = [ curses ];
 
   buildInputs = [ python makeWrapper docutils unzip ];
+
+  propagatedBuildInputs = [ curses ] ++ stdenv.lib.optional stdenv.isDarwin ApplicationServices;
 
   makeFlags = "PREFIX=$(out)";
 
@@ -37,20 +40,23 @@ stdenv.mkDerivation {
     ''
       for i in $(cd $out/bin && ls); do
         wrapProgram $out/bin/$i \
-          --prefix PYTHONPATH : "$(toPythonPath "$out ${curses}")" \
+          --prefix PYTHONPATH : "$(toPythonPath "$out ${curses}"):$(toPythonPath "$out ${hg-git}"):$(toPythonPath "$out ${dulwich}")" \
           $WRAP_TK
       done
 
       mkdir -p $out/etc/mercurial
       cat >> $out/etc/mercurial/hgrc << EOF
       [web]
-      cacerts = /etc/ssl/certs/ca-bundle.crt
+      cacerts = /etc/ssl/certs/ca-certificates.crt
       EOF
 
       # copy hgweb.cgi to allow use in apache
       mkdir -p $out/share/cgi-bin
       cp -v hgweb.cgi contrib/hgweb.wsgi $out/share/cgi-bin
       chmod u+x $out/share/cgi-bin/hgweb.cgi
+
+      # install bash completion
+      install -D -v contrib/bash_completion $out/share/bash-completion/completions/mercurial
     '';
 
   meta = {

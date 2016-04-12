@@ -3,12 +3,13 @@
 stdenv.mkDerivation rec {
 
   name = "jitsi-${version}";
-  version = "2.4.4997";
+  version = "2.8.5426";
 
   src = fetchurl {
     url = "https://download.jitsi.org/jitsi/src/jitsi-src-${version}.zip";
-    sha256 = "f1c2688d7d6bf1916fed3b8b105a785662980c5b297dcab3c9e7d272647ef825";
+    sha256 = "0v7k16in2i57z5amr7k5c3fc8f0azrzrs5dvn729bwbc31z8cjg6";
   };
+
 
   patches = [ ./jitsi.patch ];
 
@@ -36,11 +37,12 @@ stdenv.mkDerivation rec {
     patchShebangs $out
   '';
 
-  meta = {
+  meta = with stdenv.lib; {
     homepage = https://jitsi.org/;
     description = "Open Source Video Calls and Chat";
-    license = stdenv.lib.licenses.lgpl21Plus.shortName;
-    platforms = stdenv.lib.platforms.linux;
+    license = licenses.lgpl21Plus;
+    platforms = platforms.linux;
+    maintainers = [ maintainers.khumba ];
   };
 
 }

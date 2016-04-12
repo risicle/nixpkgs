@@ -122,8 +122,8 @@ in
         example = literalExample "pkgs.postgis";
         description = ''
           When this list contains elements a new store path is created.
-          PostgreSQL and the elments are symlinked into it. Then pg_config,
-          postgres and pc_ctl are copied to make them use the new
+          PostgreSQL and the elements are symlinked into it. Then pg_config,
+          postgres and pg_ctl are copied to make them use the new
           $out/lib directory as pkglibdir. This makes it possible to use postgis
           without patching the .sql files which reference $libdir/postgis-1.5.
         '';
@@ -154,7 +154,13 @@ in
 
   config = mkIf config.services.postgresql.enable {
 
-    services.postgresql.authentication =
+    services.postgresql.package =
+      # Note: when changing the default, make it conditional on
+      # ‘system.stateVersion’ to maintain compatibility with existing
+      # systems!
+      mkDefault pkgs.postgresql94;
+
+    services.postgresql.authentication = mkAfter
       ''
         # Generated file; do not edit!
         local all all              ident ${optionalString pre84 "sameuser"}
@@ -186,8 +192,9 @@ in
         preStart =
           ''
             # Initialise the database.
-            if ! test -e ${cfg.dataDir}; then
+            if ! test -e ${cfg.dataDir}/PG_VERSION; then
                 mkdir -m 0700 -p ${cfg.dataDir}
+                rm -f ${cfg.dataDir}/*.conf
                 if [ "$(id -u)" = 0 ]; then
                   chown -R postgres ${cfg.dataDir}
                   su -s ${pkgs.stdenv.shell} postgres -c 'initdb -U root'
@@ -195,7 +202,7 @@ in
                   # For non-root operation.
                   initdb
                 fi
-                rm -f ${cfg.dataDir}/*.conf
+                # See postStart!
                 touch "${cfg.dataDir}/.first_startup"
             fi
 
@@ -208,6 +215,7 @@ in
 
         serviceConfig =
           { ExecStart = "@${postgresql}/bin/postgres postgres ${toString flags}";
+            ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
             User = "postgres";
             Group = "postgres";
             PermissionsStartOnly = true;

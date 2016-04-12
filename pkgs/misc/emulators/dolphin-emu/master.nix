@@ -1,14 +1,14 @@
-{ stdenv, pkgconfig, cmake, bluez, ffmpeg, libao, mesa, gtk2, glib
+{ stdenv, gcc5, pkgconfig, cmake, bluez, ffmpeg, libao, mesa, gtk2, glib
 , gettext, git, libpthreadstubs, libXrandr, libXext, readline
-, openal, libXdmcp, portaudio, SDL, wxGTK30, fetchgit
-, pulseaudio ? null }:
+, openal, libXdmcp, portaudio, fetchgit, libusb, libevdev
+, libpulseaudio ? null }:
 
 stdenv.mkDerivation rec {
-  name = "dolphin-emu-20150302";
+  name = "dolphin-emu-20150802";
   src = fetchgit {
     url = git://github.com/dolphin-emu/dolphin.git;
-    rev = "cd8c37bc0792a492b59976eba10a3e54e0ea2842";
-    sha256 = "06cb89c97w86ffn2nls0jb69macd5lqz930fjyjjahk9njx164fv";
+    rev = "5097a22844b850b429872f4de390bd958b11a616";
+    sha256 = "1qizkahbimpmgjs51av1cdmnnyvbz0j0gknmi5vdc38vrzxvwkrf";
     fetchSubmodules = false;
   };
 
@@ -22,9 +22,9 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  buildInputs = [ pkgconfig cmake bluez ffmpeg libao mesa gtk2 glib
+  buildInputs = [ gcc5 pkgconfig cmake bluez ffmpeg libao mesa gtk2 glib
                   gettext libpthreadstubs libXrandr libXext readline openal
-                  git libXdmcp portaudio SDL wxGTK30 pulseaudio ];
+                  libevdev git libXdmcp portaudio libusb libpulseaudio ];
 
   meta = {
     homepage = http://dolphin-emu.org/;

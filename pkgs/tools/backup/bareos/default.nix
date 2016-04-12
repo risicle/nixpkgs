@@ -1,10 +1,10 @@
-{ stdenv, fetchFromGitHub, pkgconfig, nettools, gettext, libtool
+{ stdenv, fetchFromGitHub, pkgconfig, nettools, gettext, libtool, flex
 , readline ? null, openssl ? null, python ? null, ncurses ? null
-, sqlite ? null, postgresql ? null, mysql ? null, zlib ? null, lzo ? null
-, acl ? null, glusterfs ? null, ceph ? null, libcap ? null
+, sqlite ? null, postgresql ? null, libmysql ? null, zlib ? null, lzo ? null
+, acl ? null, glusterfs ? null, libceph ? null, libcap ? null
 }:
 
-assert sqlite != null || postgresql != null || mysql != null;
+assert sqlite != null || postgresql != null || libmysql != null;
 
 with stdenv.lib;
 let
@@ -23,8 +23,8 @@ stdenv.mkDerivation rec {
   };
 
   buildInputs = [
-    pkgconfig nettools gettext readline openssl python
-    ncurses sqlite postgresql mysql zlib lzo acl glusterfs ceph libcap
+    pkgconfig nettools gettext readline openssl python flex
+    ncurses sqlite postgresql libmysql zlib lzo acl glusterfs libceph libcap
   ];
 
   postPatch = ''
@@ -33,7 +33,6 @@ stdenv.mkDerivation rec {
 
   configureFlags = [
     "--sysconfdir=/etc"
-    "--localstatedir=/var"
     "--exec-prefix=\${out}"
     "--enable-lockmgr"
     "--enable-dynamic-storage-backends"
@@ -55,28 +54,23 @@ stdenv.mkDerivation rec {
     ++ optional (openssl != null) "--with-openssl=${openssl}"
     ++ optional (sqlite != null) "--with-sqlite3=${sqlite}"
     ++ optional (postgresql != null) "--with-postgresql=${postgresql}"
-    ++ optional (mysql != null) "--with-mysql=${mysql}"
+    ++ optional (libmysql != null) "--with-mysql=${libmysql}"
     ++ optional (zlib != null) "--with-zlib=${zlib}"
     ++ optional (lzo != null) "--with-lzo=${lzo}"
     ++ optional (acl != null) "--enable-acl"
     ++ optional (glusterfs != null) "--with-glusterfs=${glusterfs}"
-    ++ optional (ceph != null) "--with-cephfs=${ceph}";
+    ++ optional (libceph != null) "--with-cephfs=${libceph}";
 
-  installFlags = [ "DESTDIR=\${out}" ];
-
-  postInstall = ''
-    mv $out/$out/* $out
-    DIR=$out/$out
-    while rmdir $DIR 2>/dev/null; do
-      DIR="$(dirname "$DIR")"
-    done
-
-    rm -rf /tmp /var
-  '';
+  installFlags = [
+    "sysconfdir=\${out}/etc"
+    "working_dir=\${TMPDIR}"
+    "log_dir=\${TMPDIR}"
+    "sbindir=\${out}/bin"
+  ];
 
   meta = with stdenv.lib; {
     homepage = http://www.bareos.org/;
-    description = "a fork of the bacula project.";
+    description = "A fork of the bacula project";
     license = licenses.agpl3;
     platforms = platforms.unix;
     maintainers = with maintainers; [ wkennington ];

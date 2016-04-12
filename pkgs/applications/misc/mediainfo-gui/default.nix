@@ -1,18 +1,18 @@
 { stdenv, fetchurl, automake, autoconf, libtool, pkgconfig, libzen, libmediainfo, wxGTK, desktop_file_utils, libSM, imagemagick }:
 
 stdenv.mkDerivation rec {
-  version = "0.7.72";
+  version = "0.7.76";
   name = "mediainfo-gui-${version}";
   src = fetchurl {
-    url = "http://mediaarea.net/download/source/mediainfo/${version}/mediainfo_${version}.tar.bz2";
-    sha256 = "04sqm2cziqvnghbla89f83vy46bmsfcvlq7f4m4kfcs24bjzfwr1";
+    url = "http://mediaarea.net/download/source/mediainfo/${version}/mediainfo_${version}.tar.xz";
+    sha256 = "14vy2a9bjjwxyk8zh0ysin8fb1lj9yz17yd82vxrp1zvxsgyg5ck";
   };
 
   buildInputs = [ automake autoconf libtool pkgconfig libzen libmediainfo wxGTK desktop_file_utils libSM imagemagick ];
 
   sourceRoot = "./MediaInfo/Project/GNU/GUI/";
 
-  preConfigure = "sh autogen";
+  preConfigure = "sh autogen.sh";
 
   meta = {
     description = "Supplies technical and tag information about a video or audio file (GUI version)";

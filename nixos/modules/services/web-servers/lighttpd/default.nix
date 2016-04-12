@@ -44,7 +44,6 @@ let
     "mod_flv_streaming"
     "mod_magnet"
     "mod_mysql_vhost"
-    "mod_rewrite"
     "mod_scgi"
     "mod_setenv"
     "mod_trigger_b4_dl"
@@ -122,7 +121,7 @@ in
 
       enable = mkOption {
         default = false;
-        type = types.uniq types.bool;
+        type = types.bool;
         description = ''
           Enable the lighttpd web server.
         '';
@@ -130,7 +129,7 @@ in
 
       port = mkOption {
         default = 80;
-        type = types.uniq types.int;
+        type = types.int;
         description = ''
           TCP port number for lighttpd to bind to.
         '';
@@ -146,7 +145,7 @@ in
 
       mod_userdir = mkOption {
         default = false;
-        type = types.uniq types.bool;
+        type = types.bool;
         description = ''
           If true, requests in the form /~user/page.html are rewritten to take
           the file public_html/page.html from the home directory of the user.
@@ -168,7 +167,7 @@ in
 
       mod_status = mkOption {
         default = false;
-        type = types.uniq types.bool;
+        type = types.bool;
         description = ''
           Show server status overview at /server-status, statistics at
           /server-statistics and list of loaded modules at /server-config.

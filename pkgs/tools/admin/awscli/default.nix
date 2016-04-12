@@ -1,13 +1,13 @@
-{ stdenv, fetchzip, pythonPackages, groff }:
+{ stdenv, fetchzip, pythonPackages, groff, less }:
 
 pythonPackages.buildPythonPackage rec {
   name = "awscli-${version}";
-  version = "1.7.0";
+  version = "1.7.41";
   namePrefix = "";
 
   src = fetchzip {
     url = "https://github.com/aws/aws-cli/archive/${version}.tar.gz";
-    sha256 = "14cbfvwx18vs2l8hhvamy1mbvjwa3xrm58l8yyalhrh5pqq952mi";
+    sha256 = "1xfvpqyxi5qaqcvm56q616k9zjidbc9l2vk1v3ld6lnlzri3a1ra";
   };
 
   propagatedBuildInputs = [
@@ -19,7 +19,16 @@ pythonPackages.buildPythonPackage rec {
     pythonPackages.rsa
     pythonPackages.pyasn1
     groff
+    less
   ];
+
+  postInstall = ''
+    mkdir -p $out/etc/bash_completion.d
+    echo "complete -C $out/bin/aws_completer aws" > $out/etc/bash_completion.d/awscli
+    mkdir -p $out/share/zsh/site-functions
+    mv $out/bin/aws_zsh_completer.sh $out/share/zsh/site-functions
+    rm $out/bin/aws.cmd
+  '';
 
   meta = {
     homepage = https://aws.amazon.com/cli/;

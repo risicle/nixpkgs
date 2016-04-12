@@ -33,33 +33,26 @@ self: super: {
   unix = null;
   xhtml = null;
 
-  # We have Cabal 1.22.x.
+  # jailbreak-cabal can use the native Cabal library.
   jailbreak-cabal = super.jailbreak-cabal.override { Cabal = null; };
-
-  # GHC 7.10.x's Haddock binary cannot generate hoogle files.
-  # https://ghc.haskell.org/trac/ghc/ticket/9921
-  mkDerivation = drv: super.mkDerivation (drv // { doHoogle = false; });
 
   # haddock: No input file(s).
   nats = dontHaddock super.nats;
-
-  # These used to be core packages in GHC 7.8.x.
-  old-locale = self.old-locale_1_0_0_7;
-  old-time = self.old-time_1_1_0_3;
-
-  # We have transformers 4.x
-  mtl = self.mtl_2_2_1;
-  transformers-compat = disableCabalFlag super.transformers-compat "three";
+  bytestring-builder = dontHaddock super.bytestring-builder;
 
   # We have time 1.5
   aeson = disableCabalFlag super.aeson "old-locale";
 
+  # Show works differently for record syntax now, breaking haskell-src-exts' parser tests
+  # https://github.com/haskell-suite/haskell-src-exts/issues/224
+  haskell-src-exts = dontCheck super.haskell-src-exts;
+
   # Setup: At least the following dependencies are missing: base <4.8
   hspec-expectations = overrideCabal super.hspec-expectations (drv: {
-    patchPhase = "sed -i -e 's|base < 4.8|base|' hspec-expectations.cabal";
+    postPatch = "sed -i -e 's|base < 4.8|base|' hspec-expectations.cabal";
   });
   utf8-string = overrideCabal super.utf8-string (drv: {
-    patchPhase = "sed -i -e 's|base >= 3 && < 4.8|base|' utf8-string.cabal";
+    postPatch = "sed -i -e 's|base >= 3 && < 4.8|base|' utf8-string.cabal";
   });
 
   # bos/attoparsec#92
@@ -81,8 +74,15 @@ self: super: {
   # Version 1.19.5 fails its test suite.
   happy = dontCheck super.happy;
 
-  # Test suite hangs silently without consuming any CPU.
-  # https://github.com/ndmitchell/extra/issues/4
-  extra = dontCheck super.extra;
+  # Workaround for a workaround, see comment for "ghcjs" flag.
+  jsaddle = let jsaddle' = disableCabalFlag super.jsaddle "ghcjs";
+            in addBuildDepends jsaddle' [ self.glib self.gtk3 self.webkitgtk3
+                                          self.webkitgtk3-javascriptcore ];
+
+  # The compat library is empty in the presence of mtl 2.2.x.
+  mtl-compat = dontHaddock super.mtl-compat;
+
+  # Won't work with LLVM 3.5.
+  llvm-general = markBrokenVersion "3.4.5.3" super.llvm-general;
 
 }

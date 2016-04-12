@@ -1,22 +1,21 @@
-{ fetchurl, stdenv, dpkg, xlibs, qt4, alsaLib, makeWrapper, openssl, freetype
+{ fetchurl, stdenv, dpkg, xorg, qt4, alsaLib, makeWrapper, openssl, freetype
 , glib, pango, cairo, atk, gdk_pixbuf, gtk, cups, nspr, nss, libpng, GConf
-, libgcrypt, chromium, udev, fontconfig
-, dbus, expat }:
+, libgcrypt, udev, fontconfig, dbus, expat, ffmpeg_0_10, curl, zlib, gnome }:
 
-assert stdenv.system == "i686-linux" || stdenv.system == "x86_64-linux";
+assert stdenv.system == "x86_64-linux";
 
 let
-  version = if stdenv.system == "i686-linux"
-    then "0.9.4.183.g644e24e.428"
-    else "0.9.17.1.g9b85d43.7";
+  version = "1.0.25.127.g58007b4c-22";
 
   deps = [
     alsaLib
     atk
     cairo
     cups
+    curl
     dbus
     expat
+    ffmpeg_0_10
     fontconfig
     freetype
     GConf
@@ -27,18 +26,20 @@ let
     libpng
     nss
     pango
-    qt4
     stdenv.cc.cc
-    xlibs.libX11
-    xlibs.libXcomposite
-    xlibs.libXdamage
-    xlibs.libXext
-    xlibs.libXfixes
-    xlibs.libXi
-    xlibs.libXrandr
-    xlibs.libXrender
-    xlibs.libXrender
-    xlibs.libXScrnSaver
+    udev
+    xorg.libX11
+    xorg.libXcomposite
+    xorg.libXcursor
+    xorg.libXdamage
+    xorg.libXext
+    xorg.libXfixes
+    xorg.libXi
+    xorg.libXrandr
+    xorg.libXrender
+    xorg.libXScrnSaver
+    xorg.libXtst
+    zlib
   ];
 
 in
@@ -47,17 +48,10 @@ stdenv.mkDerivation {
   name = "spotify-${version}";
 
   src =
-    if stdenv.system == "i686-linux" then
-      fetchurl {
-        url = "http://repository.spotify.com/pool/non-free/s/spotify/spotify-client_${version}-1_i386.deb";
-        sha256 = "1wl6v5x8vm74h5lxp8fhvmih8l122aadsf1qxvpk0k3y6mbx0ifa";
-      }
-    else if stdenv.system == "x86_64-linux" then
-      fetchurl {
-        url = "http://repository.spotify.com/pool/non-free/s/spotify/spotify-client_${version}-1_amd64.deb";
-        sha256 = "0x87q7gd2997sgppsm4lmdiz1cm11x5vnd5c34nqb5d4ry5qfyki";
-      }
-    else throw "Spotify not supported on this platform.";
+    fetchurl {
+      url = "http://repository-origin.spotify.com/pool/non-free/s/spotify-client/spotify-client_${version}_amd64.deb";
+      sha256 = "1fxps0ls0g4idw10la3qrpmp2jn85lkm3xj4nam4ycx0jj8g1v2p";
+    };
 
   buildInputs = [ dpkg makeWrapper ];
 
@@ -68,58 +62,40 @@ stdenv.mkDerivation {
       libdir=$out/lib/spotify
       mkdir -p $libdir
       dpkg-deb -x $src $out
-      mv $out/opt/spotify/* $out/
-      rm -rf $out/usr $out/opt
+      mv $out/usr/* $out/
+      rm -rf $out/usr
 
       # Work around Spotify referring to a specific minor version of
       # OpenSSL.
 
-      ln -s ${nss}/lib/libnss3.so $libdir/libnss3.so.1d
-      ln -s ${nss}/lib/libnssutil3.so $libdir/libnssutil3.so.1d
-      ln -s ${nss}/lib/libsmime3.so $libdir/libsmime3.so.1d
-
-      ${if stdenv.system == "x86_64-linux" then ''
       ln -s ${openssl}/lib/libssl.so $libdir/libssl.so.1.0.0
       ln -s ${openssl}/lib/libcrypto.so $libdir/libcrypto.so.1.0.0
       ln -s ${nspr}/lib/libnspr4.so $libdir/libnspr4.so
       ln -s ${nspr}/lib/libplc4.so $libdir/libplc4.so
-      '' else ''
-      ln -s ${openssl}/lib/libssl.so $libdir/libssl.so.0.9.8
-      ln -s ${openssl}/lib/libcrypto.so $libdir/libcrypto.so.0.9.8
-      ln -s ${nspr}/lib/libnspr4.so $libdir/libnspr4.so.0d
-      ln -s ${nspr}/lib/libplc4.so $libdir/libplc4.so.0d
-      ''}
 
-      # Work around Spotify trying to open libudev.so.1 (which we don't have)
-      ln -s ${udev}/lib/libudev.so.1 $libdir/libudev.so.1
-
-      mkdir -p $out/bin
-
-      rpath="$out/spotify-client/Data:$libdir:$out/spotify-client:${stdenv.cc.cc}/lib64"
-
-      ln -s $out/spotify-client/spotify $out/bin/spotify
+      rpath="$out/share/spotify:$libdir"
 
       patchelf \
         --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        --set-rpath $rpath $out/spotify-client/spotify
+        --set-rpath $rpath $out/share/spotify/spotify
 
-      patchelf \
-        --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        --set-rpath $rpath $out/spotify-client/Data/SpotifyHelper
-
-      preload=$out/libexec/spotify/libpreload.so
       librarypath="${stdenv.lib.makeLibraryPath deps}:$libdir"
-      mkdir -p $out/libexec/spotify
-      gcc -shared ${./preload.c} -o $preload -ldl -DOUT=\"$out\" -fPIC
-
-      wrapProgram $out/bin/spotify --set LD_PRELOAD $preload --prefix LD_LIBRARY_PATH : "$librarypath"
-      wrapProgram $out/spotify-client/Data/SpotifyHelper --set LD_PRELOAD $preload --prefix LD_LIBRARY_PATH : "$librarypath"
+      wrapProgram $out/share/spotify/spotify \
+        --prefix LD_LIBRARY_PATH : "$librarypath" \
+        --prefix PATH : "${gnome.zenity}/bin"
 
       # Desktop file
       mkdir -p "$out/share/applications/"
-      cp "$out/spotify-client/spotify.desktop" "$out/share/applications/"
-      sed -i "s|Icon=.*|Icon=$out/spotify-client/Icons/spotify-linux-512.png|" "$out/share/applications/spotify.desktop"
-    ''; # */
+      cp "$out/share/spotify/spotify.desktop" "$out/share/applications/"
+
+      # Icons
+      for i in 16 22 24 32 48 64 128 256 512; do
+        ixi="$i"x"$i"
+        mkdir -p "$out/share/icons/hicolor/$ixi/apps"
+        ln -s "$out/share/spotify/icons/spotify-linux-$i.png" \
+          "$out/share/icons/hicolor/$ixi/apps/spotify-client.png"
+      done
+    '';
 
   dontStrip = true;
   dontPatchELF = true;

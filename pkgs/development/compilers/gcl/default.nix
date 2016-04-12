@@ -4,13 +4,13 @@ let
     mpfr m4 binutils emacs gmp
     libX11 xproto inputproto libXi 
     libXext xextproto libXt libXaw libXmu
-    zlib which texinfo texLive
+    zlib which texinfo
   ]; 
 in
 
 (
 assert a.stdenv ? cc ;
-assert a.stdenv.cc.cc.isGNU or false ;
+assert a.stdenv.cc.isGNU ;
 assert a.stdenv.cc ? libc ;
 assert a.stdenv.cc.libc != null ;
 

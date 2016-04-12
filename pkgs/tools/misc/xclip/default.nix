@@ -1,4 +1,4 @@
-{ stdenv, fetchsvn, x11, libXmu, autoconf, automake, libtool }:
+{ stdenv, fetchsvn, xlibsWrapper, libXmu, autoconf, automake, libtool }:
 
 stdenv.mkDerivation rec {
   # The last release from 2012, 0.12, lacks '-targets'
@@ -6,12 +6,13 @@ stdenv.mkDerivation rec {
 
   src = fetchsvn {
     url = "svn://svn.code.sf.net/p/xclip/code/trunk";
-    sha256 = "0d6r38xas5l79l700sdm14l41vvjqhah613367ha8kcvx54zkddz";
+    rev = "87";
+    sha256 = "1rbcdgr73916wvzfgqjs1jhgzk8qs1yw2iiqy7ifrkjafhi37w6b";
   };
 
   preConfigure = "autoreconf -vfi";
 
-  buildInputs = [ x11 libXmu autoconf automake libtool ];
+  buildInputs = [ xlibsWrapper libXmu autoconf automake libtool ];
 
   meta = { 
     description = "Tool to access the X clipboard from a console application";

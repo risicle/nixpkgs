@@ -3,7 +3,7 @@
 # of the virtual consoles.  The latter is useful for the installation
 # CD.
 
-{ config, lib, pkgs, baseModules, ... } @ extraArgs:
+{ config, lib, pkgs, baseModules, ... }:
 
 with lib;
 
@@ -14,11 +14,12 @@ let
   versionModule =
     { system.nixosVersionSuffix = config.system.nixosVersionSuffix;
       system.nixosRevision = config.system.nixosRevision;
+      nixpkgs.system = config.nixpkgs.system;
     };
 
   eval = evalModules {
     modules = [ versionModule ] ++ baseModules;
-    args = (removeAttrs extraArgs ["config" "options"]) // { modules = [ ]; };
+    args = (config._module.args) // { modules = [ ]; };
   };
 
   manual = import ../../../doc/manual {
@@ -79,7 +80,6 @@ in
 
     services.nixosManual.browser = mkOption {
       type = types.path;
-      default = "${pkgs.w3m}/bin/w3m";
       description = ''
         Browser used to show the manual.
       '';
@@ -92,7 +92,9 @@ in
 
     system.build.manual = manual;
 
-    environment.systemPackages = [ manual.manpages help ];
+    environment.systemPackages =
+      [ manual.manual help ]
+      ++ optional config.programs.man.enable manual.manpages;
 
     boot.extraTTYs = mkIf cfg.showManual ["tty${cfg.ttyNumber}"];
 
@@ -114,6 +116,8 @@ in
 
     services.mingetty.helpLine = mkIf cfg.showManual
       "\nPress <Alt-F${toString cfg.ttyNumber}> for the NixOS manual.";
+
+    services.nixosManual.browser = mkDefault "${pkgs.w3m}/bin/w3m";
 
   };
 

@@ -58,6 +58,16 @@ rec {
       patch = ./mips-ext3-n32.patch;
     };
 
+  ubuntu_fan =
+    { name = "ubuntu-fan";
+      patch = ./ubuntu-fan-3.patch;
+    };
+
+  ubuntu_fan_4 =
+    { name = "ubuntu-fan";
+      patch = ./ubuntu-fan-4.patch;
+    };
+
   tuxonice_3_10 = makeTuxonicePatch {
     version = "2013-11-07";
     kernelVersion = "3.10.18";
@@ -65,17 +75,17 @@ rec {
   };
 
   grsecurity_stable = grsecPatch
-    { kversion  = "3.14.37";
-      revision  = "201503270048";
+    { kversion  = "3.14.51";
+      revision  = "201508181951";
       branch    = "stable";
-      sha256    = "1ryxh89m392mwqlwqiy3jszyhq9cxmvkv320di7hi50aqx8k2lqf";
+      sha256    = "1sp1gwa7ahzflq7ayb51bg52abrn5zx1hb3pff3axpjqq7vfai6f";
     };
 
   grsecurity_unstable = grsecPatch
-    { kversion  = "3.19.3";
-      revision  = "201503270049";
+    { kversion  = "4.3.4";
+      revision  = "201601231215";
       branch    = "test";
-      sha256    = "0m76p947gr0bqk6xxb237bpf4ikxjzycjzq4i2szm4n86k9sfac0";
+      sha256    = "1dacld4zlp8mk6ykc0f1v5crppvq3znbdw9rwfrf6qi90984x0mr";
     };
 
   grsec_fix_path =
@@ -87,4 +97,5 @@ rec {
     { name = "crc-backport-regression";
       patch = ./crc-regression.patch;
     };
+
 }

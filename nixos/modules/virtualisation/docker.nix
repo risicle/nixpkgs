@@ -43,15 +43,39 @@ in
             in future.  So set this option explicitly to false if you wish.
           '';
       };
+    storageDriver =
+      mkOption {
+        type = types.enum ["aufs" "btrfs" "devicemapper" "overlay" "zfs"];
+        default = "devicemapper";
+        description =
+          ''
+            This option determines which Docker storage driver to use.
+          '';
+      };
     extraOptions =
       mkOption {
-        type = types.str;
+        type = types.separatedString " ";
         default = "";
         description =
           ''
             The extra command-line options to pass to
             <command>docker</command> daemon.
           '';
+      };
+
+    postStart =
+      mkOption {
+        type = types.string;
+        default = ''
+          while ! [ -e /var/run/docker.sock ]; do
+            sleep 0.1
+          done
+        '';
+        description = ''
+          The postStart phase of the systemd service. You may need to
+          override this if you are passing in flags to docker which
+          don't cause the socket file to be created.
+        '';
       };
 
 
@@ -70,7 +94,7 @@ in
         after = [ "network.target" "docker.socket" ];
         requires = [ "docker.socket" ];
         serviceConfig = {
-          ExecStart = "${pkgs.docker}/bin/docker --daemon=true --host=fd:// --group=docker ${cfg.extraOptions}";
+          ExecStart = "${pkgs.docker}/bin/docker daemon --host=fd:// --group=docker --storage-driver=${cfg.storageDriver} ${cfg.extraOptions}";
           #  I'm not sure if that limits aren't too high, but it's what
           #  goes in config bundled with docker itself
           LimitNOFILE = 1048576;
@@ -96,18 +120,17 @@ in
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
         serviceConfig = {
-          ExecStart = "${pkgs.docker}/bin/docker --daemon=true --group=docker ${cfg.extraOptions}";
+          ExecStart = "${pkgs.docker}/bin/docker daemon --group=docker --storage-driver=${cfg.storageDriver} ${cfg.extraOptions}";
           #  I'm not sure if that limits aren't too high, but it's what
           #  goes in config bundled with docker itself
           LimitNOFILE = 1048576;
           LimitNPROC = 1048576;
         } // proxy_env;
 
-        postStart = ''
-          while ! [ -e /var/run/docker.sock ]; do
-            sleep 0.1
-          done
-        '';
+        path = [ pkgs.kmod ] ++ (optional (cfg.storageDriver == "zfs") pkgs.zfs);
+        environment.MODULE_DIR = "/run/current-system/kernel-modules/lib/modules";
+
+        postStart = cfg.postStart;
 
         # Presumably some containers are running we don't want to interrupt
         restartIfChanged = false;

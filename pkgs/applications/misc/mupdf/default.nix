@@ -1,12 +1,13 @@
 { stdenv, fetchurl, fetchpatch, pkgconfig, zlib, freetype, libjpeg, jbig2dec, openjpeg
 , libX11, libXext }:
+
 stdenv.mkDerivation rec {
-  version = "1.6";
+  version = "1.7a";
   name = "mupdf-${version}";
 
   src = fetchurl {
     url = "http://mupdf.com/download/archive/${name}-source.tar.gz";
-    sha256 = "0qx51rj6alzcagcixm59rvdpm54w6syrwr4184v439jh14ryw4wq";
+    sha256 = "073xq6kczq331awycvznpc49b22idqzdlw4g9254zi0z07x5y0wc";
   };
 
   buildInputs = [ pkgconfig zlib freetype libjpeg jbig2dec openjpeg libX11 libXext ];
@@ -56,7 +57,7 @@ stdenv.mkDerivation rec {
     Version=1.0
     Name=mupdf
     Comment=PDF viewer
-    Exec=$out/bin/mupdf-x11
+    Exec=$out/bin/mupdf-x11 %f
     Terminal=false
     EOF
   '';

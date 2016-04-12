@@ -14,10 +14,10 @@ stdenv.mkDerivation {
   configureFlags = [ "--with-gtk" "--with--board3d" ];
 
   meta = with stdenv.lib;
-    { description = "World class backgammon application.";
+    { description = "World class backgammon application";
       homepage = http://www.gnubg.org/;
       license = licenses.gpl3;
-      maintainers = [ maintainers.emery ];
+      maintainers = [ maintainers.ehmry ];
       platforms = platforms.linux;
     };
 }

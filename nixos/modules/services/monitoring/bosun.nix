@@ -9,7 +9,7 @@ let
     tsdbHost = ${cfg.opentsdbHost}
     httpListen = ${cfg.listenAddress}
     stateFile = ${cfg.stateFile}
-    checkFrequency = 5m
+    checkFrequency = ${cfg.checkFrequency}
 
     ${cfg.extraConfig}
   '';
@@ -30,6 +30,7 @@ in {
 
       package = mkOption {
         type = types.package;
+        default = pkgs.bosun;
         example = literalExample "pkgs.bosun";
         description = ''
           bosun binary to use.
@@ -76,6 +77,14 @@ in {
         '';
       };
 
+      checkFrequency = mkOption {
+        type = types.str;
+        default = "5m";
+        description = ''
+          Bosun's check frequency
+        '';
+      };
+
       extraConfig = mkOption {
         type = types.string;
         default = "";
@@ -95,8 +104,6 @@ in {
 
   config = mkIf cfg.enable {
   
-    services.bosun.package = mkDefault pkgs.bosun; 
-
     systemd.services.bosun = {
       description = "bosun metrics collector (part of Bosun)";
       wantedBy = [ "multi-user.target" ];

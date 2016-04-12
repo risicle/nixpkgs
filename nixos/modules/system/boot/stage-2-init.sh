@@ -53,7 +53,7 @@ echo "booting system configuration $systemConfig" > /dev/kmsg
 # Silence chown/chmod to fail gracefully on a readonly filesystem
 # like squashfs.
 chown -f 0:30000 /nix/store
-chmod -f 1735 /nix/store
+chmod -f 1775 /nix/store
 if [ -n "@readOnlyStore@" ]; then
     if ! readonly-mountpoint /nix/store; then
         mount --bind /nix/store /nix/store
@@ -85,8 +85,10 @@ done
 
 
 # More special file systems, initialise required directories.
-mkdir -m 0755 /dev/shm
-mount -t tmpfs -o "rw,nosuid,nodev,size=@devShmSize@" tmpfs /dev/shm
+if ! mountpoint -q /dev/shm; then
+    mkdir -m 0755 /dev/shm
+    mount -t tmpfs -o "rw,nosuid,nodev,size=@devShmSize@" tmpfs /dev/shm
+fi
 mkdir -m 0755 -p /dev/pts
 [ -e /proc/bus/usb ] && mount -t usbfs usbfs /proc/bus/usb # UML doesn't have USB by default
 mkdir -m 01777 -p /tmp
@@ -162,7 +164,9 @@ $systemConfig/activate
 # Restore the system time from the hardware clock.  We do this after
 # running the activation script to be sure that /etc/localtime points
 # at the current time zone.
-hwclock --hctosys
+if [ -e /dev/rtc ]; then
+    hwclock --hctosys
+fi
 
 
 # Record the boot configuration.

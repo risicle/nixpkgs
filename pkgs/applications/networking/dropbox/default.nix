@@ -1,6 +1,6 @@
 { stdenv, fetchurl, makeDesktopItem, makeWrapper
 , dbus_libs, gcc, glib, libdrm, libffi, libICE, libSM
-, libX11, libXmu, ncurses, popt, qt5, zlib
+, libX11, libXmu, ncurses, popt, qt5, zlib, mesa_noglu
 }:
 
 # this package contains the daemon version of dropbox
@@ -18,18 +18,25 @@
 # them with our own.
 
 let
-  arch = if stdenv.system == "x86_64-linux" then "x86_64"
-    else if stdenv.system == "i686-linux" then "x86"
-    else throw "Dropbox client for: ${stdenv.system} not supported!";
+  # NOTE: When updating, please also update in current stable, as older versions stop working
+  version = "3.14.7";
+  sha256 =
+    {
+      "x86_64-linux" = "1pwmghpr0kyca2biysyk90kk9k6ffv4i95vs5rq96vc0zbckws6n";
+      "i686-linux" = "08yqrxh09cfd80kbiq1f2sirx9s85acij4khpklvvwrnf2x1i1zm";
+    }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
-  interpreter = if stdenv.system == "x86_64-linux" then "ld-linux-x86-64.so.2"
-    else if stdenv.system == "i686-linux" then "ld-linux.so.2"
-    else throw "Dropbox client for: ${stdenv.system} not supported!";
+  arch =
+    {
+      "x86_64-linux" = "x86_64";
+      "i686-linux" = "x86";
+    }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
-  version = "3.2.9";
-  sha256 = if stdenv.system == "x86_64-linux" then "1w1xqizd4xhf9d3gwg9wwys2rdbacs390zf4a7z76m9h5r2lz049"
-    else if stdenv.system == "i686-linux" then "0lzrb0b7hi22ij7fmn7i3wkzbzv99858ah7w8ysg65za0c8qwksc"
-    else throw "Dropbox client for: ${stdenv.system} not supported!";
+  interpreter =
+    {
+      "x86_64-linux" = "ld-linux-x86-64.so.2";
+      "i686-linux" = "ld-linux.so.2";
+    }."${stdenv.system}" or (throw "system ${stdenv.system} not supported");
 
   # relative location where the dropbox libraries are stored
   appdir = "opt/dropbox";
@@ -37,7 +44,7 @@ let
   ldpath = stdenv.lib.makeSearchPath "lib"
     [
       dbus_libs gcc glib libdrm libffi libICE libSM libX11
-      libXmu ncurses popt qt5.base qt5.declarative qt5.webkit
+      libXmu ncurses popt qt5.qtbase qt5.qtdeclarative qt5.qtwebkit
       zlib
     ];
 
@@ -94,12 +101,12 @@ in stdenv.mkDerivation {
     rm "$out/${appdir}/qt.conf"
     rm -fr "$out/${appdir}/plugins"
 
-    find "$out/${appdir}" -type f -a -perm +0100 \
+    find "$out/${appdir}" -type f -a -perm -0100 \
       -print -exec patchelf --set-interpreter ${stdenv.glibc}/lib/${interpreter} {} \;
 
     RPATH=${ldpath}:${gcc.cc}/lib:$out/${appdir}
     echo "updating rpaths to: $RPATH"
-    find "$out/${appdir}" -type f -a -perm +0100 \
+    find "$out/${appdir}" -type f -a -perm -0100 \
       -print -exec patchelf --force-rpath --set-rpath "$RPATH" {} \;
 
     mkdir -p "$out/share/applications"
@@ -107,7 +114,11 @@ in stdenv.mkDerivation {
 
     mkdir -p "$out/bin"
     makeWrapper "$out/${appdir}/dropbox" "$out/bin/dropbox" \
-      --prefix LD_LIBRARY_PATH : "${ldpath}"
+      --prefix LD_LIBRARY_PATH : "${ldpath}" \
+      --suffix LD_LIBRARY_PATH : "${mesa_noglu}/lib"
+
+    mkdir -p "$out/share/icons"
+    ln -s "$out/${appdir}/images/hicolor" "$out/share/icons/hicolor"
   '';
 
   meta = {

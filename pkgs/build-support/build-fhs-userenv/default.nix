@@ -1,37 +1,47 @@
-{ writeTextFile, stdenv, ruby } : { env, runScript } :
+{ runCommand, lib, writeText, writeScriptBin, stdenv, ruby } : { env, runScript ? "bash", extraBindMounts ? [] } :
 
 let
   name = env.pname;
 
   # Sandboxing script
-  chroot-user = writeTextFile {
-    name = "chroot-user";
-    executable = true;
-    destination = "/bin/chroot-user";
-    text = ''
-      #! ${ruby}/bin/ruby
-      ${builtins.readFile ./chroot-user.rb}
-    '';
-  };
-
-in stdenv.mkDerivation {
-  name = "${name}-userenv";
-  buildInputs = [ ruby ];
-  preferLocalBuild = true;
-  buildCommand = ''
-    mkdir -p $out/bin
-    cat > $out/bin/${name} <<EOF
-    #! ${stdenv.shell}
-    exec ${chroot-user}/bin/chroot-user ${env} $out/libexec/run "\$@"
-    EOF
-    chmod +x $out/bin/${name}
-
-    mkdir -p $out/libexec
-    cat > $out/libexec/run <<EOF
-    #! ${stdenv.shell}
-    source /etc/profile
-    ${runScript} "\$@"
-    EOF
-    chmod +x $out/libexec/run
+  chroot-user = writeScriptBin "chroot-user" ''
+    #! ${ruby}/bin/ruby
+    ${builtins.readFile ./chroot-user.rb}
   '';
-}
+
+  init = run: writeText "${name}-init" ''
+    # Make /tmp directory
+    mkdir -m 1777 /tmp
+
+    # Expose sockets in /tmp
+    for i in /host-tmp/.*-unix; do
+      ln -s "$i" "/tmp/$(basename "$i")"
+    done
+
+    [ -d "$1" ] && [ -r "$1" ] && cd "$1"
+    shift
+    exec ${run} "$@"
+  '';
+
+in runCommand name {
+  passthru.env =
+    runCommand "${name}-shell-env" {
+      shellHook = ''
+        export CHROOTENV_EXTRA_BINDS="${lib.concatStringsSep ":" extraBindMounts}:$CHROOTENV_EXTRA_BINDS"
+        exec ${chroot-user}/bin/chroot-user ${env} bash -l ${init "bash"} "$(pwd)"
+      '';
+    } ''
+      echo >&2 ""
+      echo >&2 "*** User chroot 'env' attributes are intended for interactive nix-shell sessions, not for building! ***"
+      echo >&2 ""
+      exit 1
+    '';
+} ''
+  mkdir -p $out/bin
+  cat <<EOF >$out/bin/${name}
+  #! ${stdenv.shell}
+  export CHROOTENV_EXTRA_BINDS="${lib.concatStringsSep ":" extraBindMounts}:\$CHROOTENV_EXTRA_BINDS"
+  exec ${chroot-user}/bin/chroot-user ${env} bash -l ${init runScript} "\$(pwd)" "\$@"
+  EOF
+  chmod +x $out/bin/${name}
+''

@@ -126,9 +126,11 @@ in
       description = "Dynamic DNS Client";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
+
+      environment.SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
       serviceConfig = {
-        # This may change back to forking if too many problems occur:
-        type = "simple";
+        # Uncomment this if too many problems occur:
+        # Type = "forking";
         User = ddclientUser;
         Group = "nogroup"; #TODO get this to work
         PermissionsStartOnly = "true";

@@ -99,7 +99,6 @@ in
       };
 
       outputTheme = mkOption {
-        default = "${pkgs.venus}/themes/classic_fancy";
         type = types.path;
         description = ''
           Directory containing a config.ini file which is merged with this one.
@@ -166,9 +165,11 @@ in
         script = "exec venus-planet ${configFile}";
         serviceConfig.User = "${cfg.user}";
         serviceConfig.Group = "${cfg.group}";
-        environment.OPENSSL_X509_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
+        environment.SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt";
         startAt = cfg.dates;
       };
+
+    services.venus.outputTheme = mkDefault "${pkgs.venus}/themes/classic_fancy";
 
   };
 }

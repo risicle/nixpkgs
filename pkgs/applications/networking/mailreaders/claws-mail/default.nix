@@ -1,7 +1,8 @@
-{ fetchurl, stdenv
-, curl, dbus, dbus_glib, enchant, gtk, gnutls, gnupg, gpgme, libarchive
-, libcanberra, libetpan, libnotify, libsoup, libxml2, networkmanager, openldap
-, perl, pkgconfig, poppler, python, webkitgtk2
+{ fetchurl, stdenv, wrapGAppsHook
+, curl, dbus, dbus_glib, enchant, gtk, gnutls, gnupg, gpgme, hicolor_icon_theme
+, libarchive, libcanberra, libetpan, libnotify, libsoup, libxml2, networkmanager
+, openldap , perl, pkgconfig, poppler, python, shared_mime_info, webkitgtk2
+, glib_networking, gsettings_desktop_schemas
 
 # Build options
 # TODO: A flag to build the manual.
@@ -29,25 +30,30 @@
 
 with stdenv.lib;
 
-let version = "3.11.1"; in
-
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   name = "claws-mail-${version}";
+  version = "3.13.2";
 
   meta = {
     description = "The user-friendly, lightweight, and fast email client";
     homepage = http://www.claws-mail.org/;
     license = licenses.gpl3;
     platforms = platforms.linux;
+    maintainers = [ maintainers.khumba ];
+    priority = 10;  # Resolve the conflict with the share/mime link we create.
   };
 
   src = fetchurl {
-    url = "http://downloads.sourceforge.net/project/claws-mail/Claws%20Mail/${version}/claws-mail-${version}.tar.bz2";
-    sha256 = "0w13xzri9d3165qsxf1dig1f0gxn3ib4lysfc9pgi4zpyzd0zgrw";
+    url = "http://www.claws-mail.org/download.php?file=releases/claws-mail-${version}.tar.xz";
+    sha256 = "1l8ankx0qpq1ix1an8viphcf11ksh53jsrm1xjmq8cjbh5910wva";
   };
 
+  patches = [ ./mime.patch ];
+
   buildInputs =
-    [ curl dbus dbus_glib gtk gnutls libetpan perl pkgconfig python ]
+    [ curl dbus dbus_glib gtk gnutls gsettings_desktop_schemas hicolor_icon_theme
+      libetpan perl pkgconfig python wrapGAppsHook
+    ]
     ++ optional enableSpellcheck enchant
     ++ optionals (enablePgp || enablePluginSmime) [ gnupg gpgme ]
     ++ optional enablePluginArchive libarchive
@@ -78,4 +84,14 @@ stdenv.mkDerivation {
     ++ optional (!enablePluginSpamReport) "--disable-spam_report-plugin"
     ++ optional (!enablePluginVcalendar) "--disable-vcalendar-plugin"
     ++ optional (!enableSpellcheck) "--disable-enchant";
+
+  wrapPrefixVariables = [ "GIO_EXTRA_MODULES" ];
+  GIO_EXTRA_MODULES = "${glib_networking}/lib/gio/modules";
+
+  postInstall = ''
+    mkdir -p $out/share/applications
+    cp claws-mail.desktop $out/share/applications
+
+    ln -sT ${shared_mime_info}/share/mime $out/share/mime
+  '';
 }

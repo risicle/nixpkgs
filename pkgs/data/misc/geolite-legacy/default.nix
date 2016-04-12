@@ -1,41 +1,43 @@
 { stdenv, fetchurl }:
 
-# Annoyingly, these files are updated without a change in URL. This means that
-# builds will start failing every month or so, until the hashes are updated.
-let version = "2015-03-26"; in
+let
+  fetchDB = src: name: sha256: fetchurl {
+    inherit name sha256;
+    url = "https://geolite.maxmind.com/download/geoip/database/${src}";
+  };
+
+  # Annoyingly, these files are updated without a change in URL. This means that
+  # builds will start failing every month or so, until the hashes are updated.
+  version = "2016-01-06";
+in
 stdenv.mkDerivation {
   name = "geolite-legacy-${version}";
 
-  srcGeoIP = fetchurl {
-    url = https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz;
-    sha256 = "01xw896n9wcm1pv7sixfbh4gv6isl6m1i6lwag1c2bbcx6ci1zvr";
-  };
-  srcGeoIPv6 = fetchurl {
-    url = https://geolite.maxmind.com/download/geoip/database/GeoIPv6.dat.gz;
-    sha256 = "07l10hd7fkgk1nbw5gx4hjp61kdqqgri97fidn78dlk837rb02d0";
-  };
-  srcGeoLiteCity = fetchurl {
-    url = https://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz;
-    sha256 = "1xqjyz9xnga3dvhj0f38hf78wv781jflvqkxm6qni3sj781nfr4a";
-  };
-  srcGeoLiteCityv6 = fetchurl {
-    url = https://geolite.maxmind.com/download/geoip/database/GeoLiteCityv6-beta/GeoLiteCityv6.dat.gz;
-    sha256 = "03s41ffc5a13qy5kgx8jqya97jkw2qlvdkak98hab7xs0i17z9pd";
-  };
-  srcGeoIPASNum = fetchurl {
-    url = https://geolite.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz;
-    sha256 = "1h766l8dsfgzlrz0q76877xksaf5qf91nwnkqwb6zl1gkczbwy6p";
-  };
-  srcGeoIPASNumv6 = fetchurl {
-    url = https://download.maxmind.com/download/geoip/database/asnum/GeoIPASNumv6.dat.gz;
-    sha256 = "0dwi9b3amfpmpkknf9ipz2r8aq05gn1j2zlvanwwah3ib5cgva9d";
-  };
+  srcGeoIP = fetchDB
+    "GeoLiteCountry/GeoIP.dat.gz" "GeoIP.dat.gz"
+    "07h1ha7z9i877ph41fw4blcfb11ynv8k9snrrsgsjrvv2yqvsc37";
+  srcGeoIPv6 = fetchDB
+    "GeoIPv6.dat.gz" "GeoIPv6.dat.gz"
+    "14wsc0w8ir5q1lq6d9bpr03qvrbi2i0g04gkfcwbnh63yqxc31m9";
+  srcGeoLiteCity = fetchDB
+    "GeoLiteCity.dat.xz" "GeoIPCity.dat.xz"
+    "1nra64shc3bp1d6vk9rdv7wyd8jmkgsybqgr3imdg7fv837kwvnh";
+  srcGeoLiteCityv6 = fetchDB
+    "GeoLiteCityv6-beta/GeoLiteCityv6.dat.gz" "GeoIPCityv6.dat.gz"
+    "1fksbnmda2a05cpax41h9r7jhi8102q41kl5nij4ai42d6yqy73x";
+  srcGeoIPASNum = fetchDB
+    "asnum/GeoIPASNum.dat.gz" "GeoIPASNum.dat.gz"
+    "15sagwf6l5fmfgf780qyf1sc3kcmxkv37510h7b9db76mzmicgln";
+  srcGeoIPASNumv6 = fetchDB
+    "asnum/GeoIPASNumv6.dat.gz" "GeoIPASNumv6.dat.gz"
+    "0dyrpis64sgijl701vfpwklxcdr1wq3z0saymaw6scy3a1anpyfi";
 
   meta = with stdenv.lib; {
+    inherit version;
     description = "GeoLite Legacy IP geolocation databases";
     homepage = https://geolite.maxmind.com/download/geoip;
-    license = with licenses; cc-by-sa-30;
-    platforms = with platforms; linux;
+    license = licenses.cc-by-sa-30;
+    platforms = platforms.all;
     maintainers = with maintainers; [ nckx ];
   };
 

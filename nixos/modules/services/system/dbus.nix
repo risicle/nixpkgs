@@ -12,7 +12,10 @@ let
 
   configDir = pkgs.stdenv.mkDerivation {
     name = "dbus-conf";
+
     preferLocalBuild = true;
+    allowSubstitutes = false;
+
     buildCommand = ''
       mkdir -p $out
 
@@ -70,6 +73,7 @@ in
       enable = mkOption {
         type = types.bool;
         default = true;
+        internal = true;
         description = ''
           Whether to start the D-Bus message bus daemon, which is
           required by many other system services and applications.
@@ -132,6 +136,8 @@ in
 
     # Don't restart dbus-daemon. Bad things tend to happen if we do.
     systemd.services.dbus.reloadIfChanged = true;
+
+    systemd.services.dbus.restartTriggers = [ configDir ];
 
     environment.pathsToLink = [ "/etc/dbus-1" "/share/dbus-1" ];
 

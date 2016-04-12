@@ -23,7 +23,6 @@ let
       pkgs.cpio
       pkgs.curl
       pkgs.diffutils
-      pkgs.eject # HAL depends on it anyway
       pkgs.findutils
       pkgs.gawk
       pkgs.glibc # for ldd, getent
@@ -35,20 +34,17 @@ let
       pkgs.xz
       pkgs.less
       pkgs.libcap
-      pkgs.man
       pkgs.nano
       pkgs.ncurses
       pkgs.netcat
-      pkgs.openssh
-      pkgs.pciutils
+      config.programs.ssh.package
       pkgs.perl
       pkgs.procps
       pkgs.rsync
       pkgs.strace
-      pkgs.sysvtools
       pkgs.su
       pkgs.time
-      pkgs.usbutils
+      pkgs.texinfoInteractive
       pkgs.utillinux
       extraManpages
     ];
@@ -61,7 +57,7 @@ in
     environment = {
 
       systemPackages = mkOption {
-        type = types.listOf types.path;
+        type = types.listOf types.package;
         default = [];
         example = literalExample "[ pkgs.firefox pkgs.thunderbird ]";
         description = ''
@@ -81,8 +77,16 @@ in
         # to work.
         default = [];
         example = ["/"];
-        description = "List of directories to be symlinked in `/run/current-system/sw'.";
+        description = "List of directories to be symlinked in <filename>/run/current-system/sw</filename>.";
       };
+
+      outputsToLink = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        example = [ "doc" ];
+        description = "List of package outputs to be symlinked into <filename>/run/current-system/sw</filename>.";
+      };
+
     };
 
     system = {
@@ -106,20 +110,27 @@ in
       [ "/bin"
         "/etc/xdg"
         "/info"
-        "/lib"
-        "/man"
+        "/lib" # FIXME: remove and update debug-info.nix
+        "/sbin"
+        "/share/applications"
+        "/share/desktop-directories"
+        "/share/doc"
         "/share/emacs"
-        "/share/vim-plugins"
-        "/share/org"
+        "/share/icons"
         "/share/info"
+        "/share/menus"
+        "/share/mime"
+        "/share/nano"
+        "/share/org"
         "/share/terminfo"
-        "/share/man"
+        "/share/themes"
+        "/share/vim-plugins"
       ];
 
     system.path = pkgs.buildEnv {
       name = "system-path";
       paths = config.environment.systemPackages;
-      inherit (config.environment) pathsToLink;
+      inherit (config.environment) pathsToLink outputsToLink;
       ignoreCollisions = true;
       # !!! Hacky, should modularise.
       postBuild =
@@ -138,6 +149,13 @@ in
 
           if [ -x $out/bin/update-desktop-database -a -w $out/share/applications ]; then
               $out/bin/update-desktop-database $out/share/applications
+          fi
+
+          if [ -x $out/bin/install-info -a -w $out/share/info ]; then
+            shopt -s nullglob
+            for i in $out/share/info/*.info $out/share/info/*.info.gz; do
+                $out/bin/install-info $i $out/share/info/dir
+            done
           fi
         '';
     };

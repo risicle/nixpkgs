@@ -4,7 +4,7 @@
 
 let
   apparmor-series = "2.9";
-  apparmor-patchver = "1";
+  apparmor-patchver = "2";
   apparmor-version = "${apparmor-series}.${apparmor-patchver}";
 
   apparmor-meta = component: with stdenv.lib; {
@@ -17,7 +17,7 @@ let
 
   apparmor-sources = fetchurl {
     url = "https://launchpad.net/apparmor/${apparmor-series}/${apparmor-version}/+download/apparmor-${apparmor-version}.tar.gz";
-    sha256 = "a63b8724c36c29ed438c9e3ca403bfeeb6c998a45990e300aa1b10faa23a0a22";
+    sha256 = "1mayly7d7w959fya7z8q6kab2x3jcwhqhkpx36jsvpjhxkhmc4fh";
   };
 
   prePatchCommon = ''
@@ -54,7 +54,7 @@ let
     buildPhase = ''
       cd ./libraries/libapparmor
       ./autogen.sh
-      ./configure --prefix="$out" --with-python
+      ./configure --prefix="$out" --with-python --with-perl
       make
       '';
 

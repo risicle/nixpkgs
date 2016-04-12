@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   name = "re2c-${version}";
-  version = "0.14.1";
+  version = "0.14.3";
 
   src = fetchurl {
     url    = "mirror://sourceforge/re2c/re2c/${version}/${name}.tar.gz";
-    sha256 = "0xfskwzr6n94sa22m24x7z051qfbb9d6k4dipcv95s8j8zq74dcv";
+    sha256 = "113yj5h38isfsjigqvb2j3ammfmxckgwyxmm0h4fyflzb7ghcs0w";
   };
 
   meta = {

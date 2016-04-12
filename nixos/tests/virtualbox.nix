@@ -1,26 +1,41 @@
+{ debug ? false, ... } @ args:
+
 import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
 
-  debug = false;
+  testVMConfig = vmName: attrs: { config, pkgs, ... }: let
+    guestAdditions = pkgs.linuxPackages.virtualboxGuestAdditions;
 
-  testVMConfig = vmName: attrs: { config, pkgs, ... }: {
-    boot.kernelParams = let
-      miniInit = ''
-        #!${pkgs.stdenv.shell} -xe
-        export PATH="${pkgs.coreutils}/bin:${pkgs.utillinux}/bin"
+    miniInit = ''
+      #!${pkgs.stdenv.shell} -xe
+      export PATH="${pkgs.coreutils}/bin:${pkgs.utillinux}/bin"
 
-        ${pkgs.linuxPackages.virtualboxGuestAdditions}/sbin/VBoxService
-        ${(attrs.vmScript or (const "")) pkgs}
+      mkdir -p /etc/dbus-1 /var/run/dbus
+      cat > /etc/passwd <<EOF
+      root:x:0:0::/root:/bin/false
+      messagebus:x:1:1::/var/run/dbus:/bin/false
+      EOF
+      cat > /etc/group <<EOF
+      root:x:0:
+      messagebus:x:1:
+      EOF
+      cp -v "${pkgs.dbus.daemon}/etc/dbus-1/system.conf" \
+        /etc/dbus-1/system.conf
+      "${pkgs.dbus.daemon}/bin/dbus-daemon" --fork --system
 
-        i=0
-        while [ ! -e /mnt-root/shutdown ]; do
-          sleep 10
-          i=$(($i + 10))
-          [ $i -le 120 ] || fail
-        done
+      ${guestAdditions}/bin/VBoxService
+      ${(attrs.vmScript or (const "")) pkgs}
 
-        rm -f /mnt-root/boot-done /mnt-root/shutdown
-      '';
-    in [
+      i=0
+      while [ ! -e /mnt-root/shutdown ]; do
+        sleep 10
+        i=$(($i + 10))
+        [ $i -le 120 ] || fail
+      done
+
+      rm -f /mnt-root/boot-done /mnt-root/shutdown
+    '';
+  in {
+    boot.kernelParams = [
       "console=tty0" "console=ttyS0" "ignore_loglevel"
       "boot.trace" "panic=1" "boot.panic_on_fail"
       "init=${pkgs.writeScript "mini-init.sh" miniInit}"
@@ -31,7 +46,7 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
       fsType = "vboxsf";
     };
 
-    services.virtualboxGuest.enable = true;
+    virtualisation.virtualbox.guest.enable = true;
 
     boot.initrd.kernelModules = [
       "af_packet" "vboxsf"
@@ -39,7 +54,7 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
     ];
 
     boot.initrd.extraUtilsCommands = ''
-      copy_bin_and_libs "${pkgs.linuxPackages.virtualboxGuestAdditions}/sbin/mount.vboxsf"
+      copy_bin_and_libs "${guestAdditions}/bin/mount.vboxsf"
       copy_bin_and_libs "${pkgs.utillinux}/bin/unshare"
       ${(attrs.extraUtilsCommands or (const "")) pkgs}
     '';
@@ -126,6 +141,7 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
     vmFlags = mkFlags ([
       "--uart1 0x3F8 4"
       "--uartmode1 client /run/virtualbox-log-${name}.sock"
+      "--memory 768"
     ] ++ (attrs.vmFlags or []));
 
     controllerFlags = mkFlags [
@@ -180,6 +196,8 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
     };
 
     testSubs = ''
+      my ${"$" + name}_sharepath = '${sharePath}';
+
       sub checkRunning_${name} {
         my $cmd = 'VBoxManage list runningvms | grep -q "^\"${name}\""';
         my ($status, $out) = $machine->execute(ru $cmd);
@@ -244,6 +262,7 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
         for (my $i = 0; $i <= 120; $i += 10) {
           $machine->sleep(10);
           return if checkRunning_${name};
+          eval { $_[0]->() } if defined $_[0];
         }
         die "VirtualBox VM didn't start up within 2 minutes";
       }
@@ -285,8 +304,14 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
     echo "$otherIP reachable" | ${pkgs.netcat}/bin/netcat -clp 5678 || :
   '';
 
+  sysdDetectVirt = pkgs: ''
+    ${pkgs.systemd}/bin/systemd-detect-virt > /mnt-root/result
+  '';
+
   vboxVMs = mapAttrs createVM {
     simple = {};
+
+    detectvirt.vmScript = sysdDetectVirt;
 
     test1.vmFlags = hostonlyVMFlags;
     test1.vmScript = dhcpScript;
@@ -297,16 +322,19 @@ import ./make-test.nix ({ pkgs, ... }: with pkgs.lib; let
 
 in {
   name = "virtualbox";
+  meta = with pkgs.stdenv.lib.maintainers; {
+    maintainers = [ aszlig wkennington ];
+  };
 
   machine = { pkgs, lib, config, ... }: {
     imports = let
       mkVMConf = name: val: val.machine // { key = "${name}-config"; };
       vmConfigs = mapAttrsToList mkVMConf vboxVMs;
     in [ ./common/user-account.nix ./common/x11.nix ] ++ vmConfigs;
-    virtualisation.memorySize = 768;
-    services.virtualboxHost.enable = true;
+    virtualisation.memorySize = 2048;
+    virtualisation.virtualbox.host.enable = true;
     users.extraUsers.alice.extraGroups = let
-      inherit (config.services.virtualboxHost) enableHardening;
+      inherit (config.virtualisation.virtualbox.host) enableHardening;
     in lib.mkIf enableHardening (lib.singleton "vboxusers");
   };
 
@@ -335,7 +363,9 @@ in {
       $machine->screenshot("gui_manager_started");
       $machine->sendKeys("ret");
       $machine->screenshot("gui_manager_sent_startup");
-      waitForStartup_simple;
+      waitForStartup_simple (sub {
+        $machine->sendKeys("ret");
+      });
       $machine->screenshot("gui_started");
       waitForVMBoot_simple;
       $machine->screenshot("gui_booted");
@@ -366,17 +396,44 @@ in {
 
     destroyVM_simple;
 
+    sub removeUUIDs {
+      return join("\n", grep { $_ !~ /^UUID:/ } split(/\n/, $_[0]))."\n";
+    }
+
+    subtest "host-usb-permissions", sub {
+      my $userUSB = removeUUIDs vbm("list usbhost");
+      print STDERR $userUSB;
+      my $rootUSB = removeUUIDs $machine->succeed("VBoxManage list usbhost");
+      print STDERR $rootUSB;
+
+      die "USB host devices differ for root and normal user"
+        if $userUSB ne $rootUSB;
+      die "No USB host devices found" if $userUSB =~ /<none>/;
+    };
+
+    subtest "systemd-detect-virt", sub {
+      createVM_detectvirt;
+      vbm("startvm detectvirt");
+      waitForStartup_detectvirt;
+      waitForVMBoot_detectvirt;
+      shutdownVM_detectvirt;
+      my $result = $machine->succeed("cat '$detectvirt_sharepath/result'");
+      chomp $result;
+      destroyVM_detectvirt;
+      die "systemd-detect-virt returned \"$result\" instead of \"oracle\""
+        if $result ne "oracle";
+    };
+
     subtest "net-hostonlyif", sub {
       createVM_test1;
       createVM_test2;
 
       vbm("startvm test1");
       waitForStartup_test1;
+      waitForVMBoot_test1;
 
       vbm("startvm test2");
       waitForStartup_test2;
-
-      waitForVMBoot_test1;
       waitForVMBoot_test2;
 
       $machine->screenshot("net_booted");
@@ -397,4 +454,4 @@ in {
       destroyVM_test2;
     };
   '';
-})
+}) args

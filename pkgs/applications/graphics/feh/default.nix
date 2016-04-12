@@ -1,15 +1,15 @@
-{ stdenv, makeWrapper, fetchurl, x11, imlib2, libjpeg, libpng
+{ stdenv, makeWrapper, fetchurl, xlibsWrapper, imlib2, libjpeg, libpng
 , libXinerama, curl, libexif }:
 
 stdenv.mkDerivation rec {
-  name = "feh-2.12";
+  name = "feh-2.13.1";
 
   src = fetchurl {
     url = "http://feh.finalrewind.org/${name}.tar.bz2";
-    sha256 = "0ckhidmsms2l5jycp0qf71jzmb3bpbhjq3bcgfpvfvszah7pmq30";
+    sha256 = "1059mflgw8hl398lwy55fj50a98xryvdf23wkpbn4s0z9388hl46";
   };
 
-  buildInputs = [ makeWrapper x11 imlib2 libjpeg libpng libXinerama curl libexif ];
+  buildInputs = [ makeWrapper xlibsWrapper imlib2 libjpeg libpng libXinerama curl libexif ];
 
   preBuild = ''
     makeFlags="PREFIX=$out exif=1"
@@ -25,6 +25,6 @@ stdenv.mkDerivation rec {
     homepage = https://derf.homelinux.org/projects/feh/;
     license = stdenv.lib.licenses.mit;
     maintainers = with stdenv.lib.maintainers; [viric];
-    platforms = with stdenv.lib.platforms; linux;
+    platforms = with stdenv.lib.platforms; unix;
   };
 }

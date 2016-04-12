@@ -11,11 +11,11 @@ let
 
 in stdenv.mkDerivation rec {
   name = "nss-${version}";
-  version = "3.18";
+  version = "3.23";
 
   src = fetchurl {
-    url = "http://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_18_RTM/src/${name}.tar.gz";
-    sha256 = "0h0xy9kvd2s8r438q4dfn25cgvv5dc1hkm9lb4bgrxpr5bxv13b1";
+    url = "http://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_3_23_RTM/src/${name}.tar.gz";
+    sha256 = "1kqidv91icq96m9m8zx50n7px08km2l88458rkgyjwcn3kiq7cwl";
   };
 
   buildInputs = [ nspr perl zlib sqlite ];
@@ -25,7 +25,7 @@ in stdenv.mkDerivation rec {
   '';
 
   patches =
-    [ ./nss-3.17-gentoo-fixups.patch
+    [ ./nss-3.21-gentoo-fixups.patch
       # Based on http://patch-tracker.debian.org/patch/series/dl/nss/2:3.15.4-1/85_security_load.patch
       ./85_security_load.patch
     ];
@@ -57,6 +57,8 @@ in stdenv.mkDerivation rec {
     "NSS_ENABLE_ECC=1"
     "NSS_USE_SYSTEM_SQLITE=1"
   ] ++ stdenv.lib.optional stdenv.is64bit "USE_64=1";
+
+  NIX_CFLAGS_COMPILE = "-Wno-error";
 
   postInstall = ''
     rm -rf $out/private

@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, gccmakedep, xlibs }:
+{ stdenv, fetchurl, gccmakedep, xorg }:
 
 stdenv.mkDerivation {
   name = "xcruiser-0.30";
@@ -8,7 +8,7 @@ stdenv.mkDerivation {
       sha256 = "1r8whva38xizqdh7jmn6wcmfmsndc67pkw22wzfzr6rq0vf6hywi";
     };
 
-  buildInputs = with xlibs; [ gccmakedep imake libXt libXaw libXpm libXext ];
+  buildInputs = with xorg; [ gccmakedep imake libXt libXaw libXpm libXext ];
 
   configurePhase = "xmkmf -a";
 
@@ -25,6 +25,6 @@ stdenv.mkDerivation {
       '';
       homepage = http://xcruiser.sourceforge.net/;
       license = licenses.gpl2;
-      maintainers = with maintainers; [ emery ];
+      maintainers = with maintainers; [ ehmry ];
     };
 }

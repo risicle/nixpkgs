@@ -1,4 +1,4 @@
-{ fetchurl, stdenv, nss, openssl, pkgconfig }:
+{ fetchurl, stdenv, nss, nspr, pkgconfig }:
 
 
 stdenv.mkDerivation rec {
@@ -9,7 +9,14 @@ stdenv.mkDerivation rec {
     sha256 = "07w1aq8y8wld43wmbk2q8134p3bfkp2vma78mmsfgw2jn1bh3xhd";
   };
 
-  buildInputs = [ nss openssl ];
+  buildInputs = [ pkgconfig nss nspr ];
+
+  configureFlags = [ "--enable-nss" ];
+
+  postInstall = ''
+    substituteInPlace $out/lib/liboauth.la \
+      --replace "-lnss3" "-L${nss}/lib -lnss3"
+  '';
 
   meta = with stdenv.lib; {
     platforms = platforms.linux;

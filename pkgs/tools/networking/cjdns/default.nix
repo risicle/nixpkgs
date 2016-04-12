@@ -2,7 +2,7 @@
 
 let
   version = "16"; # see ${src}/util/version/Version.h
-  date = "20150308";
+  date = "20150509";
 in
 stdenv.mkDerivation {
   name = "cjdns-${version}-${date}";
@@ -10,8 +10,8 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "cjdelisle";
     repo = "cjdns";
-    rev = "dc7eaf676cb83f13ba3e76a1bd0f2e093e6d6e1b";
-    sha256 = "1llhv9kflh4rzv9b9qq9zhrckcc6a7xs0dp147adwmaxqjj8v601";
+    rev = "a05ade40dc31caebaf3aa770aac3ab2ecb02d867";
+    sha256 = "07vwsw5d0sdxypl187cyzzdrv0chf4yyjxcymf847afkfr249n29";
   };
 
   buildInputs = [ which python27 nodejs ] ++
@@ -35,7 +35,7 @@ stdenv.mkDerivation {
     homepage = https://github.com/cjdelisle/cjdns;
     description = "Encrypted networking for regular people";
     license = licenses.gpl3;
-    maintainers = with maintainers; [ viric emery ];
+    maintainers = with maintainers; [ viric ehmry ];
     platforms = platforms.unix;
   };
 }

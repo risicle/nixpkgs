@@ -1,32 +1,33 @@
-{ stdenv, fetchurl, blas, bzip2, gfortran, liblapack, libX11, libXmu, libXt
+{ stdenv, fetchurl, bzip2, gfortran, libX11, libXmu, libXt
 , libjpeg, libpng, libtiff, ncurses, pango, pcre, perl, readline, tcl
 , texLive, tk, xz, zlib, less, texinfo, graphviz, icu, pkgconfig, bison
-, imake, which, jdk, atlas
+, imake, which, jdk, openblas
 , withRecommendedPackages ? true
 }:
 
 stdenv.mkDerivation rec {
-  name = "R-3.1.3";
+  name = "R-3.2.2";
 
   src = fetchurl {
     url = "http://cran.r-project.org/src/base/R-3/${name}.tar.gz";
-    sha256 = "04kk6wd55bi0f0qsp98ckjxh95q2990vkgq4j83kiajvjciq7s87";
+    sha256 = "07a6s865bjnh7w0fqsrkv1pva76w99v86w0w787qpdil87km54cw";
   };
 
-  buildInputs = [ blas bzip2 gfortran liblapack libX11 libXmu libXt
+  buildInputs = [ bzip2 gfortran libX11 libXmu libXt
     libXt libjpeg libpng libtiff ncurses pango pcre perl readline tcl
     texLive tk xz zlib less texinfo graphviz icu pkgconfig bison imake
-    which jdk atlas
+    which jdk openblas
   ];
 
-  patches = [ ./no-usr-local-search-paths.patch ];
+  patches = [ ./no-usr-local-search-paths.patch
+              ./fix-tests-without-recommended-packages.patch ];
 
   preConfigure = ''
     configureFlagsArray=(
       --disable-lto
       --with${stdenv.lib.optionalString (!withRecommendedPackages) "out"}-recommended-packages
-      --with-blas="-L${atlas}/lib -lf77blas -latlas"
-      --with-lapack="-L${liblapack}/lib -llapack"
+      --with-blas="-L${openblas}/lib -lopenblas"
+      --with-lapack="-L${openblas}/lib -lopenblas"
       --with-readline
       --with-tcltk --with-tcl-config="${tcl}/lib/tclConfig.sh" --with-tk-config="${tk}/lib/tkConfig.sh"
       --with-cairo

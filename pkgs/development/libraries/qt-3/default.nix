@@ -7,7 +7,7 @@
 , threadSupport ? true
 , mysqlSupport ? false, mysql ? null
 , openglSupport ? false, mesa ? null, libXmu ? null
-, x11, xextproto, zlib, libjpeg, libpng, which
+, xlibsWrapper, xextproto, zlib, libjpeg, libpng, which
 }:
 
 assert xftSupport -> libXft != null;
@@ -30,7 +30,7 @@ stdenv.mkDerivation {
   };
 
   nativeBuildInputs = [ which ];
-  propagatedBuildInputs = [libpng x11 libXft libXrender zlib libjpeg];
+  propagatedBuildInputs = [libpng xlibsWrapper libXft libXrender zlib libjpeg];
 
   configureFlags = "
     -v
@@ -47,7 +47,7 @@ stdenv.mkDerivation {
       -I${randrproto}/include" else "-no-xrandr"}
     ${if xineramaSupport then "-xinerama -L${libXinerama}/lib -I${libXinerama}/include" else "-no-xinerama"}
     ${if cursorSupport then "-L${libXcursor}/lib -I${libXcursor}/include" else ""}
-    ${if mysqlSupport then "-qt-sql-mysql -L${mysql}/lib/mysql -I${mysql}/include/mysql" else ""}
+    ${if mysqlSupport then "-qt-sql-mysql -L${mysql.lib}/lib/mysql -I${mysql.lib}/include/mysql" else ""}
     ${if xftSupport then "-xft
       -L${libXft}/lib -I${libXft}/include
       -L${libXft.freetype}/lib -I${libXft.freetype}/include

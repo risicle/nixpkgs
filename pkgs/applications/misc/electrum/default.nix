@@ -2,11 +2,11 @@
 
 buildPythonPackage rec {
   name = "electrum-${version}";
-  version = "2.0.4";
+  version = "2.4";
 
   src = fetchurl {
     url = "https://download.electrum.org/Electrum-${version}.tar.gz";
-    sha256 = "0q9vrrzy2iypfg2zvs3glzvqyq65dnwn1ijljvfqfwrkpvpp0zxp";
+    sha256 = "0y04m5b410y3s9vqvkbvmlvvx1nr0cyvrnl41yapz8hydw9vdkjx";
   };
 
   propagatedBuildInputs = with pythonPackages; [
@@ -16,6 +16,7 @@ buildPythonPackage rec {
     protobuf
     pyasn1
     pyasn1-modules
+    pycrypto
     pyqt4
     qrcode
     requests
@@ -38,6 +39,6 @@ buildPythonPackage rec {
     '';
     homepage = https://electrum.org;
     license = licenses.gpl3;
-    maintainers = with maintainers; [ emery joachifm ];
+    maintainers = with maintainers; [ ehmry joachifm ];
   };
 }

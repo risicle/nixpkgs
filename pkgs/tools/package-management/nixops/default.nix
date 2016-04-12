@@ -1,12 +1,12 @@
 { lib, pythonPackages, fetchurl, libxslt, docbook5_xsl, openssh }:
 
 pythonPackages.buildPythonPackage rec {
-  name = "nixops-1.2";
+  name = "nixops-1.3.1";
   namePrefix = "";
 
   src = fetchurl {
     url = "http://nixos.org/releases/nixops/${name}/${name}.tar.bz2";
-    sha256 = "06cf54c62a810cac5013d57d31707f0a6381b409485503a94a57ce6d8a1ac12b";
+    sha256 = "04j8s0gg1aj3wmj1bs7dwscfmlzk2xpwfw9rk4xzxwxw1y0j64nd";
   };
 
   buildInputs = [ libxslt ];
@@ -16,20 +16,18 @@ pythonPackages.buildPythonPackage rec {
       pythonPackages.boto
       pythonPackages.sqlite3
       pythonPackages.hetzner
+      pythonPackages.libcloud
     ];
 
   doCheck = false;
 
   postInstall =
     ''
-      # Backward compatibility symlink.
-      ln -s nixops $out/bin/charon
-
       make -C doc/manual install nixops.1 docbookxsl=${docbook5_xsl}/xml/xsl/docbook \
         docdir=$out/share/doc/nixops mandir=$out/share/man
 
       mkdir -p $out/share/nix/nixops
-      cp -av nix/* $out/share/nix/nixops
+      cp -av "nix/"* $out/share/nix/nixops
 
       # Add openssh to nixops' PATH. On some platforms, e.g. CentOS and RHEL
       # the version of openssh is causing errors when have big networks (40+)

@@ -1,9 +1,9 @@
 { stdenv, fetchurl
-, coreutils, gnused, getopt, pwgen, git, tree, gnupg
+, coreutils, gnused, getopt, pwgen, git, tree, gnupg, which
 , makeWrapper
 
 , xclip ? null, xdotool ? null, dmenu ? null
-, x11Support ? true
+, x11Support ? !stdenv.isDarwin
 }:
 
 assert x11Support -> xclip != null
@@ -59,6 +59,17 @@ stdenv.mkDerivation rec {
     '' else ""}
   '';
 
+  wrapperPath = with stdenv.lib; makeSearchPath "bin/" ([
+    coreutils
+    gnused
+    getopt
+    git
+    gnupg
+    pwgen
+    tree
+    which
+  ] ++ ifEnable x11Support [ dmenu xclip xdotool ]);
+
   postFixup = ''
     # Fix program name in --help
     substituteInPlace $out/bin/pass \
@@ -66,11 +77,11 @@ stdenv.mkDerivation rec {
 
     # Ensure all dependencies are in PATH
     wrapProgram $out/bin/pass \
-      --prefix PATH : "${coreutils}/bin:${gnused}/bin:${getopt}/bin:${gnupg}/bin:${git}/bin:${tree}/bin:${pwgen}/bin${if x11Support then ":${xclip}/bin" else ""}"
-
-    ${if x11Support then ''
-      wrapProgram $out/bin/passmenu \
-        --prefix PATH : "$out/bin:${xdotool}/bin:${dmenu}/bin"
-    '' else ""}
+      --prefix PATH : "${wrapperPath}"
+  '' + stdenv.lib.optionalString x11Support ''
+    # We just wrap passmenu with the same PATH as pass. It doesn't
+    # need all the tools in there but it doesn't hurt either.
+    wrapProgram $out/bin/passmenu \
+      --prefix PATH : "$out/bin:${wrapperPath}"
   '';
 }

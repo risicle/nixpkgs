@@ -113,12 +113,17 @@ rec {
     mkdir -p /fs/dev
     mount -o bind /dev /fs/dev
 
+    mkdir -p /fs/dev /fs/dev/shm
+    mount -t tmpfs -o "mode=1777" none /fs/dev/shm
+
     echo "mounting Nix store..."
     mkdir -p /fs/nix/store
     mount -t 9p store /fs/nix/store -o trans=virtio,version=9p2000.L,msize=262144,cache=loose
 
-    mkdir -p /fs/tmp
+    mkdir -p /fs/tmp /fs/run /fs/var
     mount -t tmpfs -o "mode=1777" none /fs/tmp
+    mount -t tmpfs -o "mode=755" none /fs/run
+    ln -sfn /run /fs/var/run
 
     echo "mounting host's temporary directory..."
     mkdir -p /fs/tmp/xchg
@@ -135,15 +140,7 @@ rec {
     echo "127.0.0.1 localhost" > /fs/etc/hosts
 
     echo "starting stage 2 ($command)"
-    test -n "$command"
-
-    set +e
-    chroot /fs $command $out
-    echo $? > /fs/tmp/xchg/in-vm-exit
-
-    mount -o remount,ro dummy /fs
-
-    poweroff -f
+    exec switch_root /fs $command $out
   '';
 
 
@@ -176,12 +173,28 @@ rec {
       ${coreutils}/bin/ln -s ${bash}/bin/sh /bin/sh
     fi
 
+    # Set up automatic kernel module loading.
+    export MODULE_DIR=${linux}/lib/modules/
+    ${coreutils}/bin/cat <<EOF > /run/modprobe
+    #! /bin/sh
+    export MODULE_DIR=$MODULE_DIR
+    exec ${kmod}/bin/modprobe "\$@"
+    EOF
+    ${coreutils}/bin/chmod 755 /run/modprobe
+    echo /run/modprobe > /proc/sys/kernel/modprobe
+
     # For debugging: if this is the second time this image is run,
     # then don't start the build again, but instead drop the user into
     # an interactive shell.
     if test -n "$origBuilder" -a ! -e /.debug; then
+      exec < /dev/null
       ${coreutils}/bin/touch /.debug
-      exec $origBuilder $origArgs
+      $origBuilder $origArgs
+      echo $? > /tmp/xchg/in-vm-exit
+
+      ${busybox}/bin/mount -o remount,ro dummy /
+
+      ${busybox}/bin/poweroff -f
     else
       export PATH=/bin:/usr/bin:${coreutils}/bin
       echo "Starting interactive shell..."
@@ -289,13 +302,13 @@ rec {
      `run-vm' will be left behind in the temporary build directory
      that allows you to boot into the VM and debug it interactively. */
 
-  runInLinuxVM = drv: lib.overrideDerivation drv (attrs: {
+  runInLinuxVM = drv: lib.overrideDerivation drv ({ memSize ? 512, QEMU_OPTS ? "", args, builder, ... }: {
     requiredSystemFeatures = [ "kvm" ];
     builder = "${bash}/bin/sh";
     args = ["-e" (vmRunCommand qemuCommandLinux)];
-    origArgs = attrs.args;
-    origBuilder = attrs.builder;
-    QEMU_OPTS = "${attrs.QEMU_OPTS or ""} -m ${toString (attrs.memSize or 512)}";
+    origArgs = args;
+    origBuilder = builder;
+    QEMU_OPTS = "${QEMU_OPTS} -m ${toString memSize}";
   });
 
 
@@ -682,7 +695,17 @@ rec {
     runCommand "${name}.nix" { buildInputs = [ perl dpkg ]; } ''
       for i in ${toString packagesLists}; do
         echo "adding $i..."
-        bunzip2 < $i >> ./Packages
+        case $i in
+          *.xz | *.lzma)
+            xz -d < $i >> ./Packages
+            ;;
+          *.bz2)
+            bunzip2 < $i >> ./Packages
+            ;;
+          *.gz)
+            gzip -dc < $i >> ./Packages
+            ;;
+        esac
       done
 
       # Work around this bug: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=452279
@@ -1055,6 +1078,32 @@ rec {
         sha256 = "e2a28baab2ea4632fad93f9f28144cda3458190888fdf7f2acc9bc289f397e96";
       };
       urlPrefix = mirror://fedora/linux/releases/21/Everything/x86_64/os;
+      archs = ["noarch" "x86_64"];
+      packages = commonFedoraPackages ++ [ "cronie" "util-linux" ];
+      unifiedSystemDir = true;
+    };
+
+    fedora23i386 = {
+      name = "fedora-23-i386";
+      fullName = "Fedora 23 (i386)";
+      packagesList = fetchurl rec {
+        url = "mirror://fedora/linux/releases/23/Everything/i386/os/repodata/${sha256}-primary.xml.gz";
+        sha256 = "0d1012e6c1f1d694ab5354d95005791ce8de908016d07e5ed0b9dac9b9223492";
+      };
+      urlPrefix = mirror://fedora/linux/releases/23/Everything/i386/os;
+      archs = ["noarch" "i386" "i586" "i686"];
+      packages = commonFedoraPackages ++ [ "cronie" "util-linux" ];
+      unifiedSystemDir = true;
+    };
+
+    fedora23x86_64 = {
+      name = "fedora-23-x86_64";
+      fullName = "Fedora 23 (x86_64)";
+      packagesList = fetchurl rec {
+        url = "mirror://fedora/linux/releases/23/Everything/x86_64/os/repodata/${sha256}-primary.xml.gz";
+        sha256 = "0fa09bb5f82e4a04890b91255f4b34360e38ede964fe8328f7377e36f06bad27";
+      };
+      urlPrefix = mirror://fedora/linux/releases/23/Everything/x86_64/os;
       archs = ["noarch" "x86_64"];
       packages = commonFedoraPackages ++ [ "cronie" "util-linux" ];
       unifiedSystemDir = true;
@@ -1560,6 +1609,74 @@ rec {
       packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
     };
 
+    ubuntu1504i386 = {
+      name = "ubuntu-15.04-vivid-i386";
+      fullName = "Ubuntu 15.04 Vivid (i386)";
+      packagesLists =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/vivid/main/binary-i386/Packages.bz2;
+            sha256 = "0bf587152fa3fc3524bf3a3caaf46ea43cc640a27b2b448577232f014a3ec1e4";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/vivid/universe/binary-i386/Packages.bz2;
+            sha256 = "3452cff96eb715ca36b73d4d0cdffbf06064cbc30b1097e334a2e493b94c7fac";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
+    ubuntu1504x86_64 = {
+      name = "ubuntu-15.04-vivid-amd64";
+      fullName = "Ubuntu 15.04 Vivid (amd64)";
+      packagesList =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/vivid/main/binary-amd64/Packages.bz2;
+            sha256 = "8f22c9bd389822702e65713e816250aa0d5829d6b3d75fd34f068de5f93de1d9";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/vivid/universe/binary-amd64/Packages.bz2;
+            sha256 = "feb88768e245a63ee04b0f3bcfc8899a1f03b2f831646dc2a59e4e58884b5cb9";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
+    ubuntu1510i386 = {
+      name = "ubuntu-15.10-wily-i386";
+      fullName = "Ubuntu 15.10 Wily (i386)";
+      packagesLists =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/wily/main/binary-i386/Packages.bz2;
+            sha256 = "ac9821095c63436fd4286539592295dd5de99bc82300f628e7a74111bb5dc370";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/wily/universe/binary-i386/Packages.bz2;
+            sha256 = "8951294f36c0755e945e8c37fdd046319f50553a8987ead1b68b21ffa53c5f7f";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
+    ubuntu1510x86_64 = {
+      name = "ubuntu-15.10-wily-amd64";
+      fullName = "Ubuntu 15.10 Wily (amd64)";
+      packagesList =
+        [ (fetchurl {
+            url = mirror://ubuntu/dists/wily/main/binary-amd64/Packages.bz2;
+            sha256 = "2877de7674c8c6a410c3ac479e46fec24164a4de250f22b3ff062073e3985013";
+          })
+          (fetchurl {
+            url = mirror://ubuntu/dists/wily/universe/binary-amd64/Packages.bz2;
+            sha256 = "714be7a2fd33b8bb577901c9223039dcc12c130c9244122648ee21a625e2a66d";
+          })
+        ];
+      urlPrefix = mirror://ubuntu;
+      packages = commonDebPackages ++ [ "diffutils" "libc-bin" ];
+    };
+
     debian40i386 = {
       name = "debian-4.0r9-etch-i386";
       fullName = "Debian 4.0r9 Etch (i386)";
@@ -1631,27 +1748,48 @@ rec {
     debian70x86_64 = debian7x86_64;
 
     debian7i386 = {
-      name = "debian-7.8-wheezy-i386";
-      fullName = "Debian 7.8 Wheezy (i386)";
+      name = "debian-7.9-wheezy-i386";
+      fullName = "Debian 7.9 Wheezy (i386)";
       packagesList = fetchurl {
         url = mirror://debian/dists/wheezy/main/binary-i386/Packages.bz2;
-        sha256 = "d86c28cb4f1aa178e678c253944c674a60991a367349e58a90d9a3e939e4e4bc";
+        sha256 = "a390176680327fd52d6aada6dd8eee051c94ce49d80f0a68dc90ef51b81c3169";
       };
       urlPrefix = mirror://debian;
       packages = commonDebianPackages;
     };
 
     debian7x86_64 = {
-      name = "debian-7.8-wheezy-amd64";
-      fullName = "Debian 7.8 Wheezy (amd64)";
+      name = "debian-7.9-wheezy-amd64";
+      fullName = "Debian 7.9 Wheezy (amd64)";
       packagesList = fetchurl {
         url = mirror://debian/dists/wheezy/main/binary-amd64/Packages.bz2;
-        sha256 = "c8257d74c9411e2f0b9891a21f5dbf5fb088b46d1df043907a4d390b32da2931";
+        sha256 = "818d78c648505f91cb99f269178d4f62b56d4209cd51bebbc9bf2bd31c8c7156";
       };
       urlPrefix = mirror://debian;
       packages = commonDebianPackages;
     };
 
+    debian8i386 = {
+      name = "debian-8.3-jessie-i386";
+      fullName = "Debian 8.3 Jessie (i386)";
+      packagesList = fetchurl {
+        url = mirror://debian/dists/jessie/main/binary-i386/Packages.xz;
+        sha256 = "1240d404bd99afbeec042c08fdab049f0b5a984a393cac7c221553ab08f637f5";
+      };
+      urlPrefix = mirror://debian;
+      packages = commonDebianPackages;
+    };
+
+    debian8x86_64 = {
+      name = "debian-8.3-jessie-amd64";
+      fullName = "Debian 8.3 Jessie (amd64)";
+      packagesList = fetchurl {
+        url = mirror://debian/dists/jessie/main/binary-amd64/Packages.xz;
+        sha256 = "ec937c1b3bbfe4803f0fa43681b19d089eb6b355455ac7caa17ec8e9ff604e56";
+      };
+      urlPrefix = mirror://debian;
+      packages = commonDebianPackages;
+    };
   };
 
 
@@ -1759,6 +1897,7 @@ rec {
     "bzip2"
     "tar"
     "grep"
+    "mawk"
     "sed"
     "findutils"
     "g++"

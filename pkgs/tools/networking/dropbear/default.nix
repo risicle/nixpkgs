@@ -2,11 +2,11 @@
 sftpPath ? "/var/run/current-system/sw/libexec/sftp-server" }:
 
 stdenv.mkDerivation rec {
-  name = "dropbear-2014.66";
+  name = "dropbear-2015.68";
 
   src = fetchurl {
     url = "http://matt.ucc.asn.au/dropbear/releases/${name}.tar.bz2";
-    sha256 = "0xmbcjm2pbhih459667wy8acs4nax4amvzwqwfxw0z2i19ky4gxb";
+    sha256 = "0ii4lq19b3k06fn25zc5sbbk698s56ldrbg1vcf4pzjgj0g7rsjm";
   };
 
   dontDisableStatic = enableStatic;
@@ -31,10 +31,6 @@ stdenv.mkDerivation rec {
     # Allow sessions to inherit the PATH from the parent dropbear.
     # Otherwise they only get the usual /bin:/usr/bin kind of PATH
     ./pass-path.patch
-
-    # Bugfix
-    # http://article.gmane.org/gmane.network.ssh.dropbear/1361
-    ./proxycrash.patch
   ];
 
   buildInputs = [ zlib ];
