@@ -8,7 +8,7 @@
 , ncurses
 , openssl
 , readline
-, sqlite
+, sqlite, sqliteLoadableExtensions ? false
 , tcl ? null, tk ? null, tix ? null, libX11 ? null, xproto ? null, x11Support ? false
 , zlib
 , callPackage
@@ -90,7 +90,7 @@ in stdenv.mkDerivation {
     "--without-ensurepip"
     "--with-system-expat"
     "--with-system-ffi"
-  ];
+  ] ++ optional sqliteLoadableExtensions "--enable-loadable-sqlite-extensions";
 
   preConfigure = ''
     for i in /usr /sw /opt /pkg; do	# improve purity
