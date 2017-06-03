@@ -1,0 +1,11 @@
+diff --git a/tests/admin_scripts/tests.py b/tests/admin_scripts/tests.py
+--- a/tests/admin_scripts/tests.py
++++ b/tests/admin_scripts/tests.py
+@@ -173,5 +173,6 @@
+ 
+     def run_django_admin(self, args, settings_file=None):
+-        script_dir = os.path.abspath(os.path.join(os.path.dirname(upath(django.__file__)), 'bin'))
++        from os import environ
++        script_dir = os.path.join(environ["out"], "bin")
+         return self.run_test(os.path.join(script_dir, 'django-admin.py'), args, settings_file)
+ 

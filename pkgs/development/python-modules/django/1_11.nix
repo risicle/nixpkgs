@@ -20,6 +20,7 @@ buildPythonPackage rec {
       geos = geos;
       gdal = gdal;
     })
+    ./1.11.1-admin-scripts-tests.patch
   ];
 
   # patch only $out/bin to avoid problems with starter templates (see #3134)
