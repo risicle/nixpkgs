@@ -1,6 +1,6 @@
 { stdenv, buildPythonPackage, fetchurl, substituteAll,
-  pythonOlder,
-  geos, gdal, pytz
+  python, pythonOlder,
+  geos, gdal, pytz, mock, enum34, memcached, tblib, bcrypt, docutils, jinja2, numpy, pillow, pyyaml, pylibmc, sqlparse, glibcLocales
 }:
 buildPythonPackage rec {
   pname = "Django";
@@ -27,10 +27,19 @@ buildPythonPackage rec {
     wrapPythonProgramsIn $out/bin "$out $pythonPath"
   '';
 
+  checkInputs = [ mock enum34 memcached tblib bcrypt docutils jinja2 numpy pillow pyyaml pylibmc sqlparse glibcLocales ];
   propagatedBuildInputs = [ pytz ];
 
   # too complicated to setup
-  doCheck = false;
+  #doCheck = false;
+
+  checkPhase = ''
+    runHook preCheck
+    pushd tests
+    LC_ALL="en_US.UTF-8" ${python.interpreter} runtests.py --parallel 1
+    popd
+    runHook postCheck
+  '';
 
   meta = {
     description = "A high-level Python Web framework";
