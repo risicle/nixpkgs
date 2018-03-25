@@ -1,14 +1,14 @@
 { stdenv, fetchFromGitHub, makeWrapper, jq, awscli }:
 
 stdenv.mkDerivation rec {
-  version = "unstable-2017-07-24";
+  version = "unofficial-2018-03-02";
   name = "aws-auth-${version}";
 
   src = fetchFromGitHub {
     owner = "alphagov";
     repo = "aws-auth";
-    rev = "5a4c9673f9f00ebaa4bb538827e1c2f277c475e1";
-    sha256 = "095j9zqxra8hi2iyz0y4azs9yigy5f6alqkfmv180pm75nbc031g";
+    rev = "260448659dfd1baec56691cd280b074da99be7ad";
+    sha256 = "1dnh7g0swdfhby7l96kz6dkybp2bzp4k20qx6ni9ay65vx9s19fv";
   };
 
   nativeBuildInputs = [ makeWrapper ];
