@@ -19,21 +19,23 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkgconfig ];
   buildInputs = [
-    zlib bzip2 libxml2 openssl ncurses curl libiconv libmilter pcre2 libmspack
-    systemd
+    zlib bzip2 libxml2 openssl ncurses curl libiconv pcre2 libmspack
+  ] ++ stdenv.lib.optionals stdenv.isLinux [
+    systemd libmilter
   ];
 
   configureFlags = [
     "--libdir=$(out)/lib"
     "--sysconfdir=/etc/clamav"
-    "--with-systemdsystemunitdir=$(out)/lib/systemd"
     "--disable-llvm" # enabling breaks the build at the moment
     "--with-zlib=${zlib.dev}"
     "--with-xml=${libxml2.dev}"
     "--with-openssl=${openssl.dev}"
     "--with-libcurl=${curl.dev}"
     "--with-system-libmspack"
+  ] ++ stdenv.lib.optionals stdenv.isLinux [
     "--enable-milter"
+    "--with-systemdsystemunitdir=$(out)/lib/systemd"
   ];
 
   postInstall = ''
@@ -46,6 +48,6 @@ stdenv.mkDerivation rec {
     description = "Antivirus engine designed for detecting Trojans, viruses, malware and other malicious threats";
     license = licenses.gpl2;
     maintainers = with maintainers; [ phreedom robberer qknight fpletz ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.darwin;
   };
 }
