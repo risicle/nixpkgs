@@ -7,7 +7,7 @@
 with stdenv.lib;
 
 let
-  n = "qemu-2.3.0";
+  n = "qemu-2.10.0";
 
   aflHeaderFile = writeText "afl-qemu-cpu-inl.h"
     (builtins.readFile ./qemu-patches/afl-qemu-cpu-inl.h);
@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://wiki.qemu.org/download/${n}.tar.bz2";
-    sha256 = "120m53c3p28qxmfzllicjzr8syjv6v4d9rsyrgkp7gnmcgvvgfmn";
+    sha256 = "0j3dfxzrzdp1w21k21fjvmakzc6lcha1rsclaicwqvbf63hkk7vy";
   };
 
   buildInputs =
@@ -37,14 +37,15 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  patches =
-    [ ./qemu-patches/elfload.patch
-      ./qemu-patches/cpu-exec.patch
-      ./qemu-patches/no-etc-install.patch
-      ./qemu-patches/translate-all.patch
-      ./qemu-patches/syscall.patch
-      ./qemu-patches/qemu-2.3.0-glibc-2.26.patch
-    ];
+  patches = [
+    # patches extracted from afl source
+    ./qemu-patches/elfload.patch
+    ./qemu-patches/cpu-exec.patch
+    ./qemu-patches/syscall.patch
+    # nix-specific patches to make installation more well-behaved
+    ./qemu-patches/no-etc-install.patch
+    ./qemu-patches/qemu-2.10.0-glibc-2.27.patch
+  ];
 
   preConfigure = ''
     cp ${aflTypesFile}  afl-types.h
@@ -55,11 +56,12 @@ stdenv.mkDerivation rec {
   configureFlags =
     [ "--disable-system"
       "--enable-linux-user"
-      "--enable-guest-base"
       "--disable-gtk"
       "--disable-sdl"
       "--disable-vnc"
       "--target-list=${cpuTarget}"
+      "--enable-pie"
+      "--enable-kvm"
       "--sysconfdir=/etc"
       "--localstatedir=/var"
     ];
