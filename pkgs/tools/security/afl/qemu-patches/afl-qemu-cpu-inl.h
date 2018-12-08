@@ -47,7 +47,7 @@
    regular instrumentation injected via afl-as.h. */
 
 #define AFL_QEMU_CPU_SNIPPET2 do { \
-    if(itb->pc == afl_entry_point) { \
+    if(itb->pc == afl_start_code + 0x56bf0) { \
       afl_setup(); \
       afl_forkserver(cpu); \
     } \
