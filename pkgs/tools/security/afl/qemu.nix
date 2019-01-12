@@ -1,7 +1,5 @@
-{ stdenv, fetchurl, afl, python2, zlib, pkgconfig, glib, ncurses, perl
-, attr, libcap, vde2, texinfo, libuuid, flex, bison, lzo, snappy
-, libaio, libcap_ng, gnutls, pixman, autoconf
-, writeText
+{ stdenv, fetchurl, afl, python2, zlib, pkgconfig, glib, perl
+, texinfo, libuuid, flex, bison, pixman, autoconf
 }:
 
 with stdenv.lib;
@@ -9,11 +7,23 @@ with stdenv.lib;
 let
   qemuName = "qemu-2.10.0";
   aflName = afl.name;
-  cpuTarget = if stdenv.hostPlatform.system == "x86_64-linux" then "x86_64-linux-user"
-    else if stdenv.hostPlatform.system == "i686-linux" then "i386-linux-user"
-    else throw "afl: no support for ${stdenv.hostPlatform.system}!";
+  cpuTargetMapping = {
+    x86_64-linux = {
+      name = "x86_64-linux-user";
+      exe-name = "qemu-x86_64";
+    };
+    i686-linux = {
+      name = "i386-linux-user";
+      exe-name = "qemu-i386";
+    };
+    aarch64-linux = {
+      name = "aarch64-linux-user";
+      exe-name = "qemu-aarch64";
+    };
+  };
+  cpuTarget = builtins.getAttr stdenv.hostPlatform.system cpuTargetMapping;
 in
-stdenv.mkDerivation rec {
+if builtins.hasAttr stdenv.hostPlatform.system cpuTargetMapping then stdenv.mkDerivation rec {
   name = "afl-${qemuName}";
 
   srcs = [
@@ -41,9 +51,8 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    zlib glib pixman ncurses attr libcap
-    vde2 libuuid lzo snappy libcap_ng gnutls
-  ] ++ optionals (stdenv.isLinux) [ libaio ];
+    zlib glib pixman libuuid
+  ];
 
   enableParallelBuilding = true;
 
@@ -63,18 +72,21 @@ stdenv.mkDerivation rec {
       "--disable-gtk"
       "--disable-sdl"
       "--disable-vnc"
-      "--target-list=${cpuTarget}"
+      "--disable-kvm"
+      "--target-list=${cpuTarget.name}"
       "--enable-pie"
-      "--enable-kvm"
       "--sysconfdir=/etc"
       "--localstatedir=/var"
     ];
+
+  postInstall = ''
+    ln -s $out/bin/${cpuTarget.exe-name} $out/bin/afl-qemu-trace
+  '';
 
   meta = with stdenv.lib; {
     homepage = http://www.qemu.org/;
     description = "Fork of QEMU with AFL instrumentation support";
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [ thoughtpolice ];
-    platforms = platforms.linux;
   };
-}
+} else null

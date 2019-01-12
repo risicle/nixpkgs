@@ -4,9 +4,6 @@
 
 let
   afl-qemu = callPackage ./qemu.nix { inherit afl; };
-  qemu-exe-name = if stdenv.hostPlatform.system == "x86_64-linux" then "qemu-x86_64"
-    else if stdenv.hostPlatform.system == "i686-linux" then "qemu-i386"
-    else throw "afl: no support for ${stdenv.hostPlatform.system}!";
   afl = stdenv.mkDerivation rec {
     name    = "afl-${version}";
     version = "2.52b";
@@ -27,9 +24,6 @@ let
       make -C llvm_mode $makeFlags -j$NIX_BUILD_CORES
     '';
     postInstall = ''
-      # Install the custom QEMU emulator for binary blob fuzzing.
-      cp ${afl-qemu}/bin/${qemu-exe-name} $out/bin/afl-qemu-trace
-
       # Install the cgroups wrapper for asan-based fuzzing.
       cp experimental/asan_cgroups/limit_memory.sh $out/bin/afl-cgroup
       chmod +x $out/bin/afl-cgroup
@@ -50,6 +44,9 @@ let
           --prefix AFL_PATH : "$out/lib/afl" \
           --run 'export AFL_CC=''${AFL_CC:-${clang}/bin/clang} AFL_CXX=''${AFL_CXX:-${clang}/bin/clang++}'
       done
+    '' + stdenv.lib.optionalString (afl-qemu != null) ''
+      # Install the custom QEMU emulator for binary blob fuzzing.
+      ln -s ${afl-qemu}/bin/afl-qemu-trace $out/bin/afl-qemu-trace
     '';
 
     passthru.qemu = afl-qemu;
@@ -68,7 +65,6 @@ let
       '';
       homepage    = "http://lcamtuf.coredump.cx/afl/";
       license     = stdenv.lib.licenses.asl20;
-      platforms   = ["x86_64-linux" "i686-linux"];
       maintainers = [ stdenv.lib.maintainers.thoughtpolice ];
     };
   };
