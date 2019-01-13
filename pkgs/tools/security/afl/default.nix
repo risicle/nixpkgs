@@ -65,7 +65,7 @@ let
       '';
       homepage    = "http://lcamtuf.coredump.cx/afl/";
       license     = stdenv.lib.licenses.asl20;
-      maintainers = [ stdenv.lib.maintainers.thoughtpolice ];
+      maintainers = with stdenv.lib.maintainers; [ thoughtpolice ris ];
     };
   };
 in afl
