@@ -7,6 +7,16 @@ buildPythonPackage rec {
   version = "2.3.0";
 
   disabled = !isPy3k;
+  # We're not interested in code quality tests
+  postPatch = ''
+    substituteInPlace setup.cfg \
+      --replace "pytest-cov" "" \
+      --replace "pytest-flake8" "" \
+      --replace "pytest-isort" "" \
+      --replace "--flake8" "" \
+      --replace "--isort" ""
+  '';
+
 
   src = fetchPypi {
     inherit pname version;
@@ -15,7 +25,7 @@ buildPythonPackage rec {
 
   propagatedBuildInputs = [ cairocffi cssselect2 defusedxml pillow tinycss2 ];
 
-  checkInputs = [ pytest pytestrunner pytestcov pytest-flake8 pytest-isort ];
+  checkInputs = [ pytest pytestrunner ];
 
   meta = with stdenv.lib; {
     homepage = https://cairosvg.org;
