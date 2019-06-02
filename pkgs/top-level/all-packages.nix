@@ -14085,6 +14085,8 @@ in
   clickhouse = callPackage ../servers/clickhouse {
     # clickhouse doesn't build on llvm8.
     inherit (llvmPackages_7) clang-unwrapped lld llvm;
+    stdenv = gccStdenv;
+    buildPackages = buildPackages // { stdenv = gccStdenv; };
   };
 
   couchdb = callPackage ../servers/http/couchdb {
