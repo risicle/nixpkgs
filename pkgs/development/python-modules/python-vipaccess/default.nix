@@ -5,6 +5,7 @@
 , oath
 , pycryptodome
 , requests
+, pytest
 }:
 
 buildPythonPackage rec {
@@ -23,8 +24,13 @@ buildPythonPackage rec {
     requests
   ];
 
-  # requires a network connection
-  doCheck = false;
+  checkInputs = [ pytest ];
+  checkPhase = ''
+    mv vipaccess vipaccess.hidden
+    pytest tests/ -k 'not (test_check_token_detects_valid_totp_token
+      or test_check_token_detects_valid_hotp_token
+      or test_check_token_detects_invalid_token)'
+  '';
 
   meta = with stdenv.lib; {
     description = "A free software implementation of Symantec's VIP Access application and protocol";
