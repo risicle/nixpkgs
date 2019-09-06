@@ -24,6 +24,6 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "A Python implementation of Generalized Additive Models";
     homepage = https://github.com/dswah/pyGAM;
-    license = licenses.asl20; # unspecified
+    license = licenses.asl20; # Apache 2.0
   };
 }
