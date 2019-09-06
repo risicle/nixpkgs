@@ -19,7 +19,12 @@ buildPythonPackage rec {
   };
 
   propagatedBuildInputs = [ future numpy pandas progressbar2 scipy ];
+
   checkInputs = [ pytest ];
+  checkPhase = ''
+    cd pygam/tests
+    pytest
+  '';
 
   meta = with lib; {
     description = "A Python implementation of Generalized Additive Models";
