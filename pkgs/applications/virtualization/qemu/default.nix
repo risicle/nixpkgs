@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fetchpatch, python, zlib, pkgconfig, glib
+{ stdenv, fetchurl, fetchpatch, fetchFromGitLab, python, zlib, pkgconfig, glib
 , ncurses, perl, pixman, vde2, alsaLib, texinfo, flex
 , bison, lzo, snappy, libaio, gnutls, nettle, curl
 , makeWrapper
@@ -42,10 +42,24 @@ stdenv.mkDerivation rec {
     + stdenv.lib.optionalString nixosTestRunner "for-vm-tests-"
     + version;
 
-  src = fetchurl {
-    url = "https://wiki.qemu.org/download/qemu-${version}.tar.bz2";
-    sha256 = "085g6f75si8hbn94mnnjn1r7ysixn5bqj4bhqwvadj00fhzp2zvd";
-  };
+  srcs = [
+    (fetchurl {
+        url = "https://wiki.qemu.org/download/qemu-${version}.tar.bz2";
+        sha256 = "085g6f75si8hbn94mnnjn1r7ysixn5bqj4bhqwvadj00fhzp2zvd";
+    })
+    (fetchFromGitLab {
+      domain = "gitlab.freedesktop.org";
+      owner = "slirp";
+      repo = "libslirp";
+      rev = "126c04acbabd7ad32c2b018fe10dfac2a3bc1210";
+      name = "slirp";
+      sha256 = "0pyp55c62fsmakya5i2si3cqaw7cviz424ir17fqrfjj7fw1z78c";
+    })
+  ];
+  sourceRoot = "qemu-${version}";
+  prePatch = ''
+    cp -r ../slirp .
+  '';
 
   nativeBuildInputs = [ python python.pkgs.sphinx pkgconfig flex bison ];
   buildInputs =
