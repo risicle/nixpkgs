@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, python, pkgconfig, perl, libxslt, docbook_xsl, rpcgen
+{ lib, stdenv, fetchurl, fetchpatch, python, pkgconfig, perl, libxslt, docbook_xsl, rpcgen
 , fixDarwinDylibNames
 , docbook_xml_dtd_42, readline
 , popt, iniparser, libbsd, libarchive, libiconv, gettext
@@ -20,11 +20,11 @@ with lib;
 
 stdenv.mkDerivation rec {
   pname = "samba";
-  version = "4.10.8";
+  version = "4.11.2";
 
   src = fetchurl {
     url = "mirror://samba/pub/samba/stable/${pname}-${version}.tar.gz";
-    sha256 = "1x0hlhb674fndfkmimjicnzs543n3i8465a5ifcmjwvzavxha7y4";
+    sha256 = "07wzn0fq90mbrfsm5qvyrzvhb9s76yvwqvw9hxazn9azryvz2yyj";
   };
 
   outputs = [ "out" "dev" "man" ];
@@ -34,6 +34,10 @@ stdenv.mkDerivation rec {
     ./patch-source3__libads__kerberos_keytab.c.patch
     ./4.x-no-persistent-install-dynconfig.patch
     ./4.x-fix-makeflags-parsing.patch
+    (fetchpatch {
+      url = "https://gitlab.com/risicle/samba/commit/cd7fe38ea12c7e10de52f41219cde11173ad641a.patch";
+      sha256 = "1bbldf794svsdvcbp649imghmj0jck7545d3k9xs953qkkgwkbxi";
+    })
   ];
 
   nativeBuildInputs = optionals stdenv.isDarwin [ rpcgen fixDarwinDylibNames ];
@@ -41,12 +45,12 @@ stdenv.mkDerivation rec {
   buildInputs = [
     python pkgconfig perl libxslt docbook_xsl docbook_xml_dtd_42 /*
     docbook_xml_dtd_45 */ readline popt iniparser jansson
-    libbsd libarchive zlib fam libiconv gettext libunwind krb5Full
+    libbsd libarchive zlib fam libiconv gettext libunwind krb5Full gnutls
   ] ++ optionals stdenv.isLinux [ libaio systemd ]
     ++ optional enableLDAP openldap
     ++ optional (enablePrinting && stdenv.isLinux) cups
     ++ optional enableMDNS avahi
-    ++ optionals enableDomainController [ gnutls gpgme lmdb ]
+    ++ optionals enableDomainController [ gpgme lmdb ]
     ++ optional enableRegedit ncurses
     ++ optional (enableCephFS && stdenv.isLinux) libceph
     ++ optionals (enableGlusterFS && stdenv.isLinux) [ glusterfs libuuid ]
