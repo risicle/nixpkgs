@@ -29,8 +29,12 @@ stdenv.mkDerivation {
       --replace "types.h" "afl-types.h"
     substitute ${afl.src.name}/qemu_mode/patches/afl-qemu-cpu-inl.h $sourceRoot/afl-qemu-cpu-inl.h \
       --replace "../../config.h" "afl-config.h"
+    substitute ${afl.src.name}/qemu_mode/patches/afl-qemu-inst.h $sourceRoot/afl-qemu-inst.h \
+      --replace "../../config.h" "afl-config.h"
     substituteInPlace ${afl.src.name}/qemu_mode/patches/cpu-exec.diff \
       --replace "../patches/afl-qemu-cpu-inl.h" "afl-qemu-cpu-inl.h"
+    substituteInPlace ${afl.src.name}/qemu_mode/patches/gen-icount.diff \
+      --replace "../patches/afl-qemu-inst.h" "afl-qemu-inst.h"
   '';
 
   nativeBuildInputs = [
@@ -50,6 +54,8 @@ stdenv.mkDerivation {
     "../${afl.src.name}/qemu_mode/patches/syscall.diff"
     "../${afl.src.name}/qemu_mode/patches/configure.diff"
     "../${afl.src.name}/qemu_mode/patches/memfd.diff"
+    "../${afl.src.name}/qemu_mode/patches/gen-icount.diff"
+    "../${afl.src.name}/qemu_mode/patches/tcg-runtime.diff"
     # nix-specific patches to make installation more well-behaved
     ./qemu-patches/no-etc-install.patch
   ];

@@ -11,11 +11,17 @@ let
     pname = "afl";
     version = "2.56b";
 
+#     src = fetchFromGitHub {
+#       owner = "google";
+#       repo = pname;
+#       rev = "v${version}";
+#       sha256 = "1q1g59gkm48aa4cg9h70jx4i2gapmypgp5rzs156b2avd95vwkn1";
+#     };
     src = fetchFromGitHub {
-      owner = "google";
+      owner = "risicle";
       repo = pname;
-      rev = "v${version}";
-      sha256 = "1q1g59gkm48aa4cg9h70jx4i2gapmypgp5rzs156b2avd95vwkn1";
+      rev = "ris-qemu-ir-inst";
+      sha256 = "0pa2ljg8mfh7fxx93z7yl5v7i4n99fn5523xknb0n6nks9ka8kak";
     };
     enableParallelBuilding = true;
 
