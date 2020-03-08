@@ -1,0 +1,56 @@
+:100644 100644 1248a3937e... 0000000000... M	Objects/obmalloc.c
+
+diff --git a/Objects/obmalloc.c b/Objects/obmalloc.c
+index 1248a3937e..29ad3081b6 100644
+--- a/Objects/obmalloc.c
++++ b/Objects/obmalloc.c
+@@ -1402,10 +1402,12 @@ pymalloc_alloc(void *ctx, size_t nbytes)
+     if (nbytes == 0) {
+         return NULL;
+     }
++    nbytes++;
+     if (nbytes > SMALL_REQUEST_THRESHOLD) {
+         return NULL;
+     }
+ 
++
+     LOCK();
+     /*
+      * Most frequent paths first
+@@ -1564,6 +1566,7 @@ pymalloc_alloc(void *ctx, size_t nbytes)
+ success:
+     UNLOCK();
+     assert(bp != NULL);
++    bp[INDEX2SIZE((uint)(nbytes - 1) >> ALIGNMENT_SHIFT)-1] = (uint8_t)0xca;
+     return (void *)bp;
+ 
+ failed:
+@@ -1635,6 +1638,19 @@ pymalloc_free(void *ctx, void *p)
+     }
+     /* We allocated this address. */
+ 
++    int canary_offset = INDEX2SIZE(pool->szidx)-1;
++    uint8_t canary_value = ((uint8_t *)p)[canary_offset];
++    if(__builtin_expect(canary_value != 0xca, 0)) {
++        fprintf(stderr, "Canary fail for block at p=%p, value was %x.2\n", p, canary_value);
++        if(canary_value == 0xd0) {
++            fprintf(stderr, "Possible double-free?\n");
++        }
++        // deliberate segfault
++        *((uint8_t *)0) = 123;
++    } else {
++        ((uint8_t *)p)[INDEX2SIZE(pool->szidx)-1] = 0xd0;
++    }
++
+     LOCK();
+ 
+     /* Link p to the start of the pool's freeblock list.  Since
+@@ -1886,7 +1902,7 @@ pymalloc_realloc(void *ctx, void **newptr_p, void *p, size_t nbytes)
+ 
+     /* pymalloc is in charge of this block */
+     size = INDEX2SIZE(pool->szidx);
+-    if (nbytes <= size) {
++    if (nbytes + 1 <= size) {
+         /* The block is staying the same or shrinking.
+ 
+            If it's shrinking, there's a tradeoff: it costs cycles to copy the

@@ -107,6 +107,7 @@ in with passthru; stdenv.mkDerivation {
       url = https://bugs.python.org/file47666/darwin-libutil.patch;
       sha256 = "0242gihnw3wfskl4fydp2xanpl8k5q7fj4dp7dbbqf46a4iwdzpa";
     })
+    ./3.7/ris-pool-canary.patch
   ] ++ optionals (isPy3k && hasDistutilsCxxPatch) [
     # Fix for http://bugs.python.org/issue1222585
     # Upstream distutils is calling C compiler to compile C++ code, which
