@@ -1,19 +1,27 @@
 { stdenv, buildPythonPackage, fetchPypi, isPyPy
 , olefile
-, freetype, libjpeg, zlib, libtiff, libwebp, tcl, lcms2, tk, libX11
+, freetype, libjpeg, zlib, libtiff, libwebp, tcl, lcms2, tk, libX11, openjpeg
 , pytestrunner
 , pytest
+, isPy3k
+, aflplusplus
 }:
+
 buildPythonPackage rec {
   pname = "Pillow";
-  version = "6.2.1";
+  version = "7.0.0";
+
+  disabled = !isPy3k;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "bf4e972a88f8841d8fdc6db1a75e0f8d763e66e3754b03006cbc3854d89f1cb1";
+    sha256 = "0il99hpk1nz8nf11w4s1fl46g00l234x687ib91k3q4m82kdk7jd";
   };
 
-  doCheck = !stdenv.isDarwin && !isPyPy;
+  doCheck = false;
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
 
   # Disable imagefont tests, because they don't work well with infinality:
   # https://github.com/python-pillow/Pillow/issues/1259
@@ -21,13 +29,18 @@ buildPythonPackage rec {
     rm Tests/test_imagefont.py
   '';
 
+#   patches = [ ./fli.patch ];
+
   propagatedBuildInputs = [ olefile ];
 
   checkInputs = [ pytest pytestrunner ];
 
   buildInputs = [
-    freetype libjpeg zlib libtiff libwebp tcl lcms2 ]
+    freetype libjpeg zlib libtiff libwebp tcl lcms2 openjpeg ]
     ++ stdenv.lib.optionals (isPyPy) [ tk libX11 ];
+
+  separateDebugInfo = true;
+  NIX_CFLAGS_COMPILE="-O1";
 
   # NOTE: we use LCMS_ROOT as WEBP root since there is not other setting for webp.
   # NOTE: The Pillow install script will, by default, add paths like /usr/lib
@@ -42,6 +55,7 @@ buildPythonPackage rec {
     libinclude' = pkg: ''"${pkg.out}/lib", "${pkg.out}/include"'';
     libinclude = pkg: ''"${pkg.out}/lib", "${pkg.dev}/include"'';
   in ''
+    #export CC=${aflplusplus}/bin/afl-clang-fast 
     sed -i "setup.py" \
         -e 's|^FREETYPE_ROOT =.*$|FREETYPE_ROOT = ${libinclude freetype}|g ;
             s|^JPEG_ROOT =.*$|JPEG_ROOT = ${libinclude libjpeg}|g ;
@@ -49,6 +63,7 @@ buildPythonPackage rec {
             s|^LCMS_ROOT =.*$|LCMS_ROOT = ${libinclude lcms2}|g ;
             s|^TIFF_ROOT =.*$|TIFF_ROOT = ${libinclude libtiff}|g ;
             s|^TCL_ROOT=.*$|TCL_ROOT = ${libinclude' tcl}|g ;
+            s|^JPEG2K_ROOT =.*$|JPEG2K_ROOT = ${libinclude openjpeg}|g ;
             s|self\.disable_platform_guessing = None|self.disable_platform_guessing = True|g ;'
     export LDFLAGS="-L${libwebp}/lib"
     export CFLAGS="-I${libwebp}/include"
