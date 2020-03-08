@@ -4829,7 +4829,7 @@ in {
 
   pyplatec = callPackage ../development/python-modules/pyplatec { };
 
-  purepng = callPackage ../development/python-modules/purepng { };
+  purepng = callPackage ../development/python-modules/purepng { aflplusplus = pkgs.aflplusplus; };
 
   pyhocon = callPackage ../development/python-modules/pyhocon { };
 

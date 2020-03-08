@@ -3,6 +3,7 @@
 , python
 , fetchFromGitHub
 , fetchpatch
+, aflplusplus
 , cython ? null
 , numpy ? null
 }:
@@ -26,6 +27,11 @@ buildPythonPackage {
     })
   ];
   patchFlags = "-p1 -d code";
+
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = "export CC=${aflplusplus}/bin/afl-clang-fast";
 
   # cython is optional - if not supplied, the "pure python" implementation will be used
   nativeBuildInputs = [ cython ];
