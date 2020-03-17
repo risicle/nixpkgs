@@ -4257,7 +4257,7 @@ in {
 
   numpydoc = callPackage ../development/python-modules/numpydoc { };
 
-  numpy-stl = callPackage ../development/python-modules/numpy-stl { };
+  numpy-stl = callPackage ../development/python-modules/numpy-stl { inherit (pkgs) aflplusplus; };
 
   numtraits = callPackage ../development/python-modules/numtraits { };
 
