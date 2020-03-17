@@ -75,6 +75,8 @@ let
       # has totally different semantics in that case(?) - and also set a
       # proper AFL_CC and AFL_CXX so we don't pick up the wrong one out
       # of $PATH.
+      rm $out/bin/afl-clang-fast++
+      cp $out/bin/afl-clang-fast $out/bin/afl-clang-fast++
       for x in $out/bin/afl-clang-fast $out/bin/afl-clang-fast++; do
         wrapProgram $x \
           --set-default AFL_PATH "$out/lib/afl" \
