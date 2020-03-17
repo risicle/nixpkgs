@@ -4484,7 +4484,7 @@ in {
 
   pika-pool = callPackage ../development/python-modules/pika-pool { };
 
-  pikepdf = callPackage ../development/python-modules/pikepdf { };
+  pikepdf = callPackage ../development/python-modules/pikepdf { aflplusplus = pkgs.aflplusplus; };
 
   kmapper = callPackage ../development/python-modules/kmapper { };
 

@@ -18,6 +18,7 @@
 , setuptools-scm-git-archive
 , setuptools_scm
 , stdenv
+, aflplusplus
 }:
 
 buildPythonPackage rec {
@@ -35,11 +36,24 @@ buildPythonPackage rec {
     qpdf
   ];
 
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+    #export CC=${aflplusplus}/bin/afl-clang-fast++
+#     export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE --coverage -O1"
+#     export NIX_CFLAGS_LINK="$NIX_CFLAGS_LINK --coverage -O1"
+#   '';
+#   outputs = ["out" "gcov"];
+
   nativeBuildInputs = [
     setuptools-scm-git-archive
     setuptools_scm
   ];
 
+  doCheck = false;
   checkInputs = [
     attrs
     hypothesis
@@ -65,6 +79,10 @@ buildPythonPackage rec {
   preBuild = ''
     HOME=$TMPDIR
   '';
+#   postInstall = ''
+#     mkdir -p $gcov
+#     cp $(find . -name '*.gcno') --parents $gcov/
+#   '';
 
   meta = with stdenv.lib; {
     homepage = "https://github.com/pikepdf/pikepdf";
