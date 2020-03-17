@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, libjpeg, zlib, perl }:
+{ stdenv, fetchurl, libjpeg, zlib, perl, aflplusplus }:
 
 let version = "9.1.0";
 in
@@ -14,6 +14,15 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ perl ];
 
   buildInputs = [ zlib libjpeg ];
+
+#   AFL_INST_RATIO="10";
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast CXX=${aflplusplus}/bin/afl-clang-fast++
+#   '';
 
   postPatch = ''
     patchShebangs qpdf/fix-qdf

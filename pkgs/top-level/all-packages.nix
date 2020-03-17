@@ -5921,7 +5921,7 @@ in
 
   qownnotes = libsForQt5.callPackage ../applications/office/qownnotes { };
 
-  qpdf = callPackage ../development/libraries/qpdf { };
+  qpdf = callPackage ../development/libraries/qpdf { inherit aflplusplus; };
 
   qprint = callPackage ../tools/text/qprint { };
 
