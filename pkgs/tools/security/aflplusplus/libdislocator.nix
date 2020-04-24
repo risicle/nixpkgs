@@ -12,6 +12,7 @@ stdenv.mkDerivation {
 
   preInstall = ''
     mkdir -p $out/lib/afl
+    sed -i 's/README\.dislocator\.md/README\.md/g' Makefile
   '';
   postInstall = ''
     mkdir $out/bin

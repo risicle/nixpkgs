@@ -1,5 +1,5 @@
-{ stdenv, fetchFromGitHub, callPackage, makeWrapper
-, clang, llvm, gcc, which, libcgroup, python, perl, gmp
+{ stdenv, stdenvNoCC, fetchFromGitHub, callPackage, makeWrapper
+, clang_9, llvm_9, gcc, which, libcgroup, python, perl, gmp
 , wine ? null
 }:
 
@@ -15,22 +15,22 @@ let
     else throw "aflplusplus: no support for ${stdenv.targetPlatform.system}!";
   libdislocator = callPackage ./libdislocator.nix { inherit aflplusplus; };
   libtokencap = callPackage ./libtokencap.nix { inherit aflplusplus; };
-  aflplusplus = stdenv.mkDerivation rec {
+  aflplusplus = stdenvNoCC.mkDerivation rec {
     pname = "aflplusplus";
-    version = "2.59c";
+    version = "2.64c";
 
     src = fetchFromGitHub {
       owner = "vanhauser-thc";
       repo = "AFLplusplus";
       rev = version;
-      sha256 = "1ik33ifk4n96762iv1h4kl4jf9yvsq2hgs097wkiy589siw44g5r";
+      sha256 = "0n618pk6nlmkcbv1qm05fny4mnhcprrw0ppmra1phvk1y22iildj";
     };
     enableParallelBuilding = true;
 
     # Note: libcgroup isn't needed for building, just for the afl-cgroup
     # script.
-    nativeBuildInputs = [ makeWrapper which ];
-    buildInputs = [ llvm python gmp ]
+    nativeBuildInputs = [ makeWrapper which clang_9 gcc ];
+    buildInputs = [ llvm_9 python gmp ]
       ++ stdenv.lib.optional (wine != null) python.pkgs.wrapPython;
 
     makeFlags = [ "PREFIX=$(out)" ];
@@ -61,36 +61,15 @@ let
       cp ${libtokencap}/bin/get-libtokencap-so $out/bin/
 
       # Install the cgroups wrapper for asan-based fuzzing.
-      cp experimental/asan_cgroups/limit_memory.sh $out/bin/afl-cgroup
+      cp examples/asan_cgroups/limit_memory.sh $out/bin/afl-cgroup
       chmod +x $out/bin/afl-cgroup
       substituteInPlace $out/bin/afl-cgroup \
         --replace "cgcreate" "${libcgroup}/bin/cgcreate" \
         --replace "cgexec"   "${libcgroup}/bin/cgexec" \
         --replace "cgdelete" "${libcgroup}/bin/cgdelete"
 
-      # Patch shebangs before wrapping
       patchShebangs $out/bin
 
-      # Wrap afl-clang-fast(++) with a *different* AFL_PATH, because it
-      # has totally different semantics in that case(?) - and also set a
-      # proper AFL_CC and AFL_CXX so we don't pick up the wrong one out
-      # of $PATH.
-      # first though we need to replace the afl-clang-fast++ symlink with
-      # a real copy to prevent wrapProgram skipping the symlink and confusing
-      # nix's cc wrapper
-      rm $out/bin/afl-clang-fast++
-      cp $out/bin/afl-clang-fast $out/bin/afl-clang-fast++
-      for x in $out/bin/afl-clang-fast $out/bin/afl-clang-fast++; do
-        wrapProgram $x \
-          --set-default AFL_PATH "$out/lib/afl" \
-          --run 'export AFL_CC=''${AFL_CC:-${clang}/bin/clang} AFL_CXX=''${AFL_CXX:-${clang}/bin/clang++}'
-      done
-      # do similar for afl-gcc and afl-gcc-fast
-      for x in $out/bin/afl-gcc $out/bin/afl-gcc-fast; do
-        wrapProgram $x \
-          --set-default AFL_PATH "$out/lib/afl" \
-          --run 'export AFL_CC=''${AFL_CC:-${gcc}/bin/gcc} AFL_CXX=''${AFL_CXX:-${gcc}/bin/g++}'
-      done
     '' + stdenv.lib.optionalString (wine != null) ''
       substitute afl-wine-trace $out/bin/afl-wine-trace \
         --replace "qemu_mode/unsigaction" "$out/lib/afl"
@@ -132,7 +111,7 @@ let
       homepage    = "https://github.com/vanhauser-thc/AFLplusplus";
       license     = stdenv.lib.licenses.asl20;
       platforms   = ["x86_64-linux" "i686-linux"];
-      maintainers = with stdenv.lib.maintainers; [ ris ];
+      maintainers = with stdenv.lib.maintainers; [ ris mindavi ];
     };
   };
 in aflplusplus
