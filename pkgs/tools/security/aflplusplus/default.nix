@@ -1,6 +1,6 @@
 { stdenv, stdenvNoCC, fetchFromGitHub, callPackage, makeWrapper
 , clang_9, llvm_9, gcc, which, libcgroup, python, perl, gmp
-, wine ? null
+, file, cmocka, wine ? null
 }:
 
 # wine fuzzing is only known to work for win32 binaries, and using a mixture of
@@ -92,17 +92,15 @@ let
         wrapPythonProgramsIn $out/bin ${python.pkgs.pefile}
     '';
 
-    installCheckInputs = [ perl ];
+    installCheckInputs = [ perl file cmocka ];
     doInstallCheck = true;
     installCheckPhase = ''
       # replace references to tools in build directory with references to installed locations
       substituteInPlace test/test.sh \
-        --replace '`which gcc`' "" \
         --replace '../libcompcov.so' '`$out/bin/get-afl-qemu-libcompcov-so`' \
         --replace '../libdislocator.so' '`$out/bin/get-libdislocator-so`' \
         --replace '../libtokencap.so' '`$out/bin/get-libtokencap-so`'
-      perl -pi -e 's|(?<=\s)gcc(?=\s)|${gcc}/bin/gcc|g' test/test.sh
-      perl -pi -e 's|(\.\./)(\S+?)(?<!\.c)(?<!\.s?o)(?=\s)|\$out/bin/\2|g' test/test.sh
+      perl -pi -e 's|(?<!\.)(\.\./)([^\s\/]+?)(?<!\.c)(?<!\.s?o)(?=\s)|\$out/bin/\2|g' test/test.sh
       cd test && ./test.sh
     '';
 
