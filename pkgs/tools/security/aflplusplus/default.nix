@@ -29,6 +29,13 @@ let
 
 #     patches = [ ./SIGABRT-is-timeout.patch ];
 
+    # build of unsigaction32 broken in 2.64c:
+    # https://github.com/AFLplusplus/AFLplusplus/commit/079fdbf9bc5be1adba19e4bd08be965bd4dd79dc#commitcomment-38428357
+    postPatch = ''
+      substituteInPlace qemu_mode/unsigaction/Makefile \
+        --replace "unsigaction32.so " ""
+    '';
+
     # Note: libcgroup isn't needed for building, just for the afl-cgroup
     # script.
     nativeBuildInputs = [ makeWrapper which clang_9 gcc ];
