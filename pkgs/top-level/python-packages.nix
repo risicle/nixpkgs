@@ -2097,6 +2097,8 @@ in {
     pythonPackages = self;
   });
 
+  openstep-plist = callPackage ../development/python-modules/openstep-plist { inherit (pkgs) aflplusplus; };
+
   opentracing = callPackage ../development/python-modules/opentracing { };
 
   openidc-client = callPackage ../development/python-modules/openidc-client {};
