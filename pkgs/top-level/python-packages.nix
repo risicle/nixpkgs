@@ -3628,7 +3628,7 @@ in {
 
   hetzner = callPackage ../development/python-modules/hetzner { };
 
-  hiredis = callPackage ../development/python-modules/hiredis { };
+  hiredis = callPackage ../development/python-modules/hiredis { aflplusplus = pkgs.aflplusplus; };
 
   homeassistant-pyozw = callPackage ../development/python-modules/homeassistant-pyozw { };
 

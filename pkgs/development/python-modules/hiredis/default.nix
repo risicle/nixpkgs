@@ -3,6 +3,7 @@
 , fetchPypi
 , redis
 , python
+, aflplusplus
 }:
 
 buildPythonPackage rec {
@@ -15,9 +16,20 @@ buildPythonPackage rec {
   };
   propagatedBuildInputs = [ redis ];
 
-  checkPhase = ''
-    ${python.interpreter} test.py
-  '';
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
+  NIX_CFLAGS_COMPILE = "-O1";
+  separateDebugInfo = true;
+
+  doCheck = false;
+#   checkPhase = ''
+#     ${python.interpreter} test.py
+#   '';
 
   meta = with stdenv.lib; {
     description = "Wraps protocol parsing code in hiredis, speeds up parsing of multi bulk replies";
