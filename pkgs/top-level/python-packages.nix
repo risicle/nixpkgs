@@ -943,6 +943,8 @@ in {
 
   pymysql = callPackage ../development/python-modules/pymysql { };
 
+  cymysql = callPackage ../development/python-modules/cymysql { inherit (pkgs) aflplusplus; };
+
   pymupdf = callPackage ../development/python-modules/pymupdf { };
 
   Pmw = callPackage ../development/python-modules/Pmw { };
