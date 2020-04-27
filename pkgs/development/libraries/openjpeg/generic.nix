@@ -1,5 +1,5 @@
 { stdenv, fetchFromGitHub, cmake, pkgconfig
-, libpng, libtiff, lcms2, jpylyzer
+, libpng, libtiff, lcms2, jpylyzer, aflplusplus
 , mj2Support ? true # MJ2 executables
 , jpwlLibSupport ? true # JPWL library & executables
 , jpipLibSupport ? false # JPIP library & executables
@@ -8,7 +8,7 @@
 , openjpegJarSupport ? false # Openjpeg jar (Java)
 , jp3dSupport ? true # # JP3D comp
 , thirdPartySupport ? false # Third party libraries - OFF: only build when found, ON: always build
-, testsSupport ? true
+, testsSupport ? false
 , jdk ? null
 # Inherit generics
 , branch, version, revision, sha256, patches ? [], extraFlags ? [], ...
@@ -33,6 +33,14 @@ stdenv.mkDerivation {
     rev = revision;
     inherit sha256;
   };
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
 
   inherit patches;
 
