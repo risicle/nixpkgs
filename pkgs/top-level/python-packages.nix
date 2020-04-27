@@ -735,6 +735,8 @@ in {
 
   http-ece = callPackage ../development/python-modules/http-ece { };
 
+  http-parser = callPackage ../development/python-modules/http-parser { inherit (pkgs) aflplusplus; };
+
   httpsig = callPackage ../development/python-modules/httpsig { };
 
   httptools = callPackage ../development/python-modules/httptools { };
