@@ -4236,7 +4236,7 @@ in {
 
   numba = callPackage ../development/python-modules/numba { };
 
-  numcodecs = callPackage ../development/python-modules/numcodecs { };
+  numcodecs = callPackage ../development/python-modules/numcodecs { inherit (pkgs) aflplusplus; };
 
   numexpr = callPackage ../development/python-modules/numexpr { };
 

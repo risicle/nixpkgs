@@ -7,6 +7,7 @@
 , msgpack
 , pytest
 , python
+, aflplusplus
 }:
 
 buildPythonPackage rec {
@@ -18,6 +19,22 @@ buildPythonPackage rec {
     sha256 = "ef4843d5db4d074e607e9b85156835c10d006afc10e175bda62ff5412fca6e4d";
   };
 
+#   postPatch = ''
+#     substituteInPlace setup.py \
+#         --replace "('HAVE_SNAPPY'" "#('HAVE_SNAPPY'" \
+#         --replace "blosc_sources += glob('c-blosc/internal-complibs/snappy" "#blosc_sources += glob('c-blosc/internal-complibs/snappy"
+#   '';
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
+  NIX_CFLAGS_COMPILE = "-O1";
+  separateDebugInfo = true;
+
   nativeBuildInputs = [
     setuptools_scm
     cython
@@ -28,6 +45,7 @@ buildPythonPackage rec {
     msgpack
   ];
 
+  doCheck = false;
   checkInputs = [
     pytest
   ];
