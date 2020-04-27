@@ -2643,7 +2643,7 @@ in {
   immutables = callPackage ../development/python-modules/immutables {};
 
   imread = callPackage ../development/python-modules/imread {
-    inherit (pkgs) pkgconfig libjpeg libpng libtiff libwebp;
+    inherit (pkgs) pkgconfig libjpeg libpng libtiff libwebp aflplusplus;
   };
 
   imaplib2 = callPackage ../development/python-modules/imaplib2 { };
