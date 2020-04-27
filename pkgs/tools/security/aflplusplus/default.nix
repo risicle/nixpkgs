@@ -27,6 +27,8 @@ let
     };
     enableParallelBuilding = true;
 
+#     patches = [ ./SIGABRT-is-timeout.patch ];
+
     # Note: libcgroup isn't needed for building, just for the afl-cgroup
     # script.
     nativeBuildInputs = [ makeWrapper which ];

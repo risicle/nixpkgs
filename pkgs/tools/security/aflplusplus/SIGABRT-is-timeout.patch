@@ -1,0 +1,13 @@
+diff --git a/src/afl-fuzz-run.c b/src/afl-fuzz-run.c
+index 8f72d0f..7e7b15e 100644
+--- a/src/afl-fuzz-run.c
++++ b/src/afl-fuzz-run.c
+@@ -235,7 +235,7 @@ u8 run_target(char** argv, u32 timeout) {
+ 
+     kill_signal = WTERMSIG(status);
+ 
+-    if (child_timed_out && kill_signal == SIGKILL) return FAULT_TMOUT;
++    if (kill_signal == SIGABRT || (child_timed_out && kill_signal == SIGKILL)) return FAULT_TMOUT;
+ 
+     return FAULT_CRASH;
+ 
