@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, cmake }:
+{ stdenv, fetchurl, cmake, aflplusplus }:
 
 stdenv.mkDerivation rec {
   name = "yajl-2.1.0";
@@ -10,6 +10,14 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ cmake ];
+
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+  '';
 
   meta = {
     description = "Yet Another JSON Library";
