@@ -664,6 +664,8 @@ in {
 
   fuzzywuzzy = callPackage ../development/python-modules/fuzzywuzzy { };
 
+  fuzzy = callPackage ../development/python-modules/fuzzy { inherit (pkgs) aflplusplus; };
+
   genanki = callPackage ../development/python-modules/genanki { };
 
   geoip2 = callPackage ../development/python-modules/geoip2 { };
