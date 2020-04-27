@@ -1,4 +1,4 @@
-{ lib, buildPythonPackage, fetchPypi, freetds, cython, setuptools-git }:
+{ lib, buildPythonPackage, fetchPypi, freetds, cython, setuptools-git, aflplusplus }:
 
 buildPythonPackage rec {
   pname = "pymssql";
@@ -11,6 +11,16 @@ buildPythonPackage rec {
 
   buildInputs = [cython setuptools-git];
   propagatedBuildInputs = [freetds];
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
+  NIX_CFLAGS_COMPILE = "-O1";
+  separateDebugInfo = true;
 
   # The tests require a running instance of SQLServer, so we skip them
   doCheck = false;

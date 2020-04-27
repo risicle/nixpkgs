@@ -6604,7 +6604,7 @@ in {
 
   scour = callPackage ../development/python-modules/scour { };
 
-  pymssql = callPackage ../development/python-modules/pymssql { };
+  pymssql = callPackage ../development/python-modules/pymssql { inherit (pkgs) aflplusplus; };
 
   nanoleaf = callPackage ../development/python-modules/nanoleaf { };
 
