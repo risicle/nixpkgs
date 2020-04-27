@@ -1959,6 +1959,8 @@ in {
 
   cftime = callPackage ../development/python-modules/cftime {};
 
+  ciso8601 = callPackage ../development/python-modules/ciso8601 { inherit (pkgs) aflplusplus; };
+
   cjson = callPackage ../development/python-modules/cjson { };
 
   cld2-cffi = callPackage ../development/python-modules/cld2-cffi {};
