@@ -1074,7 +1074,7 @@ in {
 
   pymatgen-lammps = callPackage ../development/python-modules/pymatgen-lammps { };
 
-  pymavlink = callPackage ../development/python-modules/pymavlink { };
+  pymavlink = callPackage ../development/python-modules/pymavlink { inherit (pkgs) aflplusplus; };
 
   pymsgbox = callPackage ../development/python-modules/pymsgbox { };
 
