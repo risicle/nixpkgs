@@ -1,5 +1,5 @@
 { lib, fetchPypi, buildPythonPackage, pythonOlder
-, dateutil, pytzdata, typing }:
+, dateutil, pytzdata, typing, aflplusplus }:
 
 buildPythonPackage rec {
   pname = "pendulum";
@@ -11,6 +11,14 @@ buildPythonPackage rec {
   };
 
   propagatedBuildInputs = [ dateutil pytzdata ] ++ lib.optional (pythonOlder "3.5") typing;
+
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+  '';
 
   # No tests
   doCheck = false;

@@ -4028,7 +4028,7 @@ in {
 
   rainbowstream = callPackage ../development/python-modules/rainbowstream { };
 
-  pendulum = callPackage ../development/python-modules/pendulum { };
+  pendulum = callPackage ../development/python-modules/pendulum { inherit (pkgs) aflplusplus; };
 
   pocket = callPackage ../development/python-modules/pocket { };
 
