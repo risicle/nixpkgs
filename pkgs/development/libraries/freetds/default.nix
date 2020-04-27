@@ -1,5 +1,5 @@
 { stdenv, fetchurl, autoreconfHook, pkgconfig
-, openssl
+, openssl, aflplusplus
 , odbcSupport ? true, unixODBC ? null }:
 
 assert odbcSupport -> unixODBC != null;
@@ -22,6 +22,14 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ autoreconfHook pkgconfig ];
 
   enableParallelBuilding = true;
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
 
   meta = with stdenv.lib; {
     description = "Libraries to natively talk to Microsoft SQL Server and Sybase databases";
