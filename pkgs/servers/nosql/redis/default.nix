@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, lua, jemalloc, nixosTests }:
+{ stdenv, fetchurl, lua, jemalloc, nixosTests, aflplusplus }:
 
 stdenv.mkDerivation rec {
   version = "5.0.7";
@@ -17,6 +17,15 @@ stdenv.mkDerivation rec {
       makeFlagsArray+=('STLIB_MAKE_CMD=${stdenv.cc.targetPrefix}ar rcs $(STLIBNAME)')
     ''}
   '';
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
+  NIX_CFLAGS_COMPILE = "-O1";
 
   buildInputs = [ lua ];
   # More cross-compiling fixes.
