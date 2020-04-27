@@ -6606,6 +6606,13 @@ in {
     inherit python;
   })).python;
 
+  nghttp2 = (toPythonModule (pkgs.nghttp2.override {
+    inherit python;
+    cython = self.cython;
+    setuptools = self.setuptools;
+    enablePython = true;
+  }));
+
   scour = callPackage ../development/python-modules/scour { };
 
   pymssql = callPackage ../development/python-modules/pymssql { inherit (pkgs) aflplusplus; };
