@@ -5759,6 +5759,8 @@ in {
 
   python-twitter = callPackage ../development/python-modules/python-twitter { };
 
+  udatetime = callPackage ../development/python-modules/udatetime { inherit (pkgs) aflplusplus; };
+
   umalqurra = callPackage ../development/python-modules/umalqurra { };
 
   unicodecsv = callPackage ../development/python-modules/unicodecsv { };
