@@ -78,6 +78,27 @@ let
         --replace "cgdelete" "${libcgroup}/bin/cgdelete"
 
       patchShebangs $out/bin
+
+      # Wrap afl-clang-fast(++) with a *different* AFL_PATH, because it
+      # has totally different semantics in that case(?) - and also set a
+      # proper AFL_CC and AFL_CXX so we don't pick up the wrong one out
+      # of $PATH.
+      # first though we need to replace the afl-clang-fast++ symlink with
+      # a real copy to prevent wrapProgram skipping the symlink and confusing
+      # nix's cc wrapper
+      rm $out/bin/afl-clang-fast++
+      cp $out/bin/afl-clang-fast $out/bin/afl-clang-fast++
+      for x in $out/bin/afl-clang-fast $out/bin/afl-clang-fast++; do
+        wrapProgram $x \
+          --set-default AFL_PATH "$out/lib/afl" \
+          --run 'export AFL_CC=''${AFL_CC:-${clang_9}/bin/clang} AFL_CXX=''${AFL_CXX:-${clang_9}/bin/clang++}'
+      done
+      # do similar for afl-gcc and afl-gcc-fast
+      for x in $out/bin/afl-gcc $out/bin/afl-gcc-fast; do
+        wrapProgram $x \
+          --set-default AFL_PATH "$out/lib/afl" \
+          --run 'export AFL_CC=''${AFL_CC:-${gcc}/bin/gcc} AFL_CXX=''${AFL_CXX:-${gcc}/bin/g++}'
+      done
     '' + stdenv.lib.optionalString (wine != null) ''
       substitute afl-wine-trace $out/bin/afl-wine-trace \
         --replace "qemu_mode/unsigaction" "$out/lib/afl"
