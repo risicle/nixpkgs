@@ -34,6 +34,8 @@ let
     postPatch = ''
       substituteInPlace qemu_mode/unsigaction/Makefile \
         --replace "unsigaction32.so " ""
+      substituteInPlace llvm_mode/compare-transform-pass.so.cc \
+        --replace "isatty(2)" "1"
     '';
 
     # Note: libcgroup isn't needed for building, just for the afl-cgroup
