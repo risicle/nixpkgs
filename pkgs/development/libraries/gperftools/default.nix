@@ -10,8 +10,8 @@ stdenv.mkDerivation rec {
   src = fetchFromGitHub {
     owner = "risicle";
     repo = "gperftools";
-    rev = "ris-readable-page-fence-0";
-    sha256 = "025bj9w5v6pry0aizrrs0kwyka9w60w28mijfxn1ay698zflydyn";
+    rev = "ris-readable-page-fence-1";
+    sha256 = "04pwsf3wlbcrqw10lbwvqf8p4669na310z0hzgrw6rjhxif82mgv";
   };
 
   buildInputs = [ autoconf automake libtool ] ++ stdenv.lib.optional stdenv.isLinux libunwind;
