@@ -550,7 +550,8 @@ in
   };
 
   aflplusplus = callPackage ../tools/security/aflplusplus {
-    stdenv = clangStdenv;
+    llvm = llvm_9;
+    clang = clang_9;
     python = python37;
     wine = null;
   };

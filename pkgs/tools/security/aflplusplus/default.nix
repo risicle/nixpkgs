@@ -1,6 +1,6 @@
 { stdenv, stdenvNoCC, fetchFromGitHub, callPackage, makeWrapper
-, clang_9, llvm_9, gcc, which, libcgroup, python, perl, gmp
-, file, cmocka, wine ? null
+, clang, llvm, gcc, which, libcgroup, python, perl, gmp
+, file, wine ? null, fetchpatch
 }:
 
 # wine fuzzing is only known to work for win32 binaries, and using a mixture of
@@ -17,32 +17,39 @@ let
   libtokencap = callPackage ./libtokencap.nix { inherit aflplusplus; };
   aflplusplus = stdenvNoCC.mkDerivation rec {
     pname = "aflplusplus";
-    version = "2.64c";
+    version = "2.65c";
 
     src = fetchFromGitHub {
-      owner = "vanhauser-thc";
+      owner = "AFLplusplus";
       repo = "AFLplusplus";
       rev = version;
-      sha256 = "0n618pk6nlmkcbv1qm05fny4mnhcprrw0ppmra1phvk1y22iildj";
+      sha256 = "1np2a3kypb2m8nyv6qnij18yzn41pl8619jzydci40br4vxial9l";
     };
     enableParallelBuilding = true;
 
-#     patches = [ ./SIGABRT-is-timeout.patch ];
-
-    # build of unsigaction32 broken in 2.64c:
-    # https://github.com/AFLplusplus/AFLplusplus/commit/079fdbf9bc5be1adba19e4bd08be965bd4dd79dc#commitcomment-38428357
-    postPatch = ''
-      substituteInPlace qemu_mode/unsigaction/Makefile \
-        --replace "unsigaction32.so " ""
-      substituteInPlace llvm_mode/compare-transform-pass.so.cc \
-        --replace "isatty(2)" "1"
-    '';
-
     # Note: libcgroup isn't needed for building, just for the afl-cgroup
     # script.
-    nativeBuildInputs = [ makeWrapper which clang_9 gcc ];
-    buildInputs = [ llvm_9 python gmp ]
+    nativeBuildInputs = [ makeWrapper which clang gcc ];
+    buildInputs = [ llvm python gmp ]
       ++ stdenv.lib.optional (wine != null) python.pkgs.wrapPython;
+
+
+    postPatch = ''
+      # Replace the CLANG_BIN variables with the correct path
+      substituteInPlace llvm_mode/afl-clang-fast.c \
+        --replace "CLANGPP_BIN" '"${clang}/bin/clang++"' \
+        --replace "CLANG_BIN" '"${clang}/bin/clang"' \
+        --replace 'getenv("AFL_PATH")' "(getenv(\"AFL_PATH\") ? getenv(\"AFL_PATH\") : \"$out/lib/afl\")"
+
+      # Replace "gcc" and friends with full paths in afl-gcc
+      # Prevents afl-gcc picking up any (possibly incorrect) gcc from the path
+      substituteInPlace src/afl-gcc.c \
+        --replace '"gcc"' '"${gcc}/bin/gcc"' \
+        --replace '"g++"' '"${gcc}/bin/g++"' \
+        --replace '"gcj"' '"gcj-UNSUPPORTED"' \
+        --replace '"clang"' '"clang-UNSUPPORTED"' \
+        --replace '"clang++"' '"clang++-UNSUPPORTED"'
+    '';
 
     makeFlags = [ "PREFIX=$(out)" ];
     buildPhase = ''
@@ -56,6 +63,9 @@ let
     '';
 
     postInstall = ''
+      # remove afl-clang(++) which are just symlinks to afl-clang-fast
+      rm $out/bin/afl-clang $out/bin/afl-clang++
+
       # the makefile neglects to install unsigaction
       cp qemu_mode/unsigaction/unsigaction*.so $out/lib/afl/
 
@@ -81,26 +91,6 @@ let
 
       patchShebangs $out/bin
 
-      # Wrap afl-clang-fast(++) with a *different* AFL_PATH, because it
-      # has totally different semantics in that case(?) - and also set a
-      # proper AFL_CC and AFL_CXX so we don't pick up the wrong one out
-      # of $PATH.
-      # first though we need to replace the afl-clang-fast++ symlink with
-      # a real copy to prevent wrapProgram skipping the symlink and confusing
-      # nix's cc wrapper
-      rm $out/bin/afl-clang-fast++
-      cp $out/bin/afl-clang-fast $out/bin/afl-clang-fast++
-      for x in $out/bin/afl-clang-fast $out/bin/afl-clang-fast++; do
-        wrapProgram $x \
-          --set-default AFL_PATH "$out/lib/afl" \
-          --run 'export AFL_CC=''${AFL_CC:-${clang_9}/bin/clang} AFL_CXX=''${AFL_CXX:-${clang_9}/bin/clang++}'
-      done
-      # do similar for afl-gcc and afl-gcc-fast
-      for x in $out/bin/afl-gcc $out/bin/afl-gcc-fast; do
-        wrapProgram $x \
-          --set-default AFL_PATH "$out/lib/afl" \
-          --run 'export AFL_CC=''${AFL_CC:-${gcc}/bin/gcc} AFL_CXX=''${AFL_CXX:-${gcc}/bin/g++}'
-      done
     '' + stdenv.lib.optionalString (wine != null) ''
       substitute afl-wine-trace $out/bin/afl-wine-trace \
         --replace "qemu_mode/unsigaction" "$out/lib/afl"
@@ -115,7 +105,7 @@ let
         wrapPythonProgramsIn $out/bin ${python.pkgs.pefile}
     '';
 
-    installCheckInputs = [ perl file cmocka ];
+    installCheckInputs = [ perl file ];
     doInstallCheck = true;
     installCheckPhase = ''
       # replace references to tools in build directory with references to installed locations
@@ -123,7 +113,7 @@ let
         --replace '../libcompcov.so' '`$out/bin/get-afl-qemu-libcompcov-so`' \
         --replace '../libdislocator.so' '`$out/bin/get-libdislocator-so`' \
         --replace '../libtokencap.so' '`$out/bin/get-libtokencap-so`'
-      perl -pi -e 's|(?<!\.)(\.\./)([^\s\/]+?)(?<!\.c)(?<!\.s?o)(?=\s)|\$out/bin/\2|g' test/test.sh
+      perl -pi -e 's|(?<!\.)(?<!-I)(\.\./)([^\s\/]+?)(?<!\.c)(?<!\.s?o)(?=\s)|\$out/bin/\2|g' test/test.sh
       cd test && ./test.sh
     '';
 
@@ -137,7 +127,7 @@ let
         AFL++ is a heavily enhanced version of AFL, incorporating many features and
         improvements from the community.
       '';
-      homepage    = "https://github.com/vanhauser-thc/AFLplusplus";
+      homepage    = "https://aflplus.plus";
       license     = stdenv.lib.licenses.asl20;
       platforms   = ["x86_64-linux" "i686-linux"];
       maintainers = with stdenv.lib.maintainers; [ ris mindavi ];
