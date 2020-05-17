@@ -49,6 +49,9 @@ let
         --replace '"gcj"' '"gcj-UNSUPPORTED"' \
         --replace '"clang"' '"clang-UNSUPPORTED"' \
         --replace '"clang++"' '"clang++-UNSUPPORTED"'
+
+      substituteInPlace llvm_mode/compare-transform-pass.so.cc \
+        --replace "isatty(2)" "1"
     '';
 
     makeFlags = [ "PREFIX=$(out)" ];
