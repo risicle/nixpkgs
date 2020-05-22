@@ -33,6 +33,9 @@ let
     buildInputs = [ llvm python gmp ]
       ++ stdenv.lib.optional (wine != null) python.pkgs.wrapPython;
 
+    patches = [
+      ./strncmp-non-const-n.patch
+    ];
 
     postPatch = ''
       # Replace the CLANG_BIN variables with the correct path
