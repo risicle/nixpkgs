@@ -1,8 +1,8 @@
-{ lib, stdenv, fetchurl, unzip, darwin }:
+{ lib, stdenv, fetchurl, unzip, darwin, libtiff
+, libpng, zlib, libwebp, libraw, openexr, openjpeg
+, libjpeg, jxrlib, pkgconfig, fetchpatch }:
 
-# TODO: consider unvendoring various dependencies (libpng, libjpeg,
-# libwebp, zlib, ...)
-
+# This has been partially adapted from https://src.fedoraproject.org/rpms/freeimage
 stdenv.mkDerivation {
   name = "freeimage-3.18.0";
 
@@ -11,9 +11,40 @@ stdenv.mkDerivation {
     sha256 = "1z9qwi9mlq69d5jipr3v2jika2g0kszqdzilggm99nls5xl7j4zl";
   };
 
-  patches = lib.optional stdenv.isDarwin ./dylib.patch;
+  patches = [
+    # This patch unbundles the source code and removes the vendored dependencies, allowing us to use our own dependencies.
+    # This is vital for fixing AArch64 support and also avoiding CVE-2019-12212 and CVE-2019-12214.
+    (fetchpatch {
+      name = "unbundle-libs.CVE-2019-12212.CVE-2019-12214.patch";
+      url = "https://src.fedoraproject.org/rpms/freeimage/raw/ccc7d51ecdcf6443716fc39385b9ede53f20ebbf/f/FreeImage_unbundle.patch";
+      sha256 = "02rm4zn9k50gfrc8nabmlwghnc09091lqb45pm82j05vfr5yx08r";
+    })
+    # This patch seems to fix doxygen support, but we don't build docs anyway
+    #(fetchpatch {
+    #  url = "https://src.fedoraproject.org/rpms/freeimage/raw/ccc7d51ecdcf6443716fc39385b9ede53f20ebbf/f/FreeImage_doxygen.patch";
+    #  sha256 = "07q6q34dxh795gh2xw129wpykr7ji7f9d7i53j92dix62hd07x6v";
+    #})
+    # This patch seems to fix support for big-endian architectures
+    (fetchpatch {
+      name = "FreeImage_bigendian.patch";
+      url = "https://src.fedoraproject.org/rpms/freeimage/raw/ccc7d51ecdcf6443716fc39385b9ede53f20ebbf/f/FreeImage_bigendian.patch";
+      sha256 = "0a43sssw3xv6nryfk1hpfgrv756yypjabc7lyjrgn1g04lra56rp";
+    })
+    # This patch fixes https://nvd.nist.gov/vuln/detail/CVE-2019-12213, a bug in the TIFF handling code
+    (fetchpatch {
+      name = "CVE-2019-12211.CVE-2019-12213.patch";
+      url = "https://src.fedoraproject.org/rpms/freeimage/raw/ccc7d51ecdcf6443716fc39385b9ede53f20ebbf/f/CVE-2019-12211_2019-12213.patch";
+      sha256 = "1ilj4zm86wpb1igg5yzcrzsfkxlpqqfxslb46im591d80rx8pc68";
+    })
+    # I am not sure what this does, so it's not included, but if you have problems, try including it
+    #(fetchpatch {
+    # url = "https://src.fedoraproject.org/rpms/freeimage/raw/ccc7d51ecdcf6443716fc39385b9ede53f20ebbf/f/substream.patch";
+    # sha256 = "0000000000000000000000000000000000000000000000000000";
+    #})
+  ] ++ lib.optional stdenv.isDarwin ./dylib.patch;
 
-  buildInputs = [ unzip ] ++ lib.optional stdenv.isDarwin darwin.cctools;
+  nativeBuildInputs = [ pkgconfig ];
+  buildInputs = [ unzip libtiff libpng zlib libwebp libraw openexr openjpeg libjpeg jxrlib ] ++ lib.optional stdenv.isDarwin darwin.cctools;
 
   prePatch = if stdenv.isDarwin then ''
     sed -e 's/$(shell xcrun -find clang)/clang/g' \
@@ -32,6 +63,19 @@ stdenv.mkDerivation {
         -e 's@ldconfig@echo not running ldconfig@' \
         -i Makefile.gnu Makefile.fip
   '';
+
+  postPatch = ''
+    rm -r Source/Lib/* Source/ZLib Source/OpenEXR
+    > Source/FreeImage/PluginG3.cpp
+    > Source/FreeImageToolkit/JPEGTransform.cpp
+  '';
+
+  preBuild = ''
+    makeFlagsArray+=(CFLAGS="$(pkg-config --cflags libjxr)" LDFLAGS="$(pkg-config --libs libjxr)")
+    sh gensrclist.sh
+  '' + (if !stdenv.isDarwin then ''
+    sh genfipsrclist.sh
+  '' else "");
 
   postBuild = lib.optionalString (!stdenv.isDarwin) ''
     make -f Makefile.fip
@@ -53,7 +97,5 @@ stdenv.mkDerivation {
     license = "GPL";
     maintainers = with lib.maintainers; [viric];
     platforms = with lib.platforms; unix;
-    # see https://github.com/NixOS/nixpkgs/issues/77653
-    broken = stdenv.isAarch64;
   };
 }
