@@ -1,0 +1,12 @@
+diff --git a/cassandra/connection.py b/cassandra/connection.py
+index ba08ae29..c26ba410 100644
+--- a/cassandra/connection.py
++++ b/cassandra/connection.py
+@@ -855,6 +855,7 @@ class Connection(object):
+         self._current_frame = None
+ 
+     def process_io_buffer(self):
++        print(f"_iobuf = {self._iobuf.getvalue()!r}")
+         while True:
+             if not self._current_frame:
+                 pos = self._read_frame_header()
