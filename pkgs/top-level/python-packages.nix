@@ -4254,6 +4254,8 @@ in {
 
   Nuitka = callPackage ../development/python-modules/nuitka { };
 
+  clickhouse-driver = callPackage ../development/python-modules/clickhouse-driver { };
+
   numpy = let
     numpy_ = callPackage ../development/python-modules/numpy {
       blas = pkgs.openblasCompat;
