@@ -6671,6 +6671,8 @@ in {
 
   fastapi = callPackage ../development/python-modules/fastapi { };
 
+  fastavro = callPackage ../development/python-modules/fastavro { };
+
   stringcase = callPackage ../development/python-modules/stringcase { };
 
   webrtcvad = callPackage ../development/python-modules/webrtcvad { };
