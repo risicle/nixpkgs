@@ -636,6 +636,8 @@ in {
 
   favicon = callPackage ../development/python-modules/favicon {  };
 
+  fdb = callPackage ../development/python-modules/fdb { };
+
   fdint = callPackage ../development/python-modules/fdint { };
 
   fido2 = callPackage ../development/python-modules/fido2 {  };
