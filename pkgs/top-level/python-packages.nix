@@ -6641,6 +6641,8 @@ in {
 
   pyatv = callPackage ../development/python-modules/pyatv { };
 
+  pyavroc = callPackage ../development/python-modules/pyavroc { };
+
   pybotvac = callPackage ../development/python-modules/pybotvac { };
 
   pytado = callPackage ../development/python-modules/pytado { };
