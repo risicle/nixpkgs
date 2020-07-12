@@ -5538,6 +5538,8 @@ in {
 
   qpid-python = callPackage ../development/python-modules/qpid-python { };
 
+  qpack = callPackage ../development/python-modules/qpack { };
+
   xattr = callPackage ../development/python-modules/xattr { };
 
   scripttest = callPackage ../development/python-modules/scripttest { };
