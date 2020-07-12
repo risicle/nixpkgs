@@ -2151,6 +2151,8 @@ in {
 
   pyavm = callPackage ../development/python-modules/pyavm { };
 
+  pyahocorasick = callPackage ../development/python-modules/pyahocorasick { };
+
   pycollada = callPackage ../development/python-modules/pycollada { };
 
   pycontracts = callPackage ../development/python-modules/pycontracts { };
