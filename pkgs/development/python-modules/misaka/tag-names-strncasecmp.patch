@@ -1,0 +1,172 @@
+diff --git a/misaka/hoedown/html_blocks.c b/misaka/hoedown/html_blocks.c
+index f5e9dce..e90a5e9 100644
+--- a/misaka/hoedown/html_blocks.c
++++ b/misaka/hoedown/html_blocks.c
+@@ -129,112 +129,61 @@ hash (register const char *str, register unsigned int len)
+   return hval;
+ }
+ 
+-#ifdef __GNUC__
+-__inline
+-#ifdef __GNUC_STDC_INLINE__
+-__attribute__ ((__gnu_inline__))
+-#endif
+-#endif
++#include <strings.h>
++#include <string.h>
++
+ const char *
+-hoedown_find_block_tag (register const char *str, register unsigned int len)
++hoedown_find_block_tag (const char *str, unsigned int len)
+ {
+-  enum
+-    {
+-      TOTAL_KEYWORDS = 24,
+-      MIN_WORD_LENGTH = 1,
+-      MAX_WORD_LENGTH = 10,
+-      MIN_HASH_VALUE = 1,
+-      MAX_HASH_VALUE = 24
+-    };
+-
+-  if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
+-    {
+-      register int key = hash (str, len);
+-
+-      if (key <= MAX_HASH_VALUE && key >= MIN_HASH_VALUE)
+-        {
+-          register const char *resword;
+-
+-          switch (key - 1)
+-            {
+-              case 0:
+-                resword = "p";
+-                goto compare;
+-              case 1:
+-                resword = "h6";
+-                goto compare;
+-              case 2:
+-                resword = "div";
+-                goto compare;
+-              case 3:
+-                resword = "del";
+-                goto compare;
+-              case 4:
+-                resword = "form";
+-                goto compare;
+-              case 5:
+-                resword = "table";
+-                goto compare;
+-              case 6:
+-                resword = "figure";
+-                goto compare;
+-              case 7:
+-                resword = "pre";
+-                goto compare;
+-              case 8:
+-                resword = "fieldset";
+-                goto compare;
+-              case 9:
+-                resword = "noscript";
+-                goto compare;
+-              case 10:
+-                resword = "script";
+-                goto compare;
+-              case 11:
+-                resword = "style";
+-                goto compare;
+-              case 12:
+-                resword = "dl";
+-                goto compare;
+-              case 13:
+-                resword = "ol";
+-                goto compare;
+-              case 14:
+-                resword = "ul";
+-                goto compare;
+-              case 15:
+-                resword = "math";
+-                goto compare;
+-              case 16:
+-                resword = "ins";
+-                goto compare;
+-              case 17:
+-                resword = "h5";
+-                goto compare;
+-              case 18:
+-                resword = "iframe";
+-                goto compare;
+-              case 19:
+-                resword = "h4";
+-                goto compare;
+-              case 20:
+-                resword = "h3";
+-                goto compare;
+-              case 21:
+-                resword = "blockquote";
+-                goto compare;
+-              case 22:
+-                resword = "h2";
+-                goto compare;
+-              case 23:
+-                resword = "h1";
+-                goto compare;
+-            }
+-          return 0;
+-        compare:
+-          if ((((unsigned char)*str ^ (unsigned char)*resword) & ~32) == 0 && !gperf_case_strncmp (str, resword, len) && resword[len] == '\0')
+-            return resword;
+-        }
+-    }
+-  return 0;
++  if (!strncmp(str, "blockquote", len)) {
++    return "blockquote";
++  } else if (!strncasecmp(str, "del", len)) {
++    return "del";
++  } else if (!strncasecmp(str, "div", len)) {
++    return "div";
++  } else if (!strncasecmp(str, "dl", len)) {
++    return "dl";
++  } else if (!strncasecmp(str, "fieldset", len)) {
++    return "fieldset";
++  } else if (!strncasecmp(str, "figure", len)) {
++    return "figure";
++  } else if (!strncasecmp(str, "form", len)) {
++    return "form";
++  } else if (!strncasecmp(str, "h1", len)) {
++    return "h1";
++  } else if (!strncasecmp(str, "h2", len)) {
++    return "h2";
++  } else if (!strncasecmp(str, "h3", len)) {
++    return "h3";
++  } else if (!strncasecmp(str, "h4", len)) {
++    return "h4";
++  } else if (!strncasecmp(str, "h5", len)) {
++    return "h5";
++  } else if (!strncasecmp(str, "h6", len)) {
++    return "h6";
++  } else if (!strncasecmp(str, "iframe", len)) {
++    return "iframe";
++  } else if (!strncasecmp(str, "ins", len)) {
++    return "ins";
++  } else if (!strncasecmp(str, "math", len)) {
++    return "math";
++  } else if (!strncasecmp(str, "noscript", len)) {
++    return "noscript";
++  } else if (!strncasecmp(str, "ol", len)) {
++    return "ol";
++  } else if (!strncasecmp(str, "p", len)) {
++    return "p";
++  } else if (!strncasecmp(str, "pre", len)) {
++    return "pre";
++  } else if (!strncasecmp(str, "script", len)) {
++    return "script";
++  } else if (!strncasecmp(str, "style", len)) {
++    return "style";
++  } else if (!strncasecmp(str, "table", len)) {
++    return "table";
++  } else if (!strncasecmp(str, "ul", len)) {
++    return "ul";
++  } else {
++    return 0;
++  };
+ }
