@@ -1,4 +1,4 @@
-{stdenv, fetchurl, libedit, automake, autoconf, libtool
+{stdenv, fetchurl, libedit, automake, autoconf, libtool, zlib, libtommath, aflplusplus
 ,
   # icu = null: use icu which comes with firebird
 
@@ -13,7 +13,7 @@
 
   # icu 3.0 can still be built easily by nix (by dropping the #elif case and
   # make | make)
-  icu ? null
+  icu
 
 , superServer ? false
 , port ? 3050
@@ -38,10 +38,19 @@
 */
 
 stdenv.mkDerivation rec {
-  version = "2.5.7.27050-0";
+  version = "3.0.6.33328-0";
   pname = "firebird";
 
   # enableParallelBuilding = false; build fails
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   AFL_LLVM_INSTRIM="1";
+#   AFL_LLVM_NOT_ZERO="1";
+    #export CC=${aflplusplus}/bin/afl-clang-fast
+    #export CXX=${aflplusplus}/bin/afl-clang-fast++
 
   # http://tracker.firebirdsql.org/browse/CORE-3246
   preConfigure = ''
@@ -55,14 +64,18 @@ stdenv.mkDerivation rec {
       "--with-fblog=/var/log/firebird"
       "--with-fbconf=/etc/firebird"
       "--with-fbsecure-db=/var/db/firebird/system"
+#       "--with-builtin-tommath"
     ]
-    ++ (stdenv.lib.optional  (icu != null) "--with-system-icu")
     ++ (stdenv.lib.optional superServer "--enable-superserver");
 
   src = fetchurl {
-    url = "mirror://sourceforge/firebird/Firebird-${version}.tar.bz2";
-    sha256 = "06hp6bq5irqvm3h03s79qjgcc3jsjpq150y9aq7anklx9v4nhfqa";
+    url = "https://github.com/FirebirdSQL/firebird/releases/download/R3_0_6/Firebird-${version}.tar.bz2";
+    sha256 = "0pykyyikbvhbrrd28qhh6lzzgfpjhf05y6ydhbk8iwmskfid5h9l";
   };
+
+  postPatch = ''
+    substituteInPlace src/common/unicode_util.cpp --replace '"libicu' '"${icu}/lib/libicu'
+  '';
 
   hardeningDisable = [ "format" ];
 
@@ -70,14 +83,16 @@ stdenv.mkDerivation rec {
   #   sed -i 's@cp /usr/share/automake-.*@@' autogen.sh
   #   sh autogen.sh $configureFlags --prefix=$out
   # '';
-  buildInputs = [libedit icu automake autoconf libtool];
+  buildInputs = [libedit icu automake autoconf libtool zlib libtommath];
 
   # TODO: Probably this hase to be tidied up..
   # make install requires beeing. disabling the root checks
   # dosen't work. Copying the files manually which can be found
   # in ubuntu -dev -classic, -example packages:
   # maybe some of those files can be removed again
-  installPhase = ''cp -r gen/firebird $out'';
+  installPhase = ''cp -r gen/Release/firebird $out'';
+  dontStrip = true;
+  NIX_CFLAGS_COMPILE = "-O1";
 
   meta = {
     description = "SQL relational database management system";
