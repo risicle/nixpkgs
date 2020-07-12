@@ -14,6 +14,11 @@ stdenv.mkDerivation rec {
     sha256 = "04pwsf3wlbcrqw10lbwvqf8p4669na310z0hzgrw6rjhxif82mgv";
   };
 
+  patches = [
+    ./ris-skip-init.patch
+    ./ris-branch-hints.patch
+  ];
+
   buildInputs = [ autoconf automake libtool ] ++ stdenv.lib.optional stdenv.isLinux libunwind;
 
   prePatch = stdenv.lib.optionalString stdenv.isDarwin ''
@@ -26,7 +31,7 @@ stdenv.mkDerivation rec {
     sh autogen.sh
   '';
 
-  NIX_CFLAGS_COMPILE = stdenv.lib.optionals stdenv.isDarwin [
+  NIX_CFLAGS_COMPILE = [ "-O3" ] ++ stdenv.lib.optionals stdenv.isDarwin [
     "-D_XOPEN_SOURCE" "-Wno-aligned-allocation-unavailable"
   ];
 

@@ -1,0 +1,24 @@
+diff --git a/src/debugallocation.cc b/src/debugallocation.cc
+index d72ea6a..01395eb 100644
+--- a/src/debugallocation.cc
++++ b/src/debugallocation.cc
+@@ -402,7 +402,6 @@ class MallocBlock {
+       bit_store(size2_addr(), &size);
+     }
+     alloc_map_lock_.Unlock();
+-    memset(data_addr(), kMagicUninitializedByte, size);
+     if (!IsMMapped()) {
+       RAW_CHECK(memcmp(&size1_, size2_addr(), sizeof(size1_)) == 0, "should hold");
+       RAW_CHECK(memcmp(&magic1_, magic2_addr(), sizeof(magic1_)) == 0, "should hold");
+@@ -422,7 +421,10 @@ class MallocBlock {
+     const size_t size = real_size();
+     RAW_CHECK(!given_size || given_size == size1_,
+               "right size must be passed to sized delete");
+-    memset(this, kMagicDeletedByte, size);
++    if (!IsMMapped()) {
++      memset(this, kMagicDeletedByte, size);
++      // else nothing's going to check it anyway
++    }
+     return size;
+   }
+ 
