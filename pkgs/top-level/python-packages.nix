@@ -125,6 +125,8 @@ in {
 
   vowpalwabbit = callPackage ../development/python-modules/vowpalwabbit { };
 
+  acora = callPackage ../development/python-modules/acora { };
+
   acoustics = callPackage ../development/python-modules/acoustics { };
 
   py3to2 = callPackage ../development/python-modules/3to2 { };
