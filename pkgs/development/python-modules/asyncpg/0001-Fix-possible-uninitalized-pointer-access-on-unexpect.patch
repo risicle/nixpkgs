@@ -1,0 +1,51 @@
+From 3b085ef7236e8c68fa3d02c4ba25490818346954 Mon Sep 17 00:00:00 2001
+From: Elvis Pranskevichus <elvis@magic.io>
+Date: Tue, 23 Jun 2020 16:11:28 -0700
+Subject: [PATCH] Fix possible uninitalized pointer access on unexpected array
+ message data
+
+When receiving multi-dimensional array data from the server, make sure
+the dimensions are valid.
+---
+ asyncpg/protocol/codecs/array.pyx | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/asyncpg/protocol/codecs/array.pyx b/asyncpg/protocol/codecs/array.pyx
+index 46bdb73..ac5a354 100644
+--- a/asyncpg/protocol/codecs/array.pyx
++++ b/asyncpg/protocol/codecs/array.pyx
+@@ -286,8 +286,7 @@ cdef inline array_decode(ConnectionSettings settings, FRBuffer *buf,
+         Codec elem_codec
+ 
+     if ndims == 0:
+-        result = cpython.PyList_New(0)
+-        return result
++        return []
+ 
+     if ndims > ARRAY_MAXDIM:
+         raise exceptions.ProtocolError(
+@@ -296,6 +295,9 @@ cdef inline array_decode(ConnectionSettings settings, FRBuffer *buf,
+ 
+     for i in range(ndims):
+         dims[i] = hton.unpack_int32(frb_read(buf, 4))
++        if dims[i] < 0:
++            raise exceptions.ProtocolError(
++                'unexpected ndims value: {}'.format(dims[i]))
+         # Ignore the lower bound information
+         frb_read(buf, 4)
+ 
+@@ -348,6 +350,11 @@ cdef _nested_array_decode(ConnectionSettings settings,
+     for i in range(ndims):
+         array_len *= dims[i]
+         indexes[i] = 0
++        strides[i] = NULL
++
++    if array_len == 0:
++        # A multidimensional array with a zero-sized dimension?
++        return []
+ 
+     for i in range(array_len):
+         # Decode the element.
+-- 
+2.26.2
+

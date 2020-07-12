@@ -1,16 +1,41 @@
 { lib, isPy3k, fetchPypi, fetchpatch, buildPythonPackage
-, uvloop, postgresql }:
+, uvloop, postgresql, cython, aflplusplus }:
 
 buildPythonPackage rec {
   pname = "asyncpg";
-  version = "0.20.0";
+  version = "0.20.1";
   disabled = !isPy3k;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0yjszgg1zbbsfxj1gv17ymc2hcfvymkvg69dvpvwy0dqspjxq0ma";
+    sha256 = "1c4mcjrdbvvq5crrfc3b9m221qb6pxp55yynijihgfnvvndz2jrr";
   };
 
+  buildInputs = [ cython ];
+
+  patches = [
+    ./dummy-prepared-statement.patch
+#     ./0001-Fix-possible-uninitalized-pointer-access-on-unexpect.patch
+    ./0001-Fix-possible-uninitalized-pointer-access-on-unexpect-2.patch
+  ];
+
+  dontStrip = true;
+  NIX_CFLAGS_COMPILE = [ "-O1" ];
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   AFL_LLVM_INSTRIM="1";
+#   AFL_LLVM_NOT_ZERO="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
+
+  postPatch = "rm asyncpg/protocol/*.c asyncpg/protocol/codecs/*.c";
+#   postBuild = "false";
+
+  doCheck = false;
   checkInputs = [
     uvloop
     postgresql

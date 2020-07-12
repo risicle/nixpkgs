@@ -1,0 +1,37 @@
+diff --git a/asyncpg/protocol/prepared_stmt.pyx b/asyncpg/protocol/prepared_stmt.pyx
+index b69f76b..8ccc3d2 100644
+--- a/asyncpg/protocol/prepared_stmt.pyx
++++ b/asyncpg/protocol/prepared_stmt.pyx
+@@ -11,7 +11,7 @@ from asyncpg import exceptions
+ @cython.final
+ cdef class PreparedStatementState:
+ 
+-    def __cinit__(self, str name, str query, BaseProtocol protocol):
++    def __cinit__(self, str name, str query, object protocol):
+         self.name = name
+         self.query = query
+         self.settings = protocol.settings
+@@ -282,8 +282,8 @@ cdef class PreparedStatementState:
+                 val = codec.decode(settings, &rbuf)
+                 if frb_get_len(&rbuf) != 0:
+                     raise BufferError(
+-                        'unexpected trailing {} bytes in buffer'.format(
+-                            frb_get_len(&rbuf)))
++                        'unexpected trailing {} bytes in buffer, i = {}'.format(
++                            frb_get_len(&rbuf), i))
+                 frb_set_len(&rbuf, bl - flen)
+ 
+             cpython.Py_INCREF(val)
+@@ -295,6 +295,12 @@ cdef class PreparedStatementState:
+ 
+         return dec_row
+ 
++    def set_row_desc(self, desc):
++        self._set_row_desc(desc)
++
++    def decode_row(self, data):
++        self._decode_row(cpython.PyBytes_AS_STRING(data), len(data))
++
+ 
+ cdef _decode_parameters_desc(object desc):
+     cdef:
