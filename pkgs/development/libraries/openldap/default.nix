@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, openssl, cyrus_sasl, db, groff, libtool }:
+{ stdenv, fetchurl, openssl, cyrus_sasl, db, groff, libtool, aflplusplus }:
 
 stdenv.mkDerivation rec {
   name = "openldap-2.4.48";
@@ -64,4 +64,13 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ lovek323 ];
     platforms   = platforms.unix;
   };
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   AFL_LLVM_INSTRIM="1";
+#   AFL_LLVM_NOT_ZERO="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#   '';
 }
