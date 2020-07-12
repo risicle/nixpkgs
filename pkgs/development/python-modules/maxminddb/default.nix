@@ -2,17 +2,20 @@
 , ipaddress
 , mock
 , nose
+, libmaxminddb
+, aflplusplus
 }:
 
 buildPythonPackage rec {
-  version = "1.5.1";
+  version = "1.5.2";
   pname = "maxminddb";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0y9giw81k4wdmpryr4k42w50z292mf364a6vs1vxf83ksc9ig6j4";
+    sha256 = "0dk3bgcgizp29w4w1qnvqsi3vz8f86gsajbbk5lidc8yj0fi7knh";
   };
 
+  buildInputs = [ libmaxminddb ];
   propagatedBuildInputs = [ ipaddress ];
 
   checkInputs = [ nose mock ];
@@ -23,4 +26,15 @@ buildPythonPackage rec {
     license = licenses.asl20;
     maintainers = with maintainers; [ ];
   };
+  dontStrip = true;
+
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  AFL_LLVM_INSTRIM="1";
+  AFL_LLVM_NOT_ZERO="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+  '';
 }

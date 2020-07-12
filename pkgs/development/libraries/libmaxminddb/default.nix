@@ -1,4 +1,4 @@
-{ stdenv, fetchurl }:
+{ stdenv, fetchurl, aflplusplus }:
 
 stdenv.mkDerivation rec {
   pname = "libmaxminddb";
@@ -16,4 +16,13 @@ stdenv.mkDerivation rec {
     platforms = platforms.all;
     maintainers = [ maintainers.vcunat ];
   };
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  AFL_LLVM_INSTRIM="1";
+  AFL_LLVM_NOT_ZERO="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+  '';
 }
