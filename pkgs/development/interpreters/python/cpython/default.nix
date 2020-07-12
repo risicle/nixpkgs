@@ -280,6 +280,8 @@ in with passthru; stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
+  separateDebugInfo = true;
+
   meta = {
     homepage = http://python.org;
     description = "A high-level dynamically-typed programming language";
