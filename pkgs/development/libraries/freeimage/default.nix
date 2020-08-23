@@ -54,6 +54,9 @@ stdenv.mkDerivation {
         -e 's|-isysroot $(MACOSX_SYSROOT)||g' \
         -e 's|	install -d -m 755 -o root -g wheel $(INCDIR) $(INSTALLDIR)||' \
         -e 's| -m 644 -o root -g wheel||g' \
+        -e 's|INCLUDE +=|INCLUDE += $(shell pkg-config --cflags OpenEXR libopenjp2 libraw libpng libtiff-4 libwebp libwebpmux zlib libjxr)|g' \
+        -e 's|LIBRARIES_I386 =|LIBS = $(shell pkg-config --libs libjpeg OpenEXR libopenjp2 libraw libpng libtiff-4 libwebp libwebpmux zlib libjxr)\nLIBRARIES_I386 = $(LIBS)|g' \
+        -e 's|LIBRARIES_X86_64 =|LIBRARIES_X86_64 = $(LIBS)|g' \
         -i ./Makefile.osx
     # Fix LibJXR performance timers
     sed 's|^SRCS = \(.*\)$|SRCS = \1 Source/LibJXR/image/sys/perfTimerANSI.c|' -i ./Makefile.srcs
@@ -87,6 +90,8 @@ stdenv.mkDerivation {
 
   postInstall = lib.optionalString (!stdenv.isDarwin) ''
     make -f Makefile.fip install
+  '' + lib.optionalString stdenv.isDarwin ''
+    ln -s $out/lib/libfreeimage.3.dylib $out/lib/libfreeimage.dylib
   '';
 
   enableParallelBuilding = true;
