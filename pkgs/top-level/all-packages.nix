@@ -2114,8 +2114,6 @@ in
 
   marlin-calc = callPackage ../tools/misc/marlin-calc {};
 
-  mathics = with python2Packages; toPythonApplication mathics;
-
   masscan = callPackage ../tools/security/masscan {
     stdenv = gccStdenv;
   };
@@ -2743,7 +2741,7 @@ in
     mozc = callPackage ../tools/inputmethods/ibus-engines/ibus-mozc {
       python = python2;
       inherit (python2Packages) gyp;
-      protobuf = pkgs.protobuf.overrideDerivation (oldAttrs: { stdenv = clangStdenv; });
+      protobuf = pkgs.protobuf3_8.overrideDerivation (oldAttrs: { stdenv = clangStdenv; });
     };
 
     table = callPackage ../tools/inputmethods/ibus-engines/ibus-table { };
@@ -3474,7 +3472,7 @@ in
     mozc = callPackage ../tools/inputmethods/fcitx-engines/fcitx-mozc {
       python = python2;
       inherit (python2Packages) gyp;
-      protobuf = pkgs.protobuf.overrideDerivation (oldAttrs: { stdenv = clangStdenv; });
+      protobuf = pkgs.protobuf3_8.overrideDerivation (oldAttrs: { stdenv = clangStdenv; });
     };
 
     table-extra = callPackage ../tools/inputmethods/fcitx-engines/fcitx-table-extra { };
@@ -9419,7 +9417,9 @@ in
   cargo-audit = callPackage ../tools/package-management/cargo-audit {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
-  cargo-c = callPackage ../development/tools/rust/cargo-c { };
+  cargo-c = callPackage ../development/tools/rust/cargo-c {
+    inherit (darwin.apple_sdk.frameworks) CoreFoundation Security;
+  };
   cargo-deb = callPackage ../tools/package-management/cargo-deb {
     inherit (darwin.apple_sdk.frameworks) Security;
   };
@@ -9434,7 +9434,9 @@ in
   };
   cargo-tarpaulin = callPackage ../development/tools/analysis/cargo-tarpaulin { };
   cargo-tree = callPackage ../tools/package-management/cargo-tree { };
-  cargo-update = callPackage ../tools/package-management/cargo-update { };
+  cargo-update = callPackage ../tools/package-management/cargo-update {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
 
   cargo-asm = callPackage ../development/tools/rust/cargo-asm {
     inherit (darwin.apple_sdk.frameworks) Security;
@@ -25888,6 +25890,7 @@ in
   gap-full = lowPrio (gap.override { packageSet = "full"; });
 
   geogebra = callPackage ../applications/science/math/geogebra { };
+  geogebra6 = callPackage ../applications/science/math/geogebra/geogebra6.nix { };
 
   maxima = callPackage ../applications/science/math/maxima {
     ecl = null;
@@ -26373,6 +26376,8 @@ in
   mailcore2 = callPackage ../development/libraries/mailcore2 {
     icu = icu58;
   };
+
+  mamba = callPackage ../applications/audio/mamba{ };
 
   mame = libsForQt5.callPackage ../misc/emulators/mame {
     inherit (darwin.apple_sdk.frameworks) CoreAudioKit ForceFeedback;
