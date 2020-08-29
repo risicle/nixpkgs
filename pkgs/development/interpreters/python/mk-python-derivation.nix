@@ -149,7 +149,7 @@ let
 
     # Python packages don't have a checkPhase, only an installCheckPhase
     doCheck = false;
-    doInstallCheck = attrs.doCheck or true;
+    doInstallCheck = false;
     installCheckInputs = [
     ] ++ lib.optionals (format == "setuptools") [
       # Longer-term we should get rid of this and require
