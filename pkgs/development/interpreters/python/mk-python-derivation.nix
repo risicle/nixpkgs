@@ -149,7 +149,7 @@ let
 
     # Python packages don't have a checkPhase, only an installCheckPhase
     doCheck = false;
-    doInstallCheck = false;
+    doInstallCheck = (lib.hasInfix (builtins.substring 0 1 (builtins.hashString "sha1" name)) "01234567") && (attrs.doCheck or true);
     installCheckInputs = [
     ] ++ lib.optionals (format == "setuptools") [
       # Longer-term we should get rid of this and require
