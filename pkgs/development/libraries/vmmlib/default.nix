@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, cmake, pkgconfig, boost, blas
+{ stdenv, fetchFromGitHub, cmake, pkgconfig, boost, lapack
 , Accelerate, CoreGraphics, CoreVideo
 }:
 
@@ -18,7 +18,7 @@ stdenv.mkDerivation rec {
   ];
 
   nativeBuildInputs = [ pkgconfig cmake ];
-  buildInputs = [ boost blas ]
+  buildInputs = [ boost lapack ]
     ++ stdenv.lib.optionals stdenv.isDarwin [ Accelerate CoreGraphics CoreVideo ];
 
   enableParallelBuilding = true;
