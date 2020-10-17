@@ -1,7 +1,8 @@
-{ lib, buildPythonPackage, python, isPy3k, arrow-cpp, cmake, cython, futures, hypothesis, numpy, pandas, pytest, pkgconfig, setuptools_scm, six }:
+{ lib, buildPythonPackage, python, isPy3k, arrow-cpp, cmake, cython, futures, hypothesis, numpy, pandas, pytest, pkgconfig, setuptools_scm, six, aflplusplus, clang_9 }:
 
 let
   _arrow-cpp = arrow-cpp.override { inherit python; };
+#   aflplusplus = aflplusplus-nort;
 in
 
 buildPythonPackage rec {
@@ -23,6 +24,9 @@ buildPythonPackage rec {
     # This doesn't use setup hook to call cmake so we need to workaround #54606
     # ourselves
     "-DCMAKE_POLICY_DEFAULT_CMP0025=NEW"
+
+#      "-DCMAKE_CXX_CREATE_SHARED_LIBRARY='${clang_9}/bin/clang++ <CMAKE_SHARED_LIBRARY_CXX_FLAGS> <LANGUAGE_COMPILE_FLAGS> <LINK_FLAGS> <CMAKE_SHARED_LIBRARY_CREATE_CXX_FLAGS> <SONAME_FLAG><TARGET_SONAME> -o <TARGET> <OBJECTS> <LINK_LIBRARIES>'"
+#     "-DCMAKE_VERBOSE_MAKEFILE=1"
   ];
 
   dontUseCmakeConfigure = true;
@@ -59,12 +63,31 @@ buildPythonPackage rec {
   ARROW_HOME = _arrow-cpp;
   PARQUET_HOME = _arrow-cpp;
 
+  doCheck = false;
   checkPhase = ''
     mv pyarrow/tests tests
     rm -rf pyarrow
     mkdir pyarrow
     mv tests pyarrow/tests
     pytest -v
+  '';
+
+  dontStrip = true;
+  NIX_CFLAGS_COMPILE=["-O1"];
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   AFL_LLVM_INSTRIM="1";
+#   AFL_LLVM_NOT_ZERO="1";
+#   preConfigure = ''
+#     export CC=${aflplusplus}/bin/afl-clang-fast
+#     export CXX=${aflplusplus}/bin/afl-clang-fast++
+#   '';
+  preConfigure = ''
+    export CC=${clang_9}/bin/clang
+    export CXX=${clang_9}/bin/clang++
   '';
 
   meta = with lib; {

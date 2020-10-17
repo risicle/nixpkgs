@@ -1,6 +1,6 @@
 { stdenv, fetchurl, fetchFromGitHub, fixDarwinDylibNames, autoconf, boost
 , brotli, cmake, double-conversion, flatbuffers, gflags, glog, gtest, lz4, perl
-, python, rapidjson, snappy, thrift, uriparser, which, zlib, zstd }:
+, python, rapidjson, snappy, thrift, uriparser, which, zlib, zstd, aflplusplus, clang_9 }:
 
 let
   parquet-testing = fetchFromGitHub {
@@ -12,12 +12,12 @@ let
 
 in stdenv.mkDerivation rec {
   pname = "arrow-cpp";
-  version = "0.15.1";
+  version = "0.17.1";
 
   src = fetchurl {
     url =
       "mirror://apache/arrow/arrow-${version}/apache-arrow-${version}.tar.gz";
-    sha256 = "1jbghpppabsix2rkxbnh41inj9lcxfz4q94p96xzxshh4g3mhb4s";
+    sha256 = "18lyvbibfdw3w77cy5whbq7c6mshn5fg2bhvgw7v226a7cs1rifb";
   };
 
   sourceRoot = "apache-arrow-${version}/cpp";
@@ -64,7 +64,20 @@ in stdenv.mkDerivation rec {
     substituteInPlace cmake_modules/FindLz4.cmake --replace CMAKE_STATIC_LIBRARY CMAKE_SHARED_LIBRARY
 
     patchShebangs build-support/
+   '' + ''
+    export CC=${clang_9}/bin/clang
+    export CXX=${clang_9}/bin/clang++
   '';
+
+#   AFL_HARDEN="1";
+#   AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+#   AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+#   AFL_LLVM_LAF_SPLIT_COMPARES="1";
+#   AFL_LLVM_INSTRIM="1";
+#   AFL_LLVM_NOT_ZERO="1";
+
+  dontStrip = true;
+  NIX_CFLAGS_COMPILE=["-O1"];
 
   cmakeFlags = [
     "-DARROW_BUILD_TESTS=ON"
@@ -75,7 +88,7 @@ in stdenv.mkDerivation rec {
     "-Duriparser_SOURCE=SYSTEM"
   ] ++ stdenv.lib.optional (!stdenv.isx86_64) "-DARROW_USE_SIMD=OFF";
 
-  doInstallCheck = true;
+  doInstallCheck = false;
   PARQUET_TEST_DATA =
     if doInstallCheck then "${parquet-testing}/data" else null;
   installCheckInputs = [ perl which ];
