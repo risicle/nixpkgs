@@ -1,0 +1,34 @@
+diff --git a/gumbo/parser.c b/gumbo/parser.c
+index cd54d9b..b14c43f 100644
+--- a/gumbo/parser.c
++++ b/gumbo/parser.c
+@@ -821,6 +821,17 @@ static void record_end_of_element(
+   element->original_end_tag = current_token->type == GUMBO_TOKEN_END_TAG
+                                   ? current_token->original_text
+                                   : kGumboEmptyString;
++
++  if (element->tag == GUMBO_TAG_SCRIPT)
++    __builtin_trap();
++  if (element->tag == GUMBO_TAG_A) {
++    GumboAttribute* attr = gumbo_get_attribute(&element->attributes, "href");
++    if (attr && strncasecmp("#", attr->value, 1) != 0 && strncasecmp("http:", attr->value, 5) != 0 && strncasecmp("https:", attr->value, 5) != 0)
++      __builtin_trap();
++  }
++  for (unsigned i=0; i<element->attributes.length; i++)
++    if (strncasecmp(((GumboAttribute*)element->attributes.data[i])->name, "on", 2) == 0)
++      __builtin_trap();
+ }
+ 
+ static GumboNode* pop_current_node(GumboParser* parser) {
+diff --git a/gumbo/tag.c b/gumbo/tag.c
+index 0f27496..849c6c6 100644
+--- a/gumbo/tag.c
++++ b/gumbo/tag.c
+@@ -87,6 +87,7 @@ static int case_memcmp(const char* s1, const char* s2, unsigned int n) {
+ }
+ 
+ GumboTag gumbo_tagn_enum(const char* tagname, unsigned int length) {
++  if (strncasecmp(tagname, "script", length) == 0) return GUMBO_TAG_SCRIPT;
+   if (length) {
+     unsigned int key = tag_hash(tagname, length);
+     if (key < TAG_MAP_SIZE) {
