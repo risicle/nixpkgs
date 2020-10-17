@@ -9,6 +9,7 @@ let
     };
 
     propagatedBuildInputs = [ spacy ];
+    doCheck = false;
 
     meta = with stdenv.lib; {
       description = "Models for the spaCy NLP library";

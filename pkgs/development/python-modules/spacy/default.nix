@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildPythonPackage
 , fetchPypi
 , pythonOlder
@@ -23,6 +24,7 @@
 , srsly
 , catalogue
 , setuptools
+, aflplusplus
 }:
 
 buildPythonPackage rec {
@@ -55,6 +57,17 @@ buildPythonPackage rec {
    catalogue
    setuptools
   ] ++ lib.optional (pythonOlder "3.4") pathlib;
+
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  AFL_LLVM_INSTRIM="1";
+  AFL_LLVM_NOT_ZERO="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+  '';
+  NIX_CFLAGS_COMPILE="-I${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version} -I${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}/${stdenv.targetPlatform.config}";
 
   checkInputs = [
     pytest
