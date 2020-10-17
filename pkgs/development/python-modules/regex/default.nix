@@ -1,18 +1,32 @@
 { lib
 , buildPythonPackage
 , fetchPypi
+, fetchFromGitHub
 , python
+, pytestrunner
 }:
 
 
 buildPythonPackage rec {
   pname = "regex";
-  version = "2019.08.19";
 
+  version = "2019.08.19";
   src = fetchPypi {
     inherit pname version;
     sha256 = "587b62d48ca359d2d4f02d486f1f0aa9a20fbaf23a9d4198c4bed72ab2f6c849";
   };
+#   version = "0.2.0";
+#   src = fetchFromGitHub {
+#     owner = "risicle";
+#     repo = "cpytraceafl-regex";
+#     rev = "v${version}";
+#     sha256 = "1fscpli03y4yijdvmc9r99pn5k5hml1vpgfs6law3ln9k36irfnh";
+#   };
+#   postPatch = ''
+#     substituteInPlace setup.py \
+#       --replace 'setup_requires=' 'setup_requires=[], #' \
+#       --replace 'install_requires=' 'install_requires=[], #'
+#   '';
 
   postCheck = ''
     echo "We now run tests ourselves, since the setuptools installer doesn't."
