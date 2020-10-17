@@ -10,9 +10,9 @@ stdenv.mkDerivation rec {
     sha256 = "1gisi7h8hd6mswbiaaa3s25bnb77xf37pzrmjy63rcdpwcyqy93m";
   };
 
-  nativeBuildInputs = [ pkgconfig doxygen graphviz ];
+  nativeBuildInputs = [ pkgconfig ];
   buildInputs = lib.optional doCheck gtest;
-  configureFlags = lib.optional (!doCheck) "--disable-tests";
+  configureFlags = [ "--disable-doc" ] ++ lib.optional (!doCheck) "--disable-tests";
 
   doCheck = stdenv.targetPlatform.system == stdenv.hostPlatform.system;
 
