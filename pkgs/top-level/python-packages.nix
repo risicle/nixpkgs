@@ -1775,6 +1775,8 @@ in {
 
   csvs-to-sqlite = callPackage ../development/python-modules/csvs-to-sqlite { };
 
+  csvloader = callPackage ../development/python-modules/csvloader { };
+
   cufflinks = callPackage ../development/python-modules/cufflinks { };
 
   cupy = callPackage ../development/python-modules/cupy {
