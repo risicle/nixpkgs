@@ -9,6 +9,7 @@
 , scipy
 , moto
 , numexpr
+, numpy
 , pytz
 , xlrd
 , bottleneck
@@ -21,7 +22,9 @@
 , tables
 , xlwt
 , runtimeShell
-, libcxx ? null
+, libcxx
+, libcxxabi
+, aflplusplus
 }:
 
 let
@@ -30,42 +33,62 @@ let
 
 in buildPythonPackage rec {
   pname = "pandas";
-  version = "0.25.3";
+  version = "1.0.5";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "52da74df8a9c9a103af0a72c9d5fdc8e0183a90884278db7f386b5692a2220a4";
+    sha256 = "1a2gv3g6jr6vb5ca43fkwjl5xf86wpfz8y3zcy787adjl0hdkib9";
   };
 
   checkInputs = [ pytest glibcLocales moto hypothesis ];
 
   nativeBuildInputs = [ cython ];
-  buildInputs = optional isDarwin libcxx;
   propagatedBuildInputs = [
     dateutil
-    scipy
-    numexpr
+#     scipy
+#     numexpr
+    numpy
     pytz
-    xlrd
-    bottleneck
-    sqlalchemy
-    lxml
-    html5lib
-    beautifulsoup4
-    openpyxl
-    tables
-    xlwt
+#     xlrd
+#     bottleneck
+#     sqlalchemy
+#     lxml
+#     html5lib
+#     beautifulsoup4
+#     openpyxl
+#     tables
+#     xlwt
   ];
 
-  # For OSX, we need to add a dependency on libcxx, which provides
-  # `complex.h` and other libraries that pandas depends on to build.
-  postPatch = optionalString isDarwin ''
-    cpp_sdk="${libcxx}/include/c++/v1";
-    echo "Adding $cpp_sdk to the setup.py common_include variable"
+#   dontStrip = true;
+#   NIX_CFLAGS_COMPILE = "-O1";
+
+#   buildInputs = [ libcxx libcxxabi ];
+# # 
+# #   # For OSX, we need to add a dependency on libcxx, which provides
+# #   # `complex.h` and other libraries that pandas depends on to build.
+  postPatch = let
+    cpp_sdk = "${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}";
+    cpp_sdk_p = "${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}/${stdenv.targetPlatform.config}";
+  in ''
+    echo "Adding ${cpp_sdk} ${cpp_sdk_p} to the setup.py common_include variable"
     substituteInPlace setup.py \
-      --replace "['pandas/src/klib', 'pandas/src']" \
-                "['pandas/src/klib', 'pandas/src', '$cpp_sdk']"
+      --replace 'include = data.get("include")' \
+                'include = (data.get("include") or []) + ["${cpp_sdk}", "${cpp_sdk_p}"]'
   '';
+
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  AFL_LLVM_INSTRIM="1";
+  AFL_LLVM_NOT_ZERO="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+    #export CXX=g++
+    #export LDSHARED='${aflplusplus}/bin/afl-clang-fast -pthread -shared'
+  '';
+
 
 
   disabledTests = stdenv.lib.concatMapStringsSep " and " (s: "not " + s) ([
@@ -89,7 +112,7 @@ in buildPythonPackage rec {
     "test_clipboard"
   ]);
 
-  doCheck = !stdenv.isAarch64; # upstream doesn't test this architecture
+  doCheck = false; # upstream doesn't test this architecture
 
   checkPhase = ''
     runHook preCheck
@@ -106,7 +129,6 @@ in buildPythonPackage rec {
     LC_ALL="en_US.UTF-8" py.test $out/${python.sitePackages}/pandas --skip-slow --skip-network -k "$disabledTests"
     runHook postCheck
   '';
-
   meta = {
     # https://github.com/pandas-dev/pandas/issues/14866
     # pandas devs are no longer testing i686 so safer to assume it's broken
