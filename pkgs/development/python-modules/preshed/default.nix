@@ -6,6 +6,7 @@
 , cython
 , cymem
 , python
+, aflplusplus
 }:
 buildPythonPackage rec {
   pname = "preshed";
@@ -15,6 +16,18 @@ buildPythonPackage rec {
     inherit pname version;
     sha256 = "1jrnci1pw9yv7j1a9b2q6c955l3gb8fv1q4d0id6s7bwr5l39mv1";
   };
+
+  AFL_HARDEN="1";
+  AFL_LLVM_LAF_SPLIT_SWITCHES="1";
+  AFL_LLVM_LAF_TRANSFORM_COMPARES="1";
+  AFL_LLVM_LAF_SPLIT_COMPARES="1";
+  AFL_LLVM_INSTRIM="1";
+  AFL_LLVM_NOT_ZERO="1";
+  preConfigure = ''
+    export CC=${aflplusplus}/bin/afl-clang-fast
+  '';
+  NIX_CFLAGS_COMPILE="-I${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version} -I${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}/${stdenv.targetPlatform.config}";
+  doCheck = false;
 
   propagatedBuildInputs = [
    cython
