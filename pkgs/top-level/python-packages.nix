@@ -6304,6 +6304,8 @@ in {
 
   tflearn = callPackage ../development/python-modules/tflearn { };
 
+  tftpy = callPackage ../development/python-modules/tftpy { };
+
   simpleai = callPackage ../development/python-modules/simpleai { };
 
   word2vec = callPackage ../development/python-modules/word2vec { };
