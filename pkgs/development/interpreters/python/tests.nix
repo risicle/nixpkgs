@@ -94,7 +94,11 @@ let
 
   # Integration tests involving the package set.
   # All PyPy package builds are broken at the moment
-  integrationTests = lib.optionalAttrs (python.pythonAtLeast "3.7"  && (!python.isPyPy)) rec {
+  integrationTests = lib.optionalAttrs (!python.isPyPy) {
+    cpython-gdb = callPackage ./tests/test_cpython_gdb.nix {
+      interpreter = python;
+    };
+  } // lib.optionalAttrs (python.pythonAtLeast "3.7"  && (!python.isPyPy)) rec {
     # Before the addition of NIX_PYTHONPREFIX mypy was broken with typed packages
     nix-pythonprefix-mypy = callPackage ./tests/test_nix_pythonprefix {
       interpreter = python;
