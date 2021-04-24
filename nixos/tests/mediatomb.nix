@@ -44,7 +44,9 @@ import ./make-test-python.nix ({ pkgs, ... }:
         };
       };
 
-      client = { ... }: { };
+      client = { ... }: {
+        environment.systemPackages = [ pkgs.miniupnpc ];
+      };
   };
 
   testScript =
@@ -74,6 +76,8 @@ import ./make-test-python.nix ({ pkgs, ... }:
     serverGerbera.succeed(f"curl --fail http://serverGerbera:{port}/")
     page = client.succeed(f"curl --fail http://serverGerbera:{port}/")
     assert "Gerbera" in page and "MediaTomb" not in page
+
+    print(client.succeed("upnpc -P"))
 
     serverGerbera.shutdown()
     client.shutdown()
