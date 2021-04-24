@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "libupnp";
-  version = "1.12.0";
+  version = "1.12.1";
 
   src = fetchFromGitHub {
     owner = "mrjimenez";
     repo = "pupnp";
     rev = "release-${version}";
-    sha256 = "17jhbzx8khz5vbl0lhcipjzgg897p1k2lp5wcc3hiddcfyh05pdj";
+    sha256 = "0h7qfkin2l9riwskqn9zkn1l8z2gqfnanvaszjyxga2m5axz4n8c";
   };
   outputs = [ "dev" "out" ];
 
