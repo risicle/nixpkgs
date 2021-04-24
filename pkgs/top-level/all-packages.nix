@@ -16566,6 +16566,7 @@ in
   mattermost-desktop = callPackage ../applications/networking/instant-messengers/mattermost-desktop { };
 
   mediatomb = callPackage ../servers/mediatomb { };
+  gerbera = callPackage ../servers/gerbera { };
 
   memcached = callPackage ../servers/memcached {};
 
