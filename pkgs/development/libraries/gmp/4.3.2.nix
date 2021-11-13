@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, m4, cxx ? true }:
+{ lib, stdenv, fetchurl, m4, gnu-config, cxx ? true }:
 
 let self = stdenv.mkDerivation rec {
   name = "gmp-4.3.2";
@@ -7,6 +7,11 @@ let self = stdenv.mkDerivation rec {
     url = "mirror://gnu/gmp/${name}.tar.bz2";
     sha256 = "0x8prpqi9amfcmi7r4zrza609ai9529pjaq0h4aw51i867064qck";
   };
+
+  postPatch = ''
+    ln -sf ${gnu-config}/config.guess config.guess
+    ln -sf ${gnu-config}/config.sub config.sub
+  '';
 
   #outputs TODO: split $cxx due to libstdc++ dependency
   # maybe let ghc use a version with *.so shared with rest of nixpkgs and *.a added
@@ -22,16 +27,13 @@ let self = stdenv.mkDerivation rec {
   # This is not a problem for Apple machines, which are all alike.  In
   # addition, `configfsf.guess' would return `i386-apple-darwin10.2.0' on
   # `x86_64-darwin', leading to a 32-bit ABI build, which is undesirable.
-  preConfigure =
-    if !stdenv.isDarwin
-    then "ln -sf configfsf.guess config.guess"
-    else ''echo "Darwin host is `./config.guess`."'';
+#   preConfigure =
+#     if !stdenv.isDarwin
+#     then "ln -sf configfsf.guess config.guess"
+#     else ''echo "Darwin host is `./config.guess`."'';
 
   configureFlags = [
     (lib.enableFeature cxx "cxx")
-  ] ++ lib.optionals stdenv.isDarwin [
-    "ac_cv_build=x86_64-apple-darwin13.4.0"
-    "ac_cv_host=x86_64-apple-darwin13.4.0"
   ];
 
   # The test t-lucnum_ui fails (on Linux/x86_64) when built with GCC 4.8.
