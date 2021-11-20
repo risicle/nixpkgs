@@ -30,5 +30,8 @@ buildPythonPackage rec {
     homepage = "https://github.com/enthought/envisage";
     maintainers = with lib.maintainers; [ knedlsepp ];
     license = licenses.bsdOriginal;
+    # doesn't work with ipykernel 6.x yet
+    # https://github.com/enthought/envisage/pull/449
+    broken = true;
   };
 }
