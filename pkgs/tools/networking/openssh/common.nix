@@ -102,7 +102,7 @@ stdenv.mkDerivation rec {
 
   hardeningEnable = [ "pie" ];
 
-  doCheck = true;
+  doCheck = stdenv.hostPlatform == stdenv.buildPlatform;
   enableParallelChecking = false;
   checkInputs = optional (!stdenv.isDarwin) hostname;
   preCheck = ''
