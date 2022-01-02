@@ -31,6 +31,11 @@ stdenv.mkDerivation rec {
 
   patches = [
     (fetchpatch {
+      name = "CVE-2021-45928.patch";
+      url = "https://github.com/libjxl/libjxl/commit/1c05e110d69b457696366fb4e762057b6855349b.patch";
+      sha256 = "15cwd8rpf47x3m8k7jp36qynqddxl4mmhjn2q31vasd4vpfdfr5s";
+    })
+    (fetchpatch {
       name = "CVE-2021-22564.prerequisite.patch";
       url = "https://github.com/libjxl/libjxl/commit/482d0a24f891c641caae4369676ed303406dccac.patch";
       sha256 = "1c0nm667jahzr04iyfkg7zjj0wf7igc8m0l5gczl50zbxgz17vmp";
