@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchFromGitHub
+, fetchpatch
 , zlib
 , cmake
 , imath
@@ -18,6 +19,14 @@ stdenv.mkDerivation rec {
     rev = "v${version}";
     sha256 = "sha256-Bi6yTcZBWTsWWMm3A7FVYblvSXKLSkHmhGvpNYGiOzE=";
   };
+
+  patches = [
+    (fetchpatch {
+      name = "CVE-2021-45942.patch";
+      url = "https://github.com/AcademySoftwareFoundation/openexr/commit/db217f29dfb24f6b4b5100c24ac5e7490e1c57d0.patch";
+      sha256 = "0n2lwwn82nfy7p30jncxihcm2iy83r9m7f7mf2rhasn17fdzb5af";
+    })
+  ];
 
   nativeBuildInputs = [ cmake ];
   propagatedBuildInputs = [ imath zlib ];
