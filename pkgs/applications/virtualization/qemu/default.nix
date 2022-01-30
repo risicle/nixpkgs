@@ -31,6 +31,7 @@
                           ++ ["${stdenv.hostPlatform.qemuArch}-softmmu"])
                     else null)
 , nixosTestRunner ? false
+, doCheck ? false, qemu
 }:
 
 let
@@ -240,7 +241,7 @@ stdenv.mkDerivation rec {
   '';
   preBuild = "cd build";
 
-  doCheck = true;
+  inherit doCheck;
   checkInputs = [ socat ];
   preCheck = ''
     # time limits are a little meagre for a build machine that's
@@ -286,6 +287,9 @@ stdenv.mkDerivation rec {
 
   passthru = {
     qemu-system-i386 = "bin/qemu-system-i386";
+    tests = {
+      qemu-tests = qemu.override { doCheck = true; };
+    };
   };
 
   # Builds in ~3h with 2 cores, and ~20m with a big-parallel builder.
