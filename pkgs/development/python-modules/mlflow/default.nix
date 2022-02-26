@@ -20,6 +20,7 @@
 , sqlalchemy
 , gorilla
 , gunicorn
+, fetchpatch
 }:
 
 buildPythonPackage rec {
@@ -31,6 +32,14 @@ buildPythonPackage rec {
     inherit pname version;
     sha256 = "b15ff0c7e5e64f864a0b40c99b9a582227315eca2065d9f831db9aeb8f24637b";
   };
+
+  patches = [
+    (fetchpatch {
+      name = "CVE-2022-0736.patch";
+      url = "https://github.com/mlflow/mlflow/commit/61984e6843d2e59235d82a580c529920cd8f3711.patch";
+      sha256 = "058db68lqscn0d6dy2ywh48wfgvyyvnhldrl3s87x4km0v9mxqg4";
+    })
+  ];
 
   # run into https://stackoverflow.com/questions/51203641/attributeerror-module-alembic-context-has-no-attribute-config
   # also, tests use conda so can't run on NixOS without buildFHSUserEnv
