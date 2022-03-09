@@ -32,13 +32,19 @@ stdenv.mkDerivation rec {
   hardeningDisable = lib.optionals (stdenv.isDarwin && stdenv.isAarch64) [ "stackprotector" ];
 
   cmakeFlags = [
-    "-DCMAKE_Fortran_FLAGS=-fPIC"
     "-DLAPACKE=ON"
     "-DCBLAS=ON"
     "-DBUILD_TESTING=ON"
   ] ++ lib.optional shared "-DBUILD_SHARED_LIBS=ON";
 
+  # cmakeFlags can't handle values with spaces properly
+  preConfigure = ''
+    cmakeFlagsArray+=("-DCMAKE_Fortran_FLAGS=-fPIC -g")
+  '';
+
   doCheck = true;
+
+  separateDebugInfo = true;
 
   # Some CBLAS related tests fail on Darwin:
   #  14 - CBLAS-xscblat2 (Failed)
