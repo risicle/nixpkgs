@@ -16,9 +16,14 @@ buildGoPackage rec {
   };
 
   patches = [
-    ./2.6.0-CVE-2022-24450.patch
+    #./2.6.0-CVE-2022-24450.patch
     ./2.6.0-CVE-2022-26652.patch
   ];
+
+  doCheck = true;
+  checkPhase = ''
+    go test -run TestJetStreamRestoreBadStream ./...
+  '';
 
   meta = {
     description = "High-Performance server for NATS";
