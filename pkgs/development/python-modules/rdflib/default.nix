@@ -11,7 +11,7 @@
 , pandas
 , pytestCheckHook
 , pythonOlder
-, SPARQLWrapper
+, sparqlwrapper
 }:
 
 buildPythonPackage rec {
@@ -32,7 +32,7 @@ buildPythonPackage rec {
     isodate
     html5lib
     pyparsing
-    SPARQLWrapper
+    sparqlwrapper
   ];
 
   checkInputs = [
