@@ -5,6 +5,15 @@
 , libid3tag
 , freetype , bzip2, pkg-config
 , x11Support ? true, xlibsWrapper ? null
+
+# for passthru.tests
+, libcaca
+, diffoscopeMinimal
+, feh
+, icewm
+, openbox
+, fluxbox
+, enlightenment
 }:
 
 let
@@ -34,6 +43,17 @@ stdenv.mkDerivation rec {
     ++ optional (!x11Support) "--without-x";
 
   outputs = [ "bin" "out" "dev" ];
+
+  passthru.tests = {
+    inherit
+      libcaca
+      diffoscopeMinimal
+      feh
+      icewm
+      openbox
+      fluxbox
+      enlightenment;
+  };
 
   meta = with lib; {
     description = "Image manipulation library";
