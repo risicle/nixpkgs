@@ -27104,6 +27104,8 @@ with pkgs;
 
   kuttl = callPackage ../applications/networking/cluster/kuttl { };
 
+  kubectl-hns = callPackage ../applications/networking/cluster/kubectl-hns { };
+
   kubectl-doctor = callPackage ../applications/networking/cluster/kubectl-doctor { };
 
   kubectl-example = callPackage ../applications/networking/cluster/kubectl-example { };
