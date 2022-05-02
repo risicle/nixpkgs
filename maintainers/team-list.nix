@@ -196,6 +196,19 @@ with lib.maintainers; {
     scope = "Maintain the ecosystem around Matrix, a decentralized messenger.";
   };
 
+  numtide = {
+    members = [
+      mic92
+      flokli
+      jfroche
+      tazjin
+      zimbatm
+    ];
+    enableFeatureFreezePing = true;
+    scope = "Group registration for Numtide team members who collectively maintain packages.";
+    shortName = "Numtide team";
+  };
+
   openstack = {
     members = [
       angustrau
