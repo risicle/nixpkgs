@@ -1,0 +1,43 @@
+name: "Check cherry-picks"
+on:
+  pull_request:
+
+env:
+  PICKABLE_BRANCHES: master staging
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - run: |
+        git rev-list '${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}' \
+          -E -i --grep="cherry.*[0-9a-f]{40}" \
+          | while read commit_sha ; do
+
+          echo "================================================="
+          git rev-list --max-count=1 --format=medium "$commit_sha"
+          echo "-------------------------------------------------"
+
+          original_commit_sha=$(
+            git rev-list --max-count=1 --format=format:%B "$commit_sha" \
+            | egrep -i -m1 "cherry.*[0-9a-f]{40}" \
+            | egrep -oi -m1 '[0-9a-f]{40}'
+          )
+          if [ "$?" = "0" ] ; then
+            echo "⁉ Couldn't locate commit hash in message"
+            continue
+          fi
+
+          for $picked_branch in $PICKABLE_BRANCHES ; do
+            if git merge-base --is-ancestor "$original_commit_sha" "picked_branch" ; then
+              echo "✔ $original_commit_sha present in branch $picked_branch"
+
+              continue 2
+            fi
+          done
+
+          echo "✘ $original_commit_sha not found in any pickable branch"
+        done
