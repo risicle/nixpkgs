@@ -35,6 +35,7 @@ buildGoPackage rec {
     ./static-root-path.patch
   ];
 
+
   postPatch = ''
     patchShebangs .
     substituteInPlace modules/setting/setting.go --subst-var data
