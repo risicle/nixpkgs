@@ -12,20 +12,17 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "imlib2";
-  version = "1.8.1";
+  version = "1.9.0";
 
   src = fetchurl {
     url = "mirror://sourceforge/enlightenment/${pname}-${version}.tar.xz";
-    hash = "sha256-Ui4ecOZbwO3f4gdhfRXJo5VmKnwJBmHaqiwpT7fZ/ao=";
+    sha256 = "5ac9e8ca7c6700919fe72749ad7243c42de4b22823c81769a1bf8e480e14c650";
   };
 
   buildInputs = [
     libjpeg libtiff giflib libpng libwebp
     bzip2 freetype libid3tag libheif
-  ] ++ optional x11Support xlibsWrapper
-  # Compilation error on Darwin with librsvg. For more information see:
-  # https://github.com/NixOS/nixpkgs/pull/166452#issuecomment-1090725613
-  ++ optional (!stdenv.isDarwin) librsvg;
+  ] ++ optional x11Support xlibsWrapper;
 
   nativeBuildInputs = [ pkg-config ];
 
