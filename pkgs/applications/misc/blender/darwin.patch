@@ -48,12 +48,3 @@ diff --git a/build_files/cmake/platform/platform_apple.cmake b/build_files/cmake
  endif()
  
  if(WITH_PUGIXML)
-@@ -476,7 +468,7 @@ else()
-   set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic")
- endif()
- 
--if(${XCODE_VERSION} VERSION_EQUAL 5 OR ${XCODE_VERSION} VERSION_GREATER 5)
-+if(FALSE)
-   # Xcode 5 is always using CLANG, which has too low template depth of 128 for libmv
-   string(APPEND CMAKE_CXX_FLAGS " -ftemplate-depth=1024")
- endif()
