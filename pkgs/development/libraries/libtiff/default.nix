@@ -88,11 +88,43 @@ stdenv.mkDerivation rec {
       url = "https://gitlab.com/libtiff/libtiff/-/commit/87f580f39011109b3bb5f6eca13fac543a542798.patch";
       sha256 = "0171c662xiv3295x4wsq6qq0v90js51j54vsl7wm043kjkrp1fsb";
     })
+    (fetchpatch {
+      name = "CVE-2022-1355.prerequisite-0.patch";
+      url = "https://sources.debian.org/data/main/t/tiff/4.3.0-7/debian/patches/fix_segmentation_fault.patch";
+      sha256 = "0xs4y0kshs9sai4jmxl2lqdx7316i552r58kfqivxg1mki8xvarm";
+    })
+    (fetchpatch {
+      name = "CVE-2022-1355.prerequisite-1.patch";
+      url = "https://sources.debian.org/data/main/t/tiff/4.3.0-7/debian/patches/fix_segmentation_fault2.patch";
+      sha256 = "02rjfb0m8d9xrafgsv81q7ydii9z3xdpgxfxdl9c8gy49852bdw3";
+    })
+    (fetchpatch {
+      name = "CVE-2022-1355.patch";
+      url = "https://sources.debian.org/data/main/t/tiff/4.3.0-7/debian/patches/CVE-2022-1355.patch";
+      sha256 = "0hlk5awzm3cad05bjjgp5lvvsp0lygn3ncfngwn0c5bp6yxlxdwf";
+    })
+#     (fetchpatch {
+#       name = "CVE-2022-1355.prerequisite-0.patch";
+#       url = "https://gitlab.com/libtiff/libtiff/-/commit/7db4f2b62206b9cba6cda538e0f296df0ac371bd.patch";
+#       sha256 = "1g1j6rfk3px0k4r444khw2f3sx790ly8vr6fd3j1hszcgyi4d012";
+#     })
+#     (fetchpatch {
+#       name = "CVE-2022-1355.prerequisite-1.patch";
+#       url = "https://gitlab.com/libtiff/libtiff/-/commit/b55cfc746a8449b135cecb8bc1b97f27efd28da1.patch";
+#       sha256 = "1g1j6rfk3px0k4r976khw2f3sx790ly8vr6fd3j1hszcgyi4d012";
+#     })
+#     (fetchpatch {
+#       name = "CVE-2022-1355.patch";
+#       url = "https://gitlab.com/libtiff/libtiff/-/commit/9752dae8febab08879fc0159e7d387cff14eb3c3.patch";
+#       sha256 = "0kgg229827l7glgrpgbqys2jl32zishrzlabkkc9k1z3vs21cg8v";
+#     })
   ];
 
   postPatch = ''
     mv VERSION VERSION.txt
   '';
+
+  NIX_CFLAGS_COMPILE = [ "-fsanitize=address" ];
 
   outputs = [ "bin" "dev" "dev_private" "out" "man" "doc" ];
 
