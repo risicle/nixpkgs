@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , python
@@ -33,7 +32,6 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     homepage = "https://github.com/altdesktop/python-dbus-next";
     description = "A zero-dependency DBus library for Python with asyncio support";
     license = licenses.mit;

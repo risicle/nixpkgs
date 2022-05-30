@@ -35,7 +35,6 @@ stdenv.mkDerivation  {
   '';
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "Speech denoise lv2 plugin based on RNNoise library";
     homepage = "https://github.com/lucianodato/speech-denoiser";
     license = licenses.lgpl3;

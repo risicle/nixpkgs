@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , python3
 , ffmpeg
 }:
@@ -41,7 +40,6 @@ python3.pkgs.buildPythonApplication rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Yet another simple static gallery generator";
     homepage = "http://sigal.saimon.org/";
     license = licenses.mit;

@@ -18,7 +18,6 @@ stdenv.mkDerivation rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Computational Morphometry Toolkit ";
     longDescription = ''A software toolkit for computational morphometry of
       biomedical images, CMTK comprises a set of command line tools and a

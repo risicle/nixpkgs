@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchPypi
 , zetup
@@ -28,7 +27,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "modeled" ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     description = "Universal data modeling for Python";
     homepage = "https://github.com/modeled/modeled";
     license = licenses.lgpl3Only;

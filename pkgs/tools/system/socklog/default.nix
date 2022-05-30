@@ -50,7 +50,6 @@ stdenv.mkDerivation rec {
   doCheck = true;
 
   meta = {
-    broken = stdenv.isDarwin;
     description = "System and kernel logging services";
     homepage = "http://smarden.org/socklog/";
     license = licenses.publicDomain;

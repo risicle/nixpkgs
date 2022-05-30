@@ -50,7 +50,6 @@ stdenv.mkDerivation rec {
   '';
 
   meta = {
-    broken = stdenv.isDarwin;
     description = "Radioastronomy data analysis software";
     longDescription = ''
       GILDAS is a collection of state-of-the-art software

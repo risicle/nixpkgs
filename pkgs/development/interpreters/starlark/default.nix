@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, buildGoModule }:
+{ lib, fetchFromGitHub, buildGoModule }:
 buildGoModule rec {
   pname = "starlark";
   version = "unstable-2022-03-02";
@@ -15,7 +15,6 @@ buildGoModule rec {
   ldflags = [ "-s" "-w" ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     homepage = "https://github.com/google/starlark-go";
     description = "An interpreter for Starlark, implemented in Go";
     license = licenses.bsd3;

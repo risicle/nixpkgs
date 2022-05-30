@@ -159,8 +159,6 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    # darwin.patch doesn't apply anymore, needs update
-    broken = stdenv.isDarwin;
     description = "3D Creation/Animation/Publishing System";
     homepage = "https://www.blender.org";
     # They comment two licenses: GPLv2 and Blender License, but they

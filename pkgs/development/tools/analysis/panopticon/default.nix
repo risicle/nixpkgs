@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, rustPlatform, qt5, git, cmake
+{ lib, fetchFromGitHub, rustPlatform, qt5, git, cmake
 , pkg-config, makeWrapper }:
 
 rustPlatform.buildRustPackage rec {
@@ -36,7 +36,6 @@ rustPlatform.buildRustPackage rec {
      '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A libre cross-platform disassembler";
     longDescription = ''
       Panopticon is a cross platform disassembler for reverse

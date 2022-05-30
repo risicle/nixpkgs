@@ -1,4 +1,4 @@
-{ stdenv, lib, runCommandCC, skawarePackages }:
+{ lib, runCommandCC, skawarePackages }:
 
 with skawarePackages;
 
@@ -12,7 +12,6 @@ in runCommandCC "sdnotify-wrapper" {
    outputs = [ "bin" "doc" "out" ];
 
    meta = {
-     broken = stdenv.isDarwin;
      homepage = "https://skarnet.org/software/misc/sdnotify-wrapper.c";
      description = "Use systemd sd_notify without having to link against libsystemd";
      platforms = lib.platforms.all;

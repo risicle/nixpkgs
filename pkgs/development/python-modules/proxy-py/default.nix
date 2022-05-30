@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , openssl
@@ -56,7 +55,6 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     description = "Python proxy framework";
     homepage = "https://github.com/abhinavsingh/proxy.py";
     license = with licenses; [ bsd3 ];

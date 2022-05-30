@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , pytestCheckHook
@@ -41,7 +40,6 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Bindings for evtx";
     homepage = "https://github.com/omerbenamram/pyevtx-rs";
     license = with licenses; [ mit ];

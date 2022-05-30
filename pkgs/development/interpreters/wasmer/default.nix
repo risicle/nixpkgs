@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , rustPlatform
 , fetchFromGitHub
 , cmake
@@ -39,7 +38,6 @@ rustPlatform.buildRustPackage rec {
   LIBCLANG_PATH = "${llvmPackages.libclang.lib}/lib";
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "The Universal WebAssembly Runtime";
     longDescription = ''
       Wasmer is a standalone WebAssembly runtime for running WebAssembly outside

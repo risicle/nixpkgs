@@ -35,7 +35,6 @@ stdenv.mkDerivation rec {
   outputs = [ "out" ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A translator of declarative Datalog programs into the C++ language";
     homepage    = "https://souffle-lang.github.io/";
     platforms   = platforms.unix;

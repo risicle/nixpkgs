@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , click
 , fetchFromGitHub
@@ -48,7 +47,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "SoftLayer" ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     description = "Python libraries that assist in calling the SoftLayer API";
     homepage = "https://github.com/softlayer/softlayer-python";
     license = licenses.mit;

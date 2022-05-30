@@ -1,4 +1,4 @@
-{ stdenv, lib, callPackage, CoreFoundation, fetchFromGitHub, pkgs, wrapCDDA, attachPkgs
+{ lib, callPackage, CoreFoundation, fetchFromGitHub, pkgs, wrapCDDA, attachPkgs
 , tiles ? true, Cocoa
 , debug ? false
 , useXdgDir ? false
@@ -29,8 +29,6 @@ let
     meta = common.meta // {
       maintainers = with lib.maintainers;
       common.meta.maintainers ++ [ rardiol ];
-      # /nix/store/s8xaq3x7mcysvd752in2nihb1nr6svsl-SDL2-2.0.20-dev/include/SDL2/SDL_events.h:645:65: error: use of old-style cast [-Werror,-Wold-style-cast]
-      broken = (stdenv.isDarwin && stdenv.isx86_64);
     };
   });
 in

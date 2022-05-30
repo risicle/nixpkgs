@@ -80,7 +80,6 @@ in stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A low-level counterpart to Lua";
     homepage = "https://terralang.org/";
     platforms = platforms.x86_64;

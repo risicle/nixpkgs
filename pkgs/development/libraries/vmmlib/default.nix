@@ -26,7 +26,6 @@ stdenv.mkDerivation rec {
   checkTarget = "test";
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A vector and matrix math library implemented using C++ templates";
 
     longDescription = ''vmmlib is a vector and matrix math library implemented

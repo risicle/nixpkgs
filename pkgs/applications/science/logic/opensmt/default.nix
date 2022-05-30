@@ -29,7 +29,6 @@ stdenv.mkDerivation rec {
   ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "A satisfiability modulo theory (SMT) solver";
     maintainers = [ maintainers.raskin ];
     platforms = platforms.linux;

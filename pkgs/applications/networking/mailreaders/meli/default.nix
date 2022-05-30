@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , fetchgit
 , rustPlatform
 , pkg-config
@@ -49,7 +48,6 @@ rustPlatform.buildRustPackage rec {
   '';
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "Experimental terminal mail client aiming for configurability and extensibility with sane defaults";
     homepage = "https://meli.delivery";
     license = licenses.gpl3;

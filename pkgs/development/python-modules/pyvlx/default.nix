@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , pytestCheckHook
@@ -34,7 +33,6 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Python client to work with Velux units";
     longDescription = ''
       PyVLX uses the Velux KLF 200 interface to control io-Homecontrol

@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , bcrypt
 , buildPythonPackage
 , cryptography
@@ -78,7 +77,6 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Asynchronous SSHv2 Python client and server library";
     homepage = "https://asyncssh.readthedocs.io/";
     license = licenses.epl20;

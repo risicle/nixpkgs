@@ -1,4 +1,4 @@
-{ stdenv, buildGoModule, fetchFromGitHub, lib, installShellFiles }:
+{ buildGoModule, fetchFromGitHub, lib, installShellFiles }:
 
 buildGoModule rec {
   pname = "jx";
@@ -34,7 +34,6 @@ buildGoModule rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Command line tool for installing and using Jenkins X";
     homepage = "https://jenkins-x.io";
     longDescription = ''

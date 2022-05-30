@@ -1,5 +1,4 @@
-{ stdenv
-, buildPythonPackage
+{ buildPythonPackage
 , fetchFromGitHub
 , lib
 , pyopenssl
@@ -36,7 +35,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "servefile" ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Serve files from shell via a small HTTP server";
     homepage = "https://github.com/sebageek/servefile";
     license = licenses.gpl3Plus;

@@ -202,7 +202,6 @@ in
     '';
 
     meta = with lib; {
-      broken = (stdenv.isLinux && stdenv.isAarch64);
       inherit description;
       homepage = "https://www.rstudio.com/";
       license = licenses.agpl3Only;

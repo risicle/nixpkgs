@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , anyio
 , buildPythonPackage
 , fetchFromGitHub
@@ -61,7 +60,6 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Simple, modern file watching and code reload";
     homepage = "https://watchfiles.helpmanual.io/";
     license = licenses.mit;

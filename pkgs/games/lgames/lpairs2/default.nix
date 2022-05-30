@@ -24,7 +24,6 @@ stdenv.mkDerivation rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     homepage = "http://lgames.sourceforge.net/LPairs/";
     description = "Matching the pairs - a typical Memory Game";
     license = licenses.gpl2Plus;

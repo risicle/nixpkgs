@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , sphinx
@@ -37,7 +36,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "sphinx_markdown_parser" ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     description = "Write markdown inside of docutils & sphinx projects";
     homepage = "https://github.com/clayrisser/sphinx-markdown-parser";
     license = licenses.mit;

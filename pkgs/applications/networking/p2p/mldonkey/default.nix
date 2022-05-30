@@ -31,7 +31,6 @@ stdenv.mkDerivation rec {
   ];
 
   meta = {
-    broken = stdenv.isDarwin;
     description = "Client for many p2p networks, with multiple frontends";
     homepage = "http://mldonkey.sourceforge.net/";
     license = lib.licenses.gpl2Only;

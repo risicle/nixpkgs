@@ -22,7 +22,6 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Temporal Tables PostgreSQL Extension ";
     homepage    = "https://github.com/mlt/temporal_tables";
     maintainers = with maintainers; [ ggpeti ];

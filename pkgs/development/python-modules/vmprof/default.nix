@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchPypi
 , colorama
@@ -26,7 +25,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "vmprof" ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     description = "A vmprof client";
     license = licenses.mit;
     homepage = "https://vmprof.readthedocs.org/";

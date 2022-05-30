@@ -30,7 +30,6 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "High-performance read alignment, quantification and mutation discovery";
     license = licenses.gpl3;
     maintainers = with maintainers; [ jbedo ];

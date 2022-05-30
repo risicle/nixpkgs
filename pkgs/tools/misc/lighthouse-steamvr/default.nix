@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, lib, rustPlatform, pkg-config, dbus }:
+{ fetchFromGitHub, lib, rustPlatform, pkg-config, dbus }:
 
 rustPlatform.buildRustPackage rec {
   pname = "Lighthouse";
@@ -18,7 +18,6 @@ rustPlatform.buildRustPackage rec {
   buildInputs = [ dbus ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "VR Lighthouse power state management";
     homepage = "https://github.com/ShayBox/Lighthouse";
     license = licenses.mit;

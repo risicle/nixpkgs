@@ -392,7 +392,6 @@ stdenv.mkDerivation {
   preFixup = "rm -rf $SWIFT_BUILD_ROOT $SWIFT_INSTALL_DIR";
 
   meta = with lib; {
-    broken = true;
     description = "The Swift Programming Language";
     homepage = "https://github.com/apple/swift";
     maintainers = with maintainers; [ dtzWill trepetti dduan ];

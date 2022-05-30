@@ -112,7 +112,6 @@ rec {
   doCheck = false;
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Software Defined Radio (SDR) software";
     longDescription = ''
       GNU Radio is a free & open-source software development toolkit that

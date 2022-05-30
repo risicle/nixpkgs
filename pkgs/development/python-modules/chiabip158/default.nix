@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchPypi
 , cmake
@@ -31,7 +30,6 @@ buildPythonPackage rec {
   dontConfigure = true;
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Chia's implementation of BIP 158";
     homepage = "https://www.chia.net/";
     license = licenses.asl20;

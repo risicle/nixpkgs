@@ -60,7 +60,6 @@ stdenv.mkDerivation rec {
   checkTarget = "test";
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     homepage = "https://repo.or.cz/tinycc.git";
     description = "Small, fast, and embeddable C compiler and interpreter";
     longDescription = ''

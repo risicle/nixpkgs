@@ -1,4 +1,4 @@
-{ stdenv, avahi-compat, cmake, fetchFromGitHub, flatbuffers, hidapi, lib, libcec
+{ avahi-compat, cmake, fetchFromGitHub, flatbuffers, hidapi, lib, libcec
 , libusb1, libX11, libxcb, libXrandr, mbedtls, mkDerivation, protobuf, python3
 , qtbase, qtserialport, qtsvg, qtx11extras, wrapQtAppsHook }:
 
@@ -41,7 +41,6 @@ mkDerivation rec {
   ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "Open Source Ambilight solution";
     homepage = "https://github.com/hyperion-project/hyperion.ng";
     license = licenses.mit;

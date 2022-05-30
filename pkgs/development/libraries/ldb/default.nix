@@ -55,7 +55,6 @@ stdenv.mkDerivation rec {
   stripDebugList = [ "bin" "lib" "modules" ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A LDAP-like embedded database";
     homepage = "https://ldb.samba.org/";
     license = licenses.lgpl3Plus;

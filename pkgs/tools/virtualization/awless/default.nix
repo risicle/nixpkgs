@@ -1,4 +1,4 @@
-{ stdenv, lib, buildGoPackage, fetchFromGitHub }:
+{ lib, buildGoPackage, fetchFromGitHub }:
 
 buildGoPackage rec {
   pname = "awless";
@@ -19,8 +19,5 @@ buildGoPackage rec {
     platforms = with platforms; linux ++ darwin;
     license = licenses.asl20;
     maintainers = with maintainers; [ pradeepchhetri swdunlop ];
-    # asm: InitTextSym double init for "".Syscall
-    # panic: invalid use of LSym - NewFuncInfo with Extra of type *obj.FuncInfo
-    broken = (stdenv.isLinux && stdenv.isAarch64);
   };
 }

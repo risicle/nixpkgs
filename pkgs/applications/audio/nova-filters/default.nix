@@ -22,7 +22,6 @@ stdenv.mkDerivation {
   '';
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "LADSPA plugins based on filters of nova";
     homepage = "http://klingt.org/~tim/nova-filters/";
     license = licenses.gpl2Plus;

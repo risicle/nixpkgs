@@ -28,7 +28,6 @@ stdenv.mkDerivation rec {
     description = "Incremental backup with strong cryptographic confidentality";
     license = licenses.gpl2;
     maintainers = with maintainers; [ mvs ];
-    # no support for Darwin (yet: https://github.com/richfelker/bakelite/pull/5)
-    platforms = platforms.linux;
+    platforms = platforms.unix;
   };
 }

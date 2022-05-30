@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchPypi
 , fetchzip
@@ -45,7 +44,6 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Tool for computing continuous distributed representations of words";
     homepage = "https://github.com/danielfrg/word2vec";
     license = licenses.asl20;

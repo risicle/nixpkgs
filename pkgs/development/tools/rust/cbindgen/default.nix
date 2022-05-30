@@ -30,7 +30,6 @@ rustPlatform.buildRustPackage rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A project for generating C bindings from Rust code";
     homepage = "https://github.com/eqrion/cbindgen";
     license = licenses.mpl20;

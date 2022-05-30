@@ -7,7 +7,6 @@
     version = "3.1.1";
 
     meta = with lib; {
-      broken = stdenv.isDarwin;
       description = "OpenSteno Plover stenography software";
       maintainers = with maintainers; [ twey kovirobi ];
       license     = licenses.gpl2;
@@ -32,7 +31,6 @@
     version = "4.0.0.dev10";
 
     meta = with lib; {
-      broken = stdenv.isDarwin;
       description = "OpenSteno Plover stenography software";
       maintainers = with maintainers; [ twey kovirobi ];
       license     = licenses.gpl2;

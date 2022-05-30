@@ -20,7 +20,6 @@ stdenv.mkDerivation rec {
   buildInputs = [ readline libmysqlclient postgresql sqlite ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Extremely lightweight but extensible database access library written in C";
     license = licenses.lgpl21;
     platforms = platforms.all;

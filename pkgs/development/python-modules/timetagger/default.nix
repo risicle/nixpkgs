@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , asgineer
@@ -44,7 +43,6 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     homepage = "https://timetagger.app";
     license = licenses.gpl3Only;
     description = "Tag your time, get the insight";

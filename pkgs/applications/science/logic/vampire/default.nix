@@ -47,7 +47,6 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     homepage = "https://vprover.github.io/";
     description = "The Vampire Theorem Prover";
     platforms = platforms.unix;

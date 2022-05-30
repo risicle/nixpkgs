@@ -52,7 +52,6 @@ buildPythonPackage rec {
   doCheck = false;
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     homepage = "https://github.com/awslabs/aws-crt-python";
     description = "Python bindings for the AWS Common Runtime";
     license = licenses.asl20;

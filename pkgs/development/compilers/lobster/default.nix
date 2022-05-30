@@ -51,7 +51,6 @@ stdenv.mkDerivation rec {
   passthru.tests.can-run-hello-world = callPackage ./test-can-run-hello-world.nix {};
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     homepage = "https://strlen.com/lobster/";
     description = "The Lobster programming language";
     longDescription = ''

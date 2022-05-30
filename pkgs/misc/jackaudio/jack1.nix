@@ -31,7 +31,6 @@ stdenv.mkDerivation rec {
   propagatedBuildInputs = [ optLibuuid ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "JACK audio connection kit";
     homepage = "https://jackaudio.org";
     license = with licenses; [ gpl2 lgpl21 ];

@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , mkDerivation
 , fetchFromGitHub
 , cmake
@@ -31,7 +30,6 @@ mkDerivation rec {
   passthru.updateScript = lxqtUpdateScript { inherit pname version src; };
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Library used to query system info and statistics";
     homepage = "https://github.com/lxqt/libsysstat";
     license = licenses.lgpl21Plus;

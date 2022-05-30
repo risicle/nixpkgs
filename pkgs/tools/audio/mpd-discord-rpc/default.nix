@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , rustPlatform
 , fetchFromGitHub
 }:
@@ -18,7 +17,6 @@ rustPlatform.buildRustPackage rec {
   cargoSha256 = "sha256-WhlVWQCUGP+K9md0yp6ZD6mGYMso1fUYKDuXXrC2FeI=";
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Rust application which displays your currently playing song / album / artist from MPD in Discord using Rich Presence";
     homepage = "https://github.com/JakeStanger/mpd-discord-rpc";
     license = licenses.mit;

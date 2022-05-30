@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchPypi
 , django
@@ -62,7 +61,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "graphite" ];
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     homepage = "http://graphiteapp.org/";
     description = "Enterprise scalable realtime graphing";
     maintainers = with maintainers; [ offline basvandijk ];

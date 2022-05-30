@@ -23,7 +23,6 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    broken      = true;
     description = "Columnar storage for PostgreSQL";
     homepage    = "https://www.citusdata.com/";
     maintainers = with maintainers; [ thoughtpolice ];

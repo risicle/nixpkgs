@@ -22,7 +22,6 @@ rustPlatform.buildRustPackage rec {
   PROTOC = "${protobuf}/bin/protoc";
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Signal Messenger client for terminal";
     homepage = "https://github.com/boxdot/gurk-rs";
     license = licenses.agpl3Only;

@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchPypi
 , deprecated
@@ -64,7 +63,6 @@ buildPythonPackage rec {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Distances and representations of persistence diagrams";
     homepage = "https://persim.scikit-tda.org";
     license = licenses.mit;

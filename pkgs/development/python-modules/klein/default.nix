@@ -1,4 +1,4 @@
-{ stdenv, lib, buildPythonPackage, fetchPypi, python
+{ lib, buildPythonPackage, fetchPypi, python
 , attrs, enum34, hyperlink, incremental, six, twisted, typing, tubes, werkzeug, zope_interface
 , hypothesis, treq
 }:
@@ -21,7 +21,6 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64) || stdenv.isDarwin;
     description = "Klein Web Micro-Framework";
     homepage    = "https://github.com/twisted/klein";
     license     = licenses.mit;

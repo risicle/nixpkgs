@@ -15,7 +15,6 @@ stdenv.mkDerivation rec {
     ++ lib.optionals stdenv.isDarwin [ Foundation SystemConfiguration ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Converts HTML files to PostScript and PDF";
     homepage    = "https://michaelrsweet.github.io/htmldoc";
     changelog   = "https://github.com/michaelrsweet/htmldoc/releases/tag/v${version}";

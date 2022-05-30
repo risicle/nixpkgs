@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , fetchFromGitHub
 , fetchpatch
 , rustPlatform
@@ -42,7 +41,6 @@ rustPlatform.buildRustPackage rec {
   buildInputs = [ openssl gmp libmpc mpfr ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A modern Prolog implementation written mostly in Rust.";
     homepage = "https://github.com/mthom/scryer-prolog";
     license = with licenses; [ bsd3 ];

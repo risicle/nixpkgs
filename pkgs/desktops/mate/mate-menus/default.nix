@@ -23,7 +23,6 @@ stdenv.mkDerivation rec {
   passthru.updateScript = mateUpdateScript { inherit pname version; };
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Menu system for MATE";
     homepage = "https://github.com/mate-desktop/mate-menus";
     license = with licenses; [ gpl2Plus lgpl2Plus ];

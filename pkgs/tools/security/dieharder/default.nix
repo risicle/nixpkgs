@@ -22,7 +22,6 @@ stdenv.mkDerivation rec {
   };
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "A Random Number Generator test suite";
     homepage = "https://webhome.phy.duke.edu/~rgb/General/dieharder.php";
     license = licenses.gpl2Plus;

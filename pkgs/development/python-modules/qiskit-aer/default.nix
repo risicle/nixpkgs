@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , pythonOlder
 , buildPythonPackage
 , fetchFromGitHub
@@ -147,7 +146,6 @@ buildPythonPackage rec {
   postCheck = "popd";
 
   meta = with lib; {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "High performance simulators for Qiskit";
     homepage = "https://qiskit.org/aer";
     downloadPage = "https://github.com/QISKit/qiskit-aer/releases";

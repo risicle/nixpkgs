@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, python3Packages, gettext, gdk-pixbuf
+{ lib, fetchFromGitHub, python3Packages, gettext, gdk-pixbuf
 , gobject-introspection, gtk3, wrapGAppsHook }:
 
 with lib;
@@ -35,7 +35,6 @@ python3Packages.buildPythonApplication rec {
   doCheck = false;
 
   meta = {
-    broken = stdenv.isDarwin;
     description = "A graphical client for the SoulSeek peer-to-peer system";
     homepage = "https://www.nicotine-plus.org";
     license = licenses.gpl3Plus;

@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , click
 , colorama
@@ -76,7 +75,6 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Password manager pass in Python";
     homepage = "https://github.com/aviau/python-pass";
     license = licenses.gpl3Plus;

@@ -1,4 +1,4 @@
-{ stdenv, mkDerivation, lib, fetchFromBitbucket, cmake, qtbase, qttools }:
+{ mkDerivation, lib, fetchFromBitbucket, cmake, qtbase, qttools }:
 
 mkDerivation rec {
   pname = "speedcrunch";
@@ -32,6 +32,6 @@ mkDerivation rec {
     maintainers = with maintainers; [ gebner j0hax ];
     inherit (qtbase.meta) platforms;
     # works with qt 5.6 and qt 5.8
-    broken = builtins.compareVersions qtbase.version "5.7.0" == 0 || stdenv.isDarwin;
+    broken = builtins.compareVersions qtbase.version "5.7.0" == 0;
   };
 }

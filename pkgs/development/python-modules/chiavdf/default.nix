@@ -45,7 +45,6 @@ buildPythonPackage rec {
   dontConfigure = true;
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Chia verifiable delay function utilities";
     homepage = "https://www.chia.net/";
     license = licenses.asl20;

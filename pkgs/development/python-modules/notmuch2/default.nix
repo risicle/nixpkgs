@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 
 , buildPythonPackage
 , notmuch
@@ -26,7 +25,6 @@ buildPythonPackage {
   pythonImportsCheck = [ "notmuch2" ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Pythonic bindings for the notmuch mail database using CFFI";
     homepage = "https://notmuchmail.org/";
     license = licenses.gpl3;

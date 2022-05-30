@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildPythonPackage
 , fetchFromGitHub
 , pygobject3
@@ -36,7 +35,6 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "gbulb" ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "GLib implementation of PEP 3156";
     homepage = "https://github.com/beeware/gbulb";
     license = licenses.asl20;

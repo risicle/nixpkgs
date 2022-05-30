@@ -53,6 +53,5 @@ mkDerivation rec {
     license = licenses.gpl2Plus;
     maintainers = teams.gnome.members ++ (with maintainers; [ ]);
     platforms = platforms.all;
-    broken = stdenv.isDarwin; # broken since 2021-12-05 on hydra, broken until qt515 will be used for darwin
   };
 }

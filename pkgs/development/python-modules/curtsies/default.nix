@@ -1,4 +1,4 @@
-{ stdenv, lib, buildPythonPackage, fetchPypi, pythonOlder, blessings, mock, nose, pyte, cwcwidth, typing ? null}:
+{ lib, buildPythonPackage, fetchPypi, pythonOlder, blessings, mock, nose, pyte, cwcwidth, typing ? null}:
 
 buildPythonPackage rec {
   pname = "curtsies";
@@ -18,7 +18,6 @@ buildPythonPackage rec {
   '';
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Curses-like terminal wrapper, with colored strings!";
     homepage = "https://github.com/bpython/curtsies";
     license = licenses.mit;

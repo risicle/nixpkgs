@@ -1,5 +1,4 @@
-{ stdenv
-, lib
+{ lib
 , buildGoModule
 , fetchFromGitHub
 , git
@@ -22,7 +21,6 @@ buildGoModule {
   ];
 
   meta = with lib; {
-    broken = stdenv.isDarwin;
     description = "Fast trigram based code search";
     homepage = "https://github.com/google/zoekt";
     license = licenses.asl20;

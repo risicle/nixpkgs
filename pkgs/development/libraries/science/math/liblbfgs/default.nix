@@ -10,7 +10,6 @@ stdenv.mkDerivation rec {
   };
 
   meta = {
-    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "Library of Limited-memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS)";
     homepage = "http://www.chokkan.org/software/liblbfgs/";
     license = lib.licenses.mit;
