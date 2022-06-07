@@ -53,6 +53,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "A package manager for PureScript based on package sets";
     license = licenses.bsd3;
+    sourceProvenance = with sourceTypes; [ binaryNativeCode ];
     maintainers = with maintainers; [ Profpatsch ];
     platforms = [ "x86_64-darwin" "x86_64-linux" ];
   };

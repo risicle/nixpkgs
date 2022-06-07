@@ -37,6 +37,7 @@ stdenv.mkDerivation rec {
   meta = {
     homepage = "https://opendylan.org";
     description = "A multi-paradigm functional and object-oriented programming language";
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
   };

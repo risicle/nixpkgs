@@ -318,6 +318,7 @@ let
       inherit platforms;
       homepage = "https://www.graalvm.org/";
       description = "High-Performance Polyglot VM";
+      sourceProvenance = with sourceTypes; [ binaryNativeCode ];
       license = with licenses; [ upl gpl2Classpath bsd3 ];
       maintainers = with maintainers; [
         bandresen

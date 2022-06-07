@@ -39,6 +39,7 @@ stdenv.mkDerivation rec {
 
   meta = {
     homepage = "https://developer.nvidia.com/cg-toolkit";
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     license = lib.licenses.unfreeRedistributable;
   };
 }
