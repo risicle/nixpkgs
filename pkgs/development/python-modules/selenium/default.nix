@@ -37,6 +37,9 @@ buildPythonPackage rec {
   ];
 
   postPatch = lib.optionalString stdenv.isLinux ''
+    # purge bundled binaries
+    rm selenium/webdriver/firefox/*/*.so*
+
     cp "${x_ignore_nofocus}/cpp/linux-specific/"* .
     substituteInPlace x_ignore_nofocus.c --replace "/usr/lib/libX11.so.6" "${lib.getLib xorg.libX11}/lib/libX11.so.6"
     cc -c -fPIC x_ignore_nofocus.c -o x_ignore_nofocus.o
