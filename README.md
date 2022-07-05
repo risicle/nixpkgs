@@ -62,6 +62,7 @@ channels](https://nixos.org/manual/nix/stable/package-management/channels.html).
 
 
 
+
 # Contributing
 
 Nixpkgs is among the most active projects on GitHub. While thousands
