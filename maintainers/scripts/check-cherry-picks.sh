@@ -8,7 +8,7 @@ if [ $# != "2" ] ; then
   exit 2
 fi
 
-PICKABLE_BRANCHES=${PICKABLE_BRANCHES:-master staging}
+PICKABLE_BRANCHES=${PICKABLE_BRANCHES:-master staging release-??.?? staging-??.??}
 problem=0
 
 while read new_commit_sha ; do
@@ -31,38 +31,46 @@ while read new_commit_sha ; do
     continue
   fi
 
-  for picked_branch in $PICKABLE_BRANCHES ; do
-    if git merge-base --is-ancestor "$original_commit_sha" "origin/$picked_branch" ; then
-      echo "  ✔ $original_commit_sha present in branch $picked_branch"
+  set -f # prevent pathname expansion of patterns
+  for branch_pattern in $PICKABLE_BRANCHES ; do
+    set +f # re-enable pathname expansion
 
-      range_diff_common='git range-diff
-        --no-notes
-        --creation-factor=100
-        '"$original_commit_sha~..$original_commit_sha"'
-        '"$new_commit_sha~..$new_commit_sha"'
-      '
+    git for-each-ref \
+      --format="%(refname)" \
+      "refs/remotes/origin/$branch_pattern" | while read -r picked_branch ; do
 
-      if $range_diff_common --no-color | egrep '^ {4}[+-]{2}' > /dev/null ; then
-        if [ "$GITHUB_ACTIONS" = 'true' ] ; then
-          echo ::endgroup::
-          echo -n "::warning ::"
+      if git merge-base --is-ancestor "$original_commit_sha" "$picked_branch" ; then
+        echo "  ✔ $original_commit_sha present in branch $picked_branch"
+
+        range_diff_common='git range-diff
+          --no-notes
+          --creation-factor=100
+          '"$original_commit_sha~..$original_commit_sha"'
+          '"$new_commit_sha~..$new_commit_sha"'
+        '
+
+        if $range_diff_common --no-color | egrep '^ {4}[+-]{2}' > /dev/null ; then
+          if [ "$GITHUB_ACTIONS" = 'true' ] ; then
+            echo ::endgroup::
+            echo -n "::warning ::"
+          else
+            echo -n "  ⚠ "
+          fi
+          echo "Difference between $new_commit_sha and original $original_commit_sha may warrant inspection:"
+
+          $range_diff_common --color
+
+          problem=1
         else
-          echo -n "  ⚠ "
+          echo "  ✔ $original_commit_sha highly similar to $new_commit_sha"
+          $range_diff_common --color
+          [ "$GITHUB_ACTIONS" = 'true' ] && echo ::endgroup::
         fi
-        echo "Difference between $new_commit_sha and original $original_commit_sha may warrant inspection:"
 
-        $range_diff_common --color
-
-        problem=1
-      else
-        echo "  ✔ $original_commit_sha highly similar to $new_commit_sha"
-        $range_diff_common --color
-        [ "$GITHUB_ACTIONS" = 'true' ] && echo ::endgroup::
+        # move on to next commit
+        continue 3
       fi
-
-      # move on to next commit
-      continue 2
-    fi
+    done
   done
 
   if [ "$GITHUB_ACTIONS" = 'true' ] ; then
