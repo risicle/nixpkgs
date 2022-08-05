@@ -26,11 +26,37 @@
   tzlocal,
   validators,
   watchdog,
+
+  fetchFromGitHub,
+  pytestCheckHook,
+  bokeh,
+  matplotlib,
+  parameterized,
+  sqlalchemy,
+  hypothesis,
+  testfixtures,
+  requests-mock,
+  plotly,
+  opencv4,
+  graphviz,
+  pyodbc,
+  mysqlclient,
+  psycopg2,
+  git,
 }:
 
-buildPythonApplication rec {
-  pname = "streamlit";
+let
   version = "1.11.1";
+  testsSrc = fetchFromGitHub {
+    owner = "streamlit";
+    repo = "streamlit";
+    rev = version;
+    hash = "sha256-GW444SlrOpIGbwIwEaGQEGdVa9+0lh8Ib1dwN8a0/ew=";
+  };
+in
+buildPythonApplication rec {
+  inherit version;
+  pname = "streamlit";
   format = "wheel";  # source currently requires pipenv
 
   src = fetchPypi {
@@ -64,6 +90,27 @@ buildPythonApplication rec {
 
   postInstall = ''
       rm $out/bin/streamlit.cmd # remove windows helper
+  '';
+
+  checkInputs = [
+    pytestCheckHook
+    bokeh
+    git
+    graphviz
+    hypothesis
+    matplotlib
+    mysqlclient
+    opencv4
+    parameterized
+    plotly
+    psycopg2
+    pyodbc
+    requests-mock
+    sqlalchemy
+    testfixtures
+  ];
+  preCheck = ''
+    cp -r ${testsSrc}/lib/tests .
   '';
 
   meta = with lib; {
