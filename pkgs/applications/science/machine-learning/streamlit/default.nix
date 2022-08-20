@@ -33,9 +33,40 @@
   tzlocal,
   validators,
   watchdog,
+
+  fetchFromGitHub,
+  pytestCheckHook,
+  bokeh,
+  matplotlib,
+  parameterized,
+  sqlalchemy,
+  hypothesis,
+  testfixtures,
+  requests-mock,
+  plotly,
+  opencv4,
+  graphviz,
+  pyodbc,
+  mysqlclient,
+  psycopg2,
+  git,
 }:
 
 let
+  version = "1.2.0";
+  testsSrc = fetchFromGitHub {
+    owner = "streamlit";
+    repo = "streamlit";
+    rev = version;
+    hash = "sha256-zAsozmSGVuZSHipoKsuuEVb+mqrWF1ulYVUXlIdOMEc=";
+  };
+  testsPatch = fetchpatch {
+    name = "CVE-2022-35918-tests.patch";
+    url = "https://github.com/streamlit/streamlit/commit/80d9979d5f4a00217743d607078a1d867fad8acf.patch";
+    sha256 = "sha256-nBqoYi4jAxFYguDpNvcZ/T/P0gutPV56wePVdH/vHkk=";
+    stripLen = 1;
+    includes = [ "tests/streamlit/components_test.py" ];
+  };
   click_7 = click.overridePythonAttrs(old: rec {
     version = "7.1.2";
     src = old.src.override {
@@ -44,8 +75,8 @@ let
     };
   });
 in buildPythonApplication rec {
+  inherit version;
   pname = "streamlit";
-  version = "1.2.0";
   format = "wheel"; # the only distribution available
 
   src = fetchPypi {
@@ -112,6 +143,32 @@ in buildPythonApplication rec {
 
   postInstall = ''
       rm $out/bin/streamlit.cmd # remove windows helper
+  '';
+
+  checkInputs = [
+    pytestCheckHook
+    bokeh
+    git
+    graphviz
+    hypothesis
+    matplotlib
+    mysqlclient
+    opencv4
+    parameterized
+    plotly
+    psycopg2
+    pyodbc
+    requests-mock
+    sqlalchemy
+    testfixtures
+  ];
+  disabledTestPaths = [
+    "tests/streamlit/legacy_caching/hashing_test.py"
+  ];
+  preCheck = ''
+    cp -r ${testsSrc}/lib/tests .
+    chmod -R u+w .
+    patch -p1 < ${testsPatch}
   '';
 
   meta = with lib; {
