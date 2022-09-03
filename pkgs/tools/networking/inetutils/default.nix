@@ -16,6 +16,8 @@ stdenv.mkDerivation rec {
   patches = [
     # https://git.congatec.com/yocto/meta-openembedded/commit/3402bfac6b595c622e4590a8ff5eaaa854e2a2a3
     ./inetutils-1_9-PATH_PROCNET_DEV.patch
+    # https://sources.debian.org/data/main/i/inetutils/2%3A2.3-5/debian/patches/inetutils-telnetd-EC_EL_null_deref.patch
+    ./2.3-CVE-2022-39028.patch
   ];
 
   nativeBuildInputs = [ help2man perl /* for `whois' */ ];
