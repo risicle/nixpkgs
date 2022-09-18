@@ -23,6 +23,10 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-95uPkEt0nj4NIK/q3s+CScVbLjLU67CJrjeN9HncryU=";
   };
 
+  patches = [
+    ./CVE-2022-40674.patch
+  ];
+
   strictDeps = true;
 
   outputs = [ "out" "dev" ]; # TODO: fix referrers
