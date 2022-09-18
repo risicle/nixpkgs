@@ -28,6 +28,7 @@ stdenv.mkDerivation rec {
       url = "https://github.com/wolfSSL/wolfssl/commit/3c634e1f593586ff011623dd746f5a37d5659faf.patch";
       sha256 = "sha256-AUATjk/GIWuh+qUw21Ruzj9yzYU11wNiLvOzagkILcw=";
     })
+    ./5.3.0-CVE-2022-38152.patch
   ];
 
   postPatch = ''
