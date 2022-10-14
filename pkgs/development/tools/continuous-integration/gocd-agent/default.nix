@@ -2,12 +2,12 @@
 
 stdenv.mkDerivation rec {
   pname = "gocd-agent";
-  version = "19.3.0";
-  rev = "8959";
+  version = "19.11.0";
+  rev = "10687";
 
   src = fetchurl {
     url = "https://download.go.cd/binaries/${version}-${rev}/generic/go-agent-${version}-${rev}.zip";
-    sha256 = "1nirdv82i8x4s1dyb0rmxldh8avappd4g3mbbl6xp7r7s0drcprp";
+    sha256 = "sha256-qxNgHl2RSslyWzO39hAv0HyGwI4UVkQ4F8HrjPEYERI=";
   };
   meta = with lib; {
     description = "A continuous delivery server specializing in advanced workflow modeling and visualization";
