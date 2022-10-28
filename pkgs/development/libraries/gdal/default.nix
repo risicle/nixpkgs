@@ -63,22 +63,14 @@
 
 stdenv.mkDerivation rec {
   pname = "gdal";
-  version = "3.5.1";
+  version = "3.5.2";
 
   src = fetchFromGitHub {
     owner = "OSGeo";
     repo = "gdal";
     rev = "v${version}";
-    sha256 = "sha256-1bxXnfyw9Z2eacV/v+X0+VfDYf8XrM8F8qBiBP7KAPo=";
+    sha256 = "sha256-jtAFI1J64ZaTqIljqQL1xOiTGC79AZWcIgidozWczMM=";
   };
-
-  patches = [
-    (fetchpatch {
-      name = "cmake-fix-gdal-pkg-config.patch";
-      url = "https://github.com/OSGeo/gdal/commit/2c19601b83d7cc6d81ffa5d04db711c98f2c3b80.patch";
-      hash = "sha256-bHUEP1dtdLSrAJMPrd7SBzIlWwxK3xetGwsl2btYml8=";
-    })
-  ];
 
   nativeBuildInputs = [
     bison
