@@ -1,0 +1,41 @@
+diff -ur trex-orig/Cargo.lock trex/Cargo.lock
+--- trex-orig/Cargo.lock
++++ trex/Cargo.lock
+@@ -1164,9 +1164,9 @@
+ 
+ [[package]]
+ name = "gdal"
+-version = "0.12.0"
++version = "0.13.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "b0298f86d1a41cb625d887f4e932b40060fc7ab51e3052701234ba3326e11e1f"
++checksum = "b4a0c1c35516d98c70deb7792820e0d42242f198b0c2033ed4a26845d9d9845a"
+ dependencies = [
+  "bitflags",
+  "chrono",
+@@ -1180,9 +1180,9 @@
+ 
+ [[package]]
+ name = "gdal-sys"
+-version = "0.6.0"
++version = "0.7.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "8331ad3efd6032c03f2462785468edceeb79371b43757ff29809f2d160575f0f"
++checksum = "95459981aacafb121ee18f7669d38aaf4d2daa1638896be3542bd11f11660c6d"
+ dependencies = [
+  "libc",
+  "pkg-config",
+diff -ur trex-orig/t-rex-gdal/Cargo.toml trex/t-rex-gdal/Cargo.toml
+--- trex-orig/t-rex-gdal/Cargo.toml
++++ trex/t-rex-gdal/Cargo.toml
+@@ -13,8 +13,8 @@
+ doctest = false
+ 
+ [dependencies]
+-gdal = "0.12"
+-gdal-sys = "0.6"
++gdal = "0.13"
++gdal-sys = "0.7"
+ log = "0.4"
+ tile-grid = { path = "../tile-grid" }
+ t-rex-core = { path = "../t-rex-core" }
