@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchurl
+, fetchpatch
 , pkg-config
 , glib
 , freetype
@@ -44,6 +45,14 @@ stdenv.mkDerivation {
     url = "https://github.com/harfbuzz/harfbuzz/releases/download/${version}/harfbuzz-${version}.tar.xz";
     sha256 = "sha256-Smzgl7dagSH6zEuoO1sIO/7GV/RbADzVo0JPKua0Q00=";
   };
+
+  patches = [
+    (fetchpatch {
+      name = "fix-check-symbols-failure-darwin.patch";
+      url = "https://github.com/harfbuzz/harfbuzz/commit/b0b7a65388da25ae3fa01e969ad6abc67eed4f49.patch";
+      hash = "sha256-BlgsB2JDCQvxOFEVlxYhhU/HoXFvQXCw4TNehDIxwFc=";
+    })
+  ];
 
   postPatch = ''
     patchShebangs src/*.py test
