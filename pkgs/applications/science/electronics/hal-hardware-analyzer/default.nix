@@ -30,11 +30,21 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-wJlkTAsOdpCRu4ZthKpLmdWJCxF8f+td/fjFYabaZVk=";
   };
 
+  patches = [
+    (fetchpatch {
+      name = "allow-system-spdlog.patch";
+      url = "https://github.com/emsec/hal/commit/86ad3b3745e80c80e9b167a5f67ae9cb07de3772.patch";
+      includes = [ "cmake/detect_dependencies.cmake" ];
+      revert = true;
+      sha256 = "sha256-pO6G7QpyHupzui2lUzHO2uHTnRKPRgKhTz37tIe5ChE=";
+    })
+  ];
+
   # make sure bundled dependencies don't get in the way - install also otherwise
   # copies them in full to the output, bloating the package
   postPatch = ''
     shopt -s extglob
-    rm -rf deps/!(sanitizers-cmake)/*
+    rm -rf deps/!(sanitizers-cmake|abc)/*
     shopt -u extglob
   '';
 
