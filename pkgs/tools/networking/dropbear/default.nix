@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, glibc, zlib
+{ stdenv, lib, fetchurl, fetchpatch, glibc, zlib
 , enableStatic ? stdenv.hostPlatform.isStatic
 , sftpPath ? "/run/current-system/sw/libexec/sftp-server"
 }:
@@ -27,6 +27,11 @@ stdenv.mkDerivation rec {
     # Allow sessions to inherit the PATH from the parent dropbear.
     # Otherwise they only get the usual /bin:/usr/bin kind of PATH
     ./pass-path.patch
+    (fetchpatch {
+      name = "CVE-2021-36369.patch";
+      url = "https://github.com/mkj/dropbear/commit/210a9833496ed2a93b8da93924874938127ce0b5.patch";
+      sha256 = "sha256-ufnE+2uTsG23m+a/LwHfOEPZ3mq53vdFktZrVFH3yk4=";
+    })
   ];
 
   buildInputs = [ zlib ] ++ lib.optionals enableStatic [ glibc.static zlib.static ];
