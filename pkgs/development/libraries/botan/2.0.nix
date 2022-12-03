@@ -1,12 +1,78 @@
-{ callPackage, fetchpatch, ... } @ args:
+{ lib, callPackage, fetchurl, fetchpatch, ... } @ args: let
 
-callPackage ./generic.nix (args // {
+  # patching mechanism doesn't work with binary files, but the commits contain
+  # example files needed for the accompanying tests, so invent our own mechanism
+  # to put these in place
+  extraPostPatch = lib.concatMapStrings ({commit, sha256, path}: let
+      src = fetchurl {
+        inherit sha256;
+        url = "https://github.com/randombit/botan/raw/${commit}/${path}";
+      };
+      dest = path;
+    in ''
+      install -m0666 ${src} ${dest}
+    ''
+  ) [
+    { # needed by CVE-2022-43705-1.patch
+      commit = "fd83d9e262f63fb673e4c13ca37e5b768e41e812";
+      sha256 = "sha256-tN8Qt/QTYyJSrC4pcUb3LYYW56SHzUxMkyKmfxCj3TA=";
+      path = "src/tests/data/x509/ocsp/randombit_ocsp_forged_revoked.der";
+    }
+    { # needed by CVE-2022-43705-1.patch
+      commit = "fd83d9e262f63fb673e4c13ca37e5b768e41e812";
+      sha256 = "sha256-9uyzkIMqzLVdI9EirOBIe2A2QpZHLyQkihwdnef5C/8=";
+      path = "src/tests/data/x509/ocsp/randombit_ocsp_forged_valid.der";
+    }
+    { # needed by CVE-2022-43705-1.patch
+      commit = "fd83d9e262f63fb673e4c13ca37e5b768e41e812";
+      sha256 = "sha256-dGI4XLflzVUL7ftkfw99syXdsJu3Qfa2fGMAibFHzmU=";
+      path = "src/tests/data/x509/ocsp/randombit_ocsp_forged_valid_nocerts.der";
+    }
+    { # needed by CVE-2022-43705-2.patch
+      commit = "4e35073ff356e37c3adcf1ff3522e9d0d48c765f";
+      sha256 = "sha256-vdOUm0+MuH8BQOq3su3+ZUZqhd557RsczccqgXZNTxc=";
+      path = "src/tests/data/x509/ocsp/mychain_ocsp_for_ee.der";
+    }
+    { # needed by CVE-2022-43705-2.patch
+      commit = "4e35073ff356e37c3adcf1ff3522e9d0d48c765f";
+      sha256 = "sha256-iPBLR7m1snl4hI4qioK/KD/EyeE4Xk4cB0la10CYREg=";
+      path = "src/tests/data/x509/ocsp/mychain_ocsp_for_ee_delegate_signed.der";
+    }
+    { # needed by CVE-2022-43705-2.patch
+      commit = "4e35073ff356e37c3adcf1ff3522e9d0d48c765f";
+      sha256 = "sha256-y44NaY2uFXmDJZkDvBuz6PvRgpggPpOEQc6XnHiLqC8=";
+      path = "src/tests/data/x509/ocsp/mychain_ocsp_for_ee_delegate_signed_malformed.der";
+    }
+    { # needed by CVE-2022-43705-2.patch
+      commit = "4e35073ff356e37c3adcf1ff3522e9d0d48c765f";
+      sha256 = "sha256-GTRKh8l9vB6SwDwmqyGzznRJj2RVBnXAUEngi3AVmH0=";
+      path = "src/tests/data/x509/ocsp/mychain_ocsp_for_ee_root_signed.der";
+    }
+    { # needed by CVE-2022-43705-2.patch
+      commit = "4e35073ff356e37c3adcf1ff3522e9d0d48c765f";
+      sha256 = "sha256-zEPJZdrYTP56GN16h8aQNqd/8CNIjhHlD2wju/wU0lI=";
+      path = "src/tests/data/x509/ocsp/mychain_ocsp_for_int_self_signed.der";
+    }
+    { # needed by CVE-2022-43705-3.patch
+      commit = "c2faa88b0281e5017be72e1c85d0c41f686e1928";
+      sha256 = "sha256-WDOTr9LixY7OZGCYGnVjhRAHrnBg7e8TACZ1OeMLEqM=";
+      path = "src/tests/data/x509/ocsp/bdr-int-ocsp-resp.der";
+    }
+    { # needed by CVE-2022-43705-3.patch
+      commit = "c2faa88b0281e5017be72e1c85d0c41f686e1928";
+      sha256 = "sha256-dEJ99eQoFXe4A6v+N6SjBYioAVn0EIiB9pJQFVjjkpk=";
+      path = "src/tests/data/x509/ocsp/bdr-ocsp-resp.der";
+    }
+  ];
+
+in callPackage ./generic.nix (args // {
   baseVersion = "2.18";
   revision = "1";
   sha256 = "0adf53drhk1hlpfih0175c9081bqpclw6p2afn51cmx849ib9izq";
   postPatch = ''
     sed -e 's@lang_flags "@&--std=c++11 @' -i src/build-data/cc/{gcc,clang}.txt
-  '';
+  '' + extraPostPatch;
+
   extraPatches = [
     (fetchpatch {
       name = "CVE-2021-40529.patch";
