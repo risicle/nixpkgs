@@ -1,5 +1,6 @@
 { lib, stdenv
 , fetchFromGitHub
+, fetchpatch
 , boost
 , cmake
 , giflib
@@ -24,6 +25,14 @@ stdenv.mkDerivation rec {
     rev = "Release-${version}";
     sha256 = "0jqpb1zci911wdm928addsljxx8zsh0gzbhv9vbw6man4wi93h6h";
   };
+
+  patches = [
+    (fetchpatch {
+      name = "CVE-2022-36354.patch";
+      url = "https://github.com/OpenImageIO/oiio/commit/b48f0650a464ec15cc449b0e92f5fbad4659460b.patch";
+      sha256 = "sha256-PTUIVqzS6UlvXggcKgkaMR/jcSxiBQZWyucqcI3k2Rc=";
+    })
+  ];
 
   outputs = [ "bin" "out" "dev" "doc" ];
 
