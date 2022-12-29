@@ -33,6 +33,11 @@ stdenv.mkDerivation rec {
       url = "https://github.com/OpenImageIO/oiio/commit/b48f0650a464ec15cc449b0e92f5fbad4659460b.patch";
       sha256 = "sha256-PTUIVqzS6UlvXggcKgkaMR/jcSxiBQZWyucqcI3k2Rc=";
     })
+    (fetchpatch {
+      name = "CVE-2022-4198.patch";
+      url = "https://github.com/OpenImageIO/oiio/commit/19121dc4f0cca1e0ff53d616043d482f23169249.patch";
+      sha256 = "sha256-CSbatJwoI6pZBSUnY5QCbLkPODCIcAdixem8Vhf2KDY=";
+    })
   ];
 
   postPatch = let
