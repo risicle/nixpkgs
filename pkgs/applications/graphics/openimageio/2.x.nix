@@ -35,6 +35,17 @@ stdenv.mkDerivation rec {
     })
   ];
 
+  let
+    oiio-images = fetchFromGitHub {
+      owner = "OpenImageIO";
+      repo = "oiio-images";
+      rev = "aae37a54e31c0e719edcec852994d052ecf6541e";
+      sha256 = "sha256-Ivh87i4pTHEu849KON73wbz020u6v4sJu3i0q8nBhjs=";
+    };
+  in ''
+    ln -s ${oiio-images} $NIX_BUILD_ROOT/oiio-images
+  '';
+
   outputs = [ "bin" "out" "dev" "doc" ];
 
   nativeBuildInputs = [
@@ -72,12 +83,6 @@ stdenv.mkDerivation rec {
   preCheck = ''
     patchShebangs ../testsuite
   '';
-  OIIO_TESTSUITE_IMAGEDIR = fetchFromGitHub {
-    owner = "OpenImageIO";
-    repo = "oiio-images";
-    rev = "aae37a54e31c0e719edcec852994d052ecf6541e";
-    sha256 = "sha256-Ivh87i4pTHEu849KON73wbz020u6v4sJu3i0q8nBhjs=";
-  };
 
   meta = with lib; {
     homepage = "http://www.openimageio.org";
