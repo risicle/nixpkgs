@@ -43,7 +43,7 @@ stdenv.mkDerivation rec {
       sha256 = "sha256-Ivh87i4pTHEu849KON73wbz020u6v4sJu3i0q8nBhjs=";
     };
   in ''
-    ln -s ${oiio-images} $NIX_BUILD_ROOT/oiio-images
+    ln -s ${oiio-images} /build/oiio-images
   '';
 
   outputs = [ "bin" "out" "dev" "doc" ];
