@@ -13,6 +13,7 @@
 , robin-map
 , unzip
 , fmt
+, python3
 }:
 
 stdenv.mkDerivation rec {
@@ -65,6 +66,18 @@ stdenv.mkDerivation rec {
     substituteInPlace $dev/lib/cmake/OpenImageIO/OpenImageIOTargets-*.cmake \
       --replace "\''${_IMPORT_PREFIX}/lib/lib" "$out/lib/lib"
   '';
+
+  doCheck = true;
+  checkInputs = [ python3 ];
+  preCheck = ''
+    patchShebangs ../testsuite
+  '';
+  OIIO_TESTSUITE_IMAGEDIR = fetchFromGitHub {
+    owner = "OpenImageIO";
+    repo = "oiio-images";
+    rev = "aae37a54e31c0e719edcec852994d052ecf6541e";
+    sha256 = "sha256-Ivh87i4pTHEu849KON73wbz020u6v4sJu3i0q8nBhjs=";
+  };
 
   meta = with lib; {
     homepage = "http://www.openimageio.org";
