@@ -35,7 +35,7 @@ stdenv.mkDerivation rec {
     })
   ];
 
-  let
+  postPatch = let
     oiio-images = fetchFromGitHub {
       owner = "OpenImageIO";
       repo = "oiio-images";
