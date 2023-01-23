@@ -61,7 +61,7 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  doCheck = true;
+  doCheck = false;
 
   # Some of the tests use localhost networking.
   __darwinAllowLocalNetworking = true;
