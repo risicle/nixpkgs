@@ -18,6 +18,8 @@
 , isGNU ? false, isClang ? cc.isClang or false, gnugrep ? null
 , buildPackages ? {}
 , libcxx ? null
+, fortify-headers ? null
+, includeFortifyHeaders ? false
 }:
 
 with lib;
@@ -27,6 +29,7 @@ assert !nativeTools ->
   cc != null && coreutils != null && gnugrep != null;
 assert !(nativeLibc && noLibc);
 assert (noLibc || nativeLibc) == (libc == null);
+assert includeFortifyHeaders -> fortify-headers != null;
 
 let
   stdenv = stdenvNoCC;
@@ -345,6 +348,8 @@ stdenv.mkDerivation {
       touch "$out/nix-support/libc-cflags"
       touch "$out/nix-support/libc-ldflags"
       echo "-B${libc_lib}${libc.libdir or "/lib/"}" >> $out/nix-support/libc-crt1-cflags
+    '' + optionalString includeFortifyHeaders ''
+      echo "-idirafter ${fortify-headers}/include" >> $out/nix-support/libc-cflags
     '' + optionalString (!(cc.langD or false)) ''
       echo "-idirafter ${libc_dev}${libc.incdir or "/include"}" >> $out/nix-support/libc-cflags
     '' + optionalString (isGNU && (!(cc.langD or false))) ''
