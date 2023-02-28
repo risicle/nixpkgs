@@ -161,7 +161,7 @@ let
 
         cc = if prevStage.gcc-unwrapped == null
              then null
-             else lib.makeOverridable (import ../../build-support/cc-wrapper) {
+             else lib.makeOverridable (import ../../build-support/cc-wrapper) ({
           name = "${name}-gcc-wrapper";
           nativeTools = false;
           nativeLibc = false;
@@ -175,7 +175,10 @@ let
           inherit lib;
           inherit (prevStage) coreutils gnugrep;
           stdenvNoCC = prevStage.ccWrapperStdenv;
-        };
+        } // lib.optionalAttrs (localSystem.libc == "musl") {
+          inherit (prevStage) fortify-headers;
+          includeFortifyHeaders = true;
+        });
 
         overrides = self: super: (overrides self super) // { fetchurl = thisStdenv.fetchurlBoot; };
       };
@@ -439,7 +442,7 @@ in
       # bootstrap, like guile: https://github.com/NixOS/nixpkgs/issues/181188
       gnumake = super.gnumake.override { inBootstrap = true; };
 
-      gcc = lib.makeOverridable (import ../../build-support/cc-wrapper) {
+      gcc = lib.makeOverridable (import ../../build-support/cc-wrapper) ({
         nativeTools = false;
         nativeLibc = false;
         isGNU = true;
@@ -452,7 +455,10 @@ in
         inherit lib;
         inherit (self) stdenvNoCC coreutils gnugrep;
         shell = self.bash + "/bin/bash";
-      };
+      } // lib.optionalAttrs (localSystem.libc == "musl") {
+        inherit (self) fortify-headers;
+        includeFortifyHeaders = true;
+      });
     };
     extraNativeBuildInputs = [ prevStage.patchelf prevStage.xz ] ++
       # Many tarballs come with obsolete config.sub/config.guess that don't recognize aarch64.
@@ -528,6 +534,7 @@ in
         ++  [ /*propagated from .dev*/ linuxHeaders
             binutils gcc gcc.cc gcc.cc.lib gcc.expand-response-params
           ]
+          ++ lib.optionals (localSystem.libc == "musl") [ fortify-headers ]
           ++ lib.optionals (!localSystem.isx86 || localSystem.libc == "musl")
             [ prevStage.updateAutotoolsGnuConfigScriptsHook prevStage.gnu-config ];
 
