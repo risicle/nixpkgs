@@ -20,6 +20,10 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-2ayWm1lXR1rgDHdpKO0gMJzGRag95qVPU7jSCJRtar0=";
   };
 
+  patches = [
+    ./timescaledb-2.8.1-CVE-2023-25149.patch
+  ];
+
   cmakeFlags = [ "-DSEND_TELEMETRY_DEFAULT=OFF" "-DREGRESS_CHECKS=OFF" "-DTAP_CHECKS=OFF" ]
     ++ lib.optionals stdenv.isDarwin [ "-DLINTER=OFF" ];
 
