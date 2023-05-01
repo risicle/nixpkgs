@@ -23579,6 +23579,8 @@ with pkgs;
     inherit (darwin.apple_sdk.frameworks) Security;
   };
 
+  ruy = callPackage ../development/libraries/science/math/ruy { };
+
   s2geometry = callPackage ../development/libraries/s2geometry { };
 
   safefile = callPackage ../development/libraries/safefile { };
