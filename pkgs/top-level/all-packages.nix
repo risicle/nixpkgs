@@ -22887,6 +22887,8 @@ with pkgs;
 
   neon = callPackage ../development/libraries/neon { };
 
+  neon2sse = callPackage ../development/libraries/neon2sse { };
+
   nettle = import ../development/libraries/nettle { inherit callPackage fetchurl; };
 
   newman = callPackage ../development/web/newman { };
