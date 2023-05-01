@@ -17,34 +17,48 @@
 , zlib
 }:
 let
-#   tflite-eigen = fetchFromGitLab {
-#     owner = "libeigen";
-#     repo = "eigen";
-#     rev = "3d9051ea84a5089b277c88dac456b3b1576bfa7f";
-#     sha256 = "1y3f2jvimb5i904f4n37h23cv2pkdlbz8656s0kga1y7c0p50wif";
-#   };
-#
+  eigen-src = fetchFromGitLab {
+    owner = "libeigen";
+    repo = "eigen";
+    rev = "3bb6a48d8c171cf20b5f8e48bfb4e424fbd4f79e";
+    hash = "sha256-k71DoEsx8JpC9AlQ0cCRI0fWMIWFBFL/Yscx+2iBtNM=";
+  };
+
+  xnnpack-src = fetchFromGitHub {
+    owner = "google";
+    repo = "xnnpack";
+    rev = "e8f74a9763aa36559980a0c2f37f587794995622";
+    hash = "sha256-+SvG24jtD6tk/b3lQdMkoqrlI6GoOkHuc6ILMMnPLdg=";
+  };
+
   gemmlowp-src = fetchFromGitHub {
     owner = "google";
     repo = "gemmlowp";
     rev = "08e4bb339e34017a0835269d4a37c4ea04d15a69";
-    sha256 = "sha256-0yhG+h2LOMcqOyL/HE5953puPAD1wjDscqh1qgsfDuE=";
+    hash = "sha256-0yhG+h2LOMcqOyL/HE5953puPAD1wjDscqh1qgsfDuE=";
   };
-#
-#   neon-2-sse-src = fetchFromGitHub {
-#     owner = "intel";
-#     repo = "ARM_NEON_2_x86_SSE";
-#     rev = "1200fe90bb174a6224a525ee60148671a786a71f";
-#     sha256 = "0fhxch711ck809dpq1myxz63jiiwfcnxvj45ww0kg8s0pqpn5kv6";
-#   };
-#
-#   farmhash-src = fetchFromGitHub {
-#     owner = "google";
-#     repo = "farmhash";
-#     rev = "816a4ae622e964763ca0862d9dbd19324a1eaf45";
-#     sha256 = "1mqxsljq476n1hb8ilkrpb39yz3ip2hnc7rhzszz4sri8ma7qzp6";
-#   };
-#
+
+  abseil-cpp-src = fetchFromGitHub {
+    owner = "abseil";
+    repo = "abseil-cpp";
+    rev = "273292d1cfc0a94a65082ee350509af1d113344d";
+    hash = "sha256-cnvLcBaznltTHJ5FSTuHhsRMmsDbJ9gyvhrBOdul288=";
+  };
+
+  neon-2-sse-src = fetchFromGitHub {
+    owner = "intel";
+    repo = "ARM_NEON_2_x86_SSE";
+    rev = "a15b489e1222b2087007546b4912e21293ea86ff";
+    hash = "sha256-299ZptvdTmCnIuVVBkrpf5ZTxKPwgcGUob81tEI91F0=";
+  };
+
+  farmhash-src = fetchFromGitHub {
+    owner = "google";
+    repo = "farmhash";
+    rev = "0d859a811870d10f53a594927d0d0b97573ad06d";
+    hash = "sha256-J0AhHVOvPFT2SqvQ+evFiBoVfdHthZSBXzAhUepARfA=";
+  };
+
   fft2d-src = fetchzip {
     url = "http://www.kurims.kyoto-u.ac.jp/~ooura/fft2d.tgz";
     hash = "sha256-cHP9EBhsjNvwXd9Xw6pabT/j95lWwGaxoeoKC2bGwYE=";
@@ -56,20 +70,27 @@ let
 #     rev = "4dfe081cf6bcd15db339cf2680b9281b8451eeb3";
 #     sha256 = "06a8dfl3a29r93nxpp6hpywsajz5d555n3sqd3i6krybb6swnvh7";
 #   };
-#
-#   ruy-src = fetchFromGitHub {
-#     owner = "google";
-#     repo = "ruy";
-#     rev = "23633b37099b614a2f836ef012cafc8087fdb98c";
-#     sha256 = "14k9hz6ss8qy8nsajk6lrq25f6qxrldxky31ijw0dpqnfnnswrx4";
-#   };
-#
-#   cpuinfo-src = fetchFromGitHub {
-#     owner = "pytorch";
-#     repo = "cpuinfo";
-#     rev = "5916273f79a21551890fd3d56fc5375a78d1598d";
-#     sha256 = "0q6760xdxsg18acdv8vq3yrq7ksr7wsm8zbyan01zf2khnb6fw4x";
-#   };
+
+  ruy-src = fetchFromGitHub {
+    owner = "google";
+    repo = "ruy";
+    rev = "841ea4172ba904fe3536789497f9565f2ef64129";
+    hash = "sha256-KtduRl9HUxUhNdgm+M8nU55zwbt1P+QRRLoePFRwh9g=";
+  };
+
+  cpuinfo-src = fetchFromGitHub {
+    owner = "pytorch";
+    repo = "cpuinfo";
+    rev = "5e63739504f0f8e18e941bd63b2d6d42536c7d90";
+    hash = "sha256-5no9LkQIIOIidvhera5lIbnOUkcZQtW4nIUqXSLnWHA=";
+  };
+
+  clog-src = fetchFromGitHub {
+    owner = "pytorch";
+    repo = "cpuinfo";  # yes, i'm confused too
+    rev = "4b5a76c4de21265ddba98fc8f259e136ad11411b";
+    hash = "sha256-rFPARBV3DEkZ/RjBcrSoq286IzLOwBBizSsFEg9dpFQ=";
+  };
 in
 stdenv.mkDerivation rec {
   pname = "tensorflow-lite";
@@ -84,12 +105,12 @@ stdenv.mkDerivation rec {
 
   patches = [
     # included from 2.12.0 onwards
-    (fetchpatch {
-      name = "system-farmhash.patch";
-      url = "https://github.com/tensorflow/tensorflow/commit/d8451a9048d09692994c40a6f9bc928e70ed79b5.patch";
-      stripLen = 2;
-      hash = "sha256-x2easHfKW7cXI9e5D2CfnarHJflQoNZknyaPYqTyBsk=";
-    })
+#     (fetchpatch {
+#       name = "system-farmhash.patch";
+#       url = "https://github.com/tensorflow/tensorflow/commit/d8451a9048d09692994c40a6f9bc928e70ed79b5.patch";
+#       stripLen = 2;
+#       hash = "sha256-x2easHfKW7cXI9e5D2CfnarHJflQoNZknyaPYqTyBsk=";
+#     })
   ];
 
   sourceRoot = "source/tensorflow/lite";
@@ -100,21 +121,85 @@ stdenv.mkDerivation rec {
     flatbuffers
     abseil-cpp
     eigen
-    ruy
-    cpuinfo
-    farmhash
+#     ruy
+#     cpuinfo
+#     farmhash
   ];
 
-  cmakeFlags = [
-    "-DTFLITE_ENABLE_INSTALL=ON"
-    "-DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON"
-    "-Dabsl_DIR=${lib.getDev abseil-cpp}/lib/cmake/absl"
-    "-DEigen3_DIR=${lib.getDev eigen}/share/eigen3/cmake"
-    "-DNEON_2_SSE_DIR=${lib.getDev neon2sse}/lib/cmake/NEON_2_SSE"
-    "-DSYSTEM_FARMHASH=ON"
-    "-DFETCHCONTENT_SOURCE_DIR_FFT2D=${fft2d-src}"
-    "-DFETCHCONTENT_SOURCE_DIR_GEMMLOWP=${gemmlowp-src}"
-  ];
+  preConfigure = ''
+    export FFT2D_SRC_DIR=$(mktemp -d)
+    cp -r ${fft2d-src}/* $FFT2D_SRC_DIR
+    chmod -R +w $FFT2D_SRC_DIR
+
+    export GEMMLOWP_SRC_DIR=$(mktemp -d)
+    cp -r ${gemmlowp-src}/* $GEMMLOWP_SRC_DIR
+    chmod -R +w $GEMMLOWP_SRC_DIR
+
+    export XNNPACK_SRC_DIR=$(mktemp -d)
+    cp -r ${xnnpack-src}/* $XNNPACK_SRC_DIR
+    chmod -R +w $XNNPACK_SRC_DIR
+
+    #export EIGEN_SRC_DIR=$(mktemp -d)
+    #cp -r ${eigen-src}/* $EIGEN_SRC_DIR
+    #chmod -R +w $EIGEN_SRC_DIR
+
+    #export ABSEIL_CPP_SRC_DIR=$(mktemp -d)
+    #cp -r ${abseil-cpp-src}/* $ABSEIL_CPP_SRC_DIR
+    #chmod -R +w $ABSEIL_CPP_SRC_DIR
+
+    export NEON_2_SSE_SRC_DIR=$(mktemp -d)
+    cp -r ${neon-2-sse-src}/* $NEON_2_SSE_SRC_DIR
+    chmod -R +w $NEON_2_SSE_SRC_DIR
+
+    export FARMHASH_SRC_DIR=$(mktemp -d)
+    cp -r ${farmhash-src}/* $FARMHASH_SRC_DIR
+    chmod -R +w $FARMHASH_SRC_DIR
+
+    export CPUINFO_SRC_DIR=$(mktemp -d)
+    cp -r ${cpuinfo-src}/* $CPUINFO_SRC_DIR
+    chmod -R +w $CPUINFO_SRC_DIR
+
+    export RUY_SRC_DIR=$(mktemp -d)
+    cp -r ${ruy-src}/* $RUY_SRC_DIR
+    chmod -R +w $RUY_SRC_DIR
+
+    export CLOG_SRC_DIR=$(mktemp -d)
+    cp -r ${clog-src}/* $CLOG_SRC_DIR
+    chmod -R +w $CLOG_SRC_DIR
+
+    export cmakeFlagsArray=(
+      '-DTFLITE_ENABLE_INSTALL=ON'
+      '-DTFLITE_ENABLE_XNNPACK=OFF'
+      '-DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON'
+      '-DFlatbuffers_DIR=${flatbuffers}/lib/cmake/flatbuffers'
+      '-Dabsl_DIR=${lib.getDev abseil-cpp}/lib/cmake/absl'
+      '-DEigen3_DIR=${lib.getDev eigen}/share/eigen3/cmake'
+      "-DFETCHCONTENT_SOURCE_DIR_FFT2D=$FFT2D_SRC_DIR"
+      "-DFETCHCONTENT_SOURCE_DIR_GEMMLOWP=$GEMMLOWP_SRC_DIR"
+      #"-DFETCHCONTENT_SOURCE_DIR_EIGEN=$EIGEN_SRC_DIR"
+      #"-DFETCHCONTENT_SOURCE_DIR_ABSEIL-CPP=$ABSEIL_CPP_SRC_DIR"
+      "-DFETCHCONTENT_SOURCE_DIR_NEON2SSE=$NEON_2_SSE_SRC_DIR"
+      "-DFETCHCONTENT_SOURCE_DIR_FARMHASH=$FARMHASH_SRC_DIR"
+      "-DFETCHCONTENT_SOURCE_DIR_CPUINFO=$CPUINFO_SRC_DIR"
+      "-DFETCHCONTENT_SOURCE_DIR_RUY=$RUY_SRC_DIR"
+      "-DFETCHCONTENT_SOURCE_DIR_CLOG=$CLOG_SRC_DIR"
+    )
+  '';
+
+#   cmakeFlags = [
+#     "-DTFLITE_ENABLE_INSTALL=ON"
+# #     "-DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON"
+# #     "-Dabsl_DIR=${lib.getDev abseil-cpp}/lib/cmake/absl"
+# #     "-DEigen3_DIR=${lib.getDev eigen}/share/eigen3/cmake"
+# #     "-DNEON_2_SSE_DIR=${lib.getDev neon2sse}/lib/cmake/NEON_2_SSE"
+# #     "-Dcpuinfo_DIR=${lib.getDev cpuinfo}/share/cpuinfo"
+# #     "-DSYSTEM_FARMHASH=ON"
+#     "-DFETCHCONTENT_SOURCE_DIR_FFT2D=$FFT2D_SRC_DIR"
+#     "-DFETCHCONTENT_SOURCE_DIR_GEMMLOWP=$GEMMLOWP_SRC_DIR"
+#     "-DFETCHCONTENT_SOURCE_DIR_XNNPACK=$XNNPACK_SRC_DIR"
+#     "-DFETCHCONTENT_SOURCE_DIR_EIGEN=$EIGEN_SRC_DIR"
+#     "-DFETCHCONTENT_SOURCE_DIR_ABSEIL-CPP=$ABSEIL_CPP_SRC_DIR"
+#   ];
 
 #   postPatch = ''
 #     substituteInPlace ./tensorflow/lite/tools/make/Makefile \
