@@ -352,13 +352,6 @@ stdenv.mkDerivation (finalAttrs: {
   '';
 
   patches = map (patch: fetchpatch patch) (extraPatches
-    ++ (lib.optional (lib.versionAtLeast version "5" && lib.versionOlder version "6")
-      {
-        name = "libsvtav1-1.5.0-compat.patch";
-        url = "https://git.ffmpeg.org/gitweb/ffmpeg.git/patch/031f1561cd286596cdb374da32f8aa816ce3b135";
-        hash = "sha256-mSnmAkoNikDpxcN+A/hpB7mUbbtcMvm4tG6gZFuroe8=";
-      }
-    )
     ++ (lib.optional (lib.versionAtLeast version "6" && lib.versionOlder version "6.1")
       { # this can be removed post 6.1
         name = "fix_aacps_tablegen";
