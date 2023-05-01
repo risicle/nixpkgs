@@ -19799,6 +19799,8 @@ with pkgs;
 
   cpputest = callPackage ../development/libraries/cpputest { };
 
+  cpuinfo = callPackage ../development/libraries/cpuinfo { };
+
   cracklib = callPackage ../development/libraries/cracklib { };
 
   cre2 = callPackage ../development/libraries/cre2 { };
