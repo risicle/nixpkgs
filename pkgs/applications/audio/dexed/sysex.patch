@@ -1,0 +1,25 @@
+commit f5517ce429f96879e8e8d5ca6209c15f47500d22
+Author: Robert Scott <code@humanleg.org.uk>
+Date:   Sun Jun 11 19:00:18 2023 +0100
+
+    ClapJuceWrapper::process_clap_event: handle CLAP_EVENT_MIDI_SYSEX
+
+diff --git a/libs/clap-juce-extensions/src/wrapper/clap-juce-wrapper.cpp b/src/wrapper/clap-juce-wrapper.cpp
+index e579bd0..2b1ca2a 100644
+--- a/libs/clap-juce-extensions/src/wrapper/clap-juce-wrapper.cpp
++++ b/libs/clap-juce-extensions/src/wrapper/clap-juce-wrapper.cpp
+@@ -1574,6 +1574,14 @@ class ClapJuceWrapper : public clap::helpers::Plugin<
+                                 (int)midiEvent->header.time - sampleOffset);
+         }
+         break;
++        case CLAP_EVENT_MIDI_SYSEX:
++        {
++            auto midiSysexEvent = reinterpret_cast<const clap_event_midi_sysex *>(event);
++            midiBuffer.addEvent(juce::MidiMessage(midiSysexEvent->buffer, midiSysexEvent->size,
++                                                  midiSysexEvent->header.time),
++                                (int)midiSysexEvent->header.time - sampleOffset);
++        }
++        break;
+         case CLAP_EVENT_TRANSPORT:
+         {
+             // handle this case

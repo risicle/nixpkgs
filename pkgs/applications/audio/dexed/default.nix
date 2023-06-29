@@ -32,16 +32,35 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-6buvA72YRlGjHWLPEZMr45lYYG6ZY+IWmylcHruX27g=";
   };
 
-  postPatch = ''
+  patches = [
+    ./sysex.patch
+  ];
+
+  postPatch = let
+    clapJuceExt = fetchFromGitHub {
+      owner = "risicle";
+      repo = "clap-juce-extensions";
+      rev = "f5517ce429f96879e8e8d5ca6209c15f47500d22";
+      sha256 = "sha256-WZE63vLuQZZqwY+gZOOIuPGYwBIGghA+6dSnhqTlTcw=";
+    };
+  in ''
     # needs special setup on Linux, dunno if it can work on Darwin
     # https://github.com/NixOS/nixpkgs/issues/19098
     sed -i -e '/juce::juce_recommended_lto_flags/d' Source/CMakeLists.txt
+
+    #rm -rf libs/clap-juce-extensions
+    #cp -r ${clapJuceExt} libs/clap-juce-extensions
+    #chmod -R +rw libs/clap-juce-extensions
   '';
 
   nativeBuildInputs = [
     cmake
     pkg-config
   ];
+
+#   cmakeFlags = [
+#     "-DCMAKE_BUILD_TYPE=Debug"
+#   ];
 
   buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
     libX11
@@ -97,6 +116,8 @@ stdenv.mkDerivation rec {
 
     runHook postInstall
   '';
+
+  separateDebugInfo = true;
 
   meta = with lib; {
     description = "DX7 FM multi platform/multi format plugin";
