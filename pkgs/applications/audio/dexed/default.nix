@@ -8,6 +8,7 @@
 , libXinerama
 , libXext
 , libXcursor
+, libhwy
 , freetype
 , alsa-lib
 , libjack2
@@ -34,6 +35,7 @@ stdenv.mkDerivation rec {
 
   patches = [
     ./sysex.patch
+    ./hwy.patch
   ];
 
   postPatch = let
@@ -71,6 +73,7 @@ stdenv.mkDerivation rec {
     freetype
     alsa-lib
     libjack2
+    libhwy
   ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
     Accelerate
     Cocoa
@@ -118,6 +121,7 @@ stdenv.mkDerivation rec {
   '';
 
   separateDebugInfo = true;
+  env.NIX_ENFORCE_NO_NATIVE = "0";
 
   meta = with lib; {
     description = "DX7 FM multi platform/multi format plugin";

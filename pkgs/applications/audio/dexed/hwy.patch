@@ -1,0 +1,417 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6a1afa7..a303d50 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,6 +1,8 @@
+ cmake_minimum_required(VERSION 3.16)
+ project(Dexed VERSION 0.9.6)
+ 
++find_package(hwy REQUIRED)
++
+ #Compile commands, useful for some IDEs like VS-Code
+ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+ 
+@@ -41,6 +43,8 @@ option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Enable Module Source Groups" ON)
+ option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
+ option(JUCE_BUILD_EXAMPLES "Build JUCE Examples" OFF)
+ 
++string(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3 -march=native -mtune=native -msse4.1 ")
++
+ add_subdirectory(libs)
+ add_subdirectory(Resources)
+ add_subdirectory(Source)
+diff --git a/Source/CMakeLists.txt b/Source/CMakeLists.txt
+index f98357c..bf083db 100644
+--- a/Source/CMakeLists.txt
++++ b/Source/CMakeLists.txt
+@@ -103,6 +103,7 @@ PRIVATE
+     juce::juce_graphics
+     juce::juce_gui_basics
+     juce::juce_gui_extra
++    hwy::hwy
+     surgesynthteam_tuningui
+     tuning-library
+     DexedResources
+diff --git a/Source/EngineMkI.cpp b/Source/EngineMkI.cpp
+index af4655d..7dfa56b 100644
+--- a/Source/EngineMkI.cpp
++++ b/Source/EngineMkI.cpp
+@@ -26,6 +26,9 @@
+ #include <cmath>
+ #include <cstdlib>
+ 
++#include <smmintrin.h>
++#include <hwy/highway.h>
++
+ #include "msfa/sin.h"
+ #include "msfa/exp2.h"
+ 
+@@ -48,16 +51,19 @@
+     const int32_t __attribute__ ((aligned(16))) zeros[N] = {0};
+ #endif
+ 
++HWY_BEFORE_NAMESPACE();
++namespace hn = hwy::HWY_NAMESPACE;
++
+ static const uint16_t NEGATIVE_BIT = 0x8000;
+ static const uint16_t ENV_BITDEPTH = 14;
+ 
+ static const uint16_t SINLOG_BITDEPTH = 10;
+ static const uint16_t SINLOG_TABLESIZE = 1<<SINLOG_BITDEPTH;
+-static uint16_t sinLogTable[SINLOG_TABLESIZE];
++static uint16_t sinLogTable[SINLOG_TABLESIZE+1];
+ 
+ static const uint16_t SINEXP_BITDEPTH = 10;
+ static const uint16_t SINEXP_TABLESIZE = 1<<SINEXP_BITDEPTH;
+-static uint16_t sinExpTable[SINEXP_TABLESIZE];
++static uint16_t sinExpTable[SINEXP_TABLESIZE+1];
+ 
+ const uint16_t ENV_MAX = 1<<ENV_BITDEPTH;
+ 
+@@ -77,6 +83,56 @@ static inline uint16_t sinLog(uint16_t phi) {
+     }
+ }
+ 
++template<typename D>
++static inline hn::Vec<D> u16TableLookup(D d, hn::Vec<D> indexes, const uint16_t *table) {
++    static_assert(std::is_same<hn::TFromD<D>, uint16_t>::value);
++    using P = hn::Rebind<uint32_t, D>;
++    P p;
++    using PS = hn::Rebind<int32_t, D>;
++    PS ps;
++
++    return hn::TruncateTo(
++        d,
++        hn::GatherOffset(
++            p,
++            // the cast is a lie, but offset should be in bytes anyway
++            (uint32_t*)table,
++            hn::PromoteTo(
++                ps,
++                // byte indexes of short ints
++                indexes * hn::Set(d, 2)
++            )
++        )
++    );
++}
++
++template<typename D>
++static inline hn::Vec<D> sinLog(D d, hn::Vec<D> phi) {
++    static_assert(std::is_same<hn::TFromD<D>, uint16_t>::value);
++
++    const auto SINLOG_TABLEFILTER = hn::Set(d, SINLOG_TABLESIZE-1);
++
++    const auto switch_vals = phi & hn::Set(d, SINLOG_TABLESIZE * 3);
++    const auto sv_zero = switch_vals == hn::Set(d, 0);
++    const auto sv_sinlog_tablesize = switch_vals == hn::Set(d, SINLOG_TABLESIZE);
++    const auto sv_sinlog_tablesize2 = switch_vals == hn::Set(d, SINLOG_TABLESIZE * 2);
++
++    auto indexes = phi & SINLOG_TABLEFILTER;
++    indexes = hn::IfThenElse(
++        hn::Or(sv_zero, sv_sinlog_tablesize2),
++        indexes,
++        indexes ^ SINLOG_TABLEFILTER
++    );
++
++    const auto result = u16TableLookup(d, indexes, sinLogTable);
++
++    return hn::IfThenElse(
++        hn::Or(sv_zero, sv_sinlog_tablesize),
++        result,
++        result | hn::Set(d, NEGATIVE_BIT)
++    );
++}
++
+ EngineMkI::EngineMkI() {
+     float bitReso = SINLOG_TABLESIZE;
+     
+@@ -149,31 +205,108 @@ inline int32_t mkiSin(int32_t phase, uint16_t env) {
+         return result << 13;
+ }
+ 
++template<typename D, typename D2>
++inline hn::Vec<D2> mkiSin(
++    D2 d2,
++    hn::Vec<D2> phase,
++    D d,
++    hn::Vec<D> env
++) {
++    static_assert(std::is_same<hn::TFromD<D2>, int32_t>::value);
++    static_assert(std::is_same<hn::TFromD<D>, uint16_t>::value);
++
++    hn::Rebind<uint32_t, D2> du;
++
++    auto expVal = sinLog(
++        d,
++        hn::TruncateTo(d, hn::BitCast(du, hn::ShiftRight<22-SINLOG_BITDEPTH>(phase)))
++    ) + env;
++
++    const auto isSigned = (
++        hn::PromoteTo(du, expVal) & hn::Set(du, NEGATIVE_BIT)
++    ) != hn::Set(du, 0);
++    expVal = expVal & hn::Not(hn::Set(d, NEGATIVE_BIT));
++
++    const auto SINEXP_FILTER = hn::Set(d, 0x3FF);
++    auto result = hn::Set(d, 4096) + u16TableLookup(
++        d,
++        ( expVal & SINEXP_FILTER ) ^ SINEXP_FILTER,
++        sinExpTable
++    );
++
++    result = result >> hn::ShiftRight<10>(expVal);
++
++    auto presult = hn::PromoteTo(d2, result);
++    presult = hn::IfThenElse(
++        hn::RebindMask(d2, isSigned),
++        hn::Neg(presult) - hn::Set(d2, 1),
++        presult
++    );
++    return hn::ShiftLeft<13>(presult);
++}
++
+ void EngineMkI::compute(int32_t *output, const int32_t *input,
+                         int32_t phase0, int32_t freq,
+                         int32_t gain1, int32_t gain2, bool add) {
++    const hn::CappedTag<int32_t, N> d;
++    const hn::Rebind<uint32_t, decltype(d)> du;
++    const hn::Rebind<uint16_t, decltype(d)> ds;
++    const size_t HWY_N = hn::Lanes(d);
++
+     int32_t dgain = (gain2 - gain1 + (N >> 1)) >> LG_N;
+     int32_t gain = gain1;
+     int32_t phase = phase0;
+     const int32_t *adder = add ? output : zeros;
+-    
+-    for (int i = 0; i < N; i++) {
++
++    int i = 0;
++    for (; i+HWY_N <= N; i+=HWY_N) {
++        const auto gains = hn::Set(d, gain) + (hn::Iota(d, 1) * hn::Set(d, dgain));
++        gain += dgain*HWY_N;
++        const auto phases = hn::Set(d, phase) + (hn::Iota(d, 0) * hn::Set(d, freq));
++        const auto y = mkiSin(
++            d,
++            phases + hn::LoadU(d, &input[i]),
++            ds,
++            hn::TruncateTo(ds, hn::BitCast(du, gains))
++        );
++        hn::StoreU(y + hn::LoadU(d, &adder[i]), d, &output[i]);
++        phase += freq*HWY_N;
++    }
++    for (; i < N; i++) {
+         gain += dgain;
+         int32_t y = mkiSin((phase+input[i]), gain);
+         output[i] = y + adder[i];
+         phase += freq;
+     }
+-    
+ }
+ 
+ void EngineMkI::compute_pure(int32_t *output, int32_t phase0, int32_t freq,
+                              int32_t gain1, int32_t gain2, bool add) {
++    const hn::CappedTag<int32_t, N> d;
++    const hn::Rebind<uint32_t, decltype(d)> du;
++    const hn::Rebind<uint16_t, decltype(d)> ds;
++    const size_t HWY_N = hn::Lanes(d);
++
+     int32_t dgain = (gain2 - gain1 + (N >> 1)) >> LG_N;
+     int32_t gain = gain1;
+     int32_t phase = phase0;
+     const int32_t *adder = add ? output : zeros;
+-    
+-    for (int i = 0; i < N; i++) {
++
++    int i = 0;
++    for (; i+HWY_N <= N; i+=HWY_N) {
++        const auto gains = hn::Set(d, gain) + (hn::Iota(d, 1) * hn::Set(d, dgain));
++        gain += dgain*HWY_N;
++        const auto phases = hn::Set(d, phase) + (hn::Iota(d, 0) * hn::Set(d, freq));
++        const auto y = mkiSin(
++            d,
++            phases,
++            ds,
++            hn::TruncateTo(ds, hn::BitCast(du, gains))
++        );
++        hn::StoreU(y + hn::LoadU(d, &adder[i]), d, &output[i]);
++        phase += freq*HWY_N;
++    }
++    for (; i < N; i++) {
+         gain += dgain;
+         int32_t y = mkiSin(phase , gain);
+         output[i] = y + adder[i];
+diff --git a/Source/PluginProcessor.cpp b/Source/PluginProcessor.cpp
+index f2c3817..77eab12 100644
+--- a/Source/PluginProcessor.cpp
++++ b/Source/PluginProcessor.cpp
+@@ -20,6 +20,10 @@
+ 
+ #include <stdarg.h>
+ #include <bitset>
++#include <cstring>
++
++#include <hwy/highway.h>
++#include <hwy/aligned_allocator.h>
+ 
+ #include "PluginProcessor.h"
+ #include "PluginEditor.h"
+@@ -34,6 +38,9 @@
+ #include "msfa/aligned_buf.h"
+ #include "msfa/fm_op_kernel.h"
+ 
++HWY_BEFORE_NAMESPACE();
++namespace hn = hwy::HWY_NAMESPACE;
++
+ #if JUCE_MSVC
+     #pragma comment (lib, "kernel32.lib")
+     #pragma comment (lib, "user32.lib")
+@@ -190,6 +197,12 @@ void DexedAudioProcessor::releaseResources() {
+ }
+ 
+ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
++    const hn::ScalableTag<int32_t> di;
++    const size_t HWY_NI = hn::Lanes(di);
++    const hn::FixedTag<float, HWY_NI> dif; // must have same lane count
++
++    const hn::ScalableTag<float> df;
++    const size_t HWY_NF = hn::Lanes(df);
+ 
+     juce::ScopedNoDenormals noDenormals;
+ 
+@@ -213,15 +226,15 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+     float *channelData = buffer.getWritePointer(0);
+   
+     // flush first events
+-    for (i=0; i < numSamples && i < extra_buf_size; i++) {
+-        channelData[i] = extra_buf[i];
+-    }
++    std::memcpy(channelData, extra_buf, sizeof(float) * std::min(numSamples, extra_buf_size));
+     
+     // remaining buffer is still to be processed
+     if (extra_buf_size > numSamples) {
+-        for (int j = 0; j < extra_buf_size - numSamples; j++) {
+-            extra_buf[j] = extra_buf[j + numSamples];
+-        }
++        std::memmove(
++            extra_buf,
++            &extra_buf[numSamples],
++            sizeof(float) * (extra_buf_size - numSamples)
++        );
+         extra_buf_size -= numSamples;
+         
+         // flush the events, they will be process in the next cycle
+@@ -229,18 +242,16 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+             processMidiMessage(midiMsg);
+         }
+     } else {
++        const auto audiobuf = hwy::MakeUniqueAlignedArray<int32_t>(N);
++        const auto sumbuf = hwy::MakeUniqueAlignedArray<float>(N);
++
+         for (; i < numSamples; i += N) {
+-            AlignedBuf<int32_t, N> audiobuf;
+-            float sumbuf[N];
+-            
+             while(getNextEvent(&it, i)) {
+                 processMidiMessage(midiMsg);
+             }
+             
+-            for (int j = 0; j < N; ++j) {
+-                audiobuf.get()[j] = 0;
+-                sumbuf[j] = 0;
+-            }
++            std::memset(audiobuf.get(), 0, sizeof(int32_t)*N);
++            std::memset(sumbuf.get(), 0, sizeof(float)*N);
+             int32_t lfovalue = lfo.getsample();
+             int32_t lfodelay = lfo.getdelay();
+             
+@@ -255,8 +266,39 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+                     
+                     voices[note].dx7_note->compute(audiobuf.get(), lfovalue, lfodelay, &controllers);
+                     
+-                    for (int j=0; j < N; ++j) {
+-                        int32_t val = audiobuf.get()[j];
++                    int j=0;
++                    for (; j+HWY_NI <= N; j+=HWY_NI) {
++                        auto val = hn::Load(di, &audiobuf[j]);
++
++                        val = hn::ShiftRight<4>(val);
++                        const auto clip_val = hn::IfThenElse(
++                            val < hn::Set(di, -(1 << 24)),
++                            hn::Set(di, 0x8000),
++                            hn::IfThenElse(
++                                hn::Or(
++                                    val > hn::Set(di, 1 << 24),
++                                    val == hn::Set(di, 1 << 24)
++                                ),
++                                hn::Set(di, 0x7fff),
++                                hn::ShiftRight<9>(val)
++                            )
++                        );
++                        auto f = hn::ConvertTo(dif, clip_val) * hn::Set(dif, 1./0x8000);
++                        f = hn::IfThenElse(
++                            f > hn::Set(dif, 1.),
++                            hn::Set(dif, 1.),
++                            hn::IfThenElse(
++                                f < hn::Set(dif, -1.),
++                                hn::Set(dif, -1.),
++                                f
++                            )
++                        );
++                        const auto s = hn::Load(dif, &sumbuf[j]);
++                        hn::Store(s + f, dif, &sumbuf[j]);
++                        hn::Store(hn::Set(di, 0), di, &audiobuf[j]);
++                    }
++                    for (; j < N; ++j) {
++                        int32_t val = audiobuf[j];
+                         
+                         val = val >> 4;
+                         int clip_val = val < -(1 << 24) ? 0x8000 : val >= (1 << 24) ? 0x7fff : val >> 9;
+@@ -264,18 +306,15 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+                         if( f > 1 ) f = 1;
+                         if( f < -1 ) f = -1;
+                         sumbuf[j] += f;
+-                        audiobuf.get()[j] = 0;
++                        audiobuf[j] = 0;
+                     }
+                 }
+             }
+             
+-            int jmax = numSamples - i;
+-            for (int j = 0; j < N; ++j) {
+-                if (j < jmax) {
+-                    channelData[i + j] = sumbuf[j];
+-                } else {
+-                    extra_buf[j - jmax] = sumbuf[j];
+-                }
++            const int jmax = numSamples - i;
++            std::memcpy(&channelData[i], sumbuf.get(), sizeof(float)*std::min(N, jmax));
++            if (jmax < N) {
++                std::memcpy(extra_buf, &sumbuf.get()[jmax], sizeof(float)*(N-jmax));
+             }
+         }
+         extra_buf_size = i - numSamples;
+@@ -286,10 +325,23 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+     }
+ 
+     fx.process(channelData, numSamples);
+-    for(i=0; i<numSamples; i++) {
++    const double decayFactor = 0.99992;
++    const double vecDecayFactor = std::pow(decayFactor, HWY_NF);
++    for(i=0; i+HWY_NF<=numSamples; i+=HWY_NF) {
++        // this technique is not sample-accurate, but fast
++        const auto s = hn::GetLane(
++            hn::MaxOfLanes(df, hn::Abs(hn::Load(df, &channelData[i])))
++        );
++        if (s > vuSignal)
++            vuSignal = s;
++        else if (vuSignal > 0.001f)
++            vuSignal *= vecDecayFactor;
++        else
++            vuSignal = 0;
++    }
++    for(; i<numSamples; i++) {
+         float s = std::abs(channelData[i]);
+         
+-        const double decayFactor = 0.99992;
+         if (s > vuSignal)
+             vuSignal = s;
+         else if (vuSignal > 0.001f)
