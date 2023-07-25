@@ -240,7 +240,7 @@ index af4655d..7dfa56b 100644
          int32_t y = mkiSin(phase , gain);
          output[i] = y + adder[i];
 diff --git a/Source/PluginProcessor.cpp b/Source/PluginProcessor.cpp
-index f2c3817..77eab12 100644
+index f2c3817..7d77618 100644
 --- a/Source/PluginProcessor.cpp
 +++ b/Source/PluginProcessor.cpp
 @@ -20,6 +20,10 @@
@@ -277,15 +277,17 @@ index f2c3817..77eab12 100644
  
      juce::ScopedNoDenormals noDenormals;
  
-@@ -213,15 +226,15 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+@@ -213,15 +226,16 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
      float *channelData = buffer.getWritePointer(0);
    
      // flush first events
 -    for (i=0; i < numSamples && i < extra_buf_size; i++) {
 -        channelData[i] = extra_buf[i];
 -    }
-+    std::memcpy(channelData, extra_buf, sizeof(float) * std::min(numSamples, extra_buf_size));
-     
+-    
++    i = std::min(numSamples, extra_buf_size);
++    std::memcpy(channelData, extra_buf, sizeof(float) * i);
++
      // remaining buffer is still to be processed
      if (extra_buf_size > numSamples) {
 -        for (int j = 0; j < extra_buf_size - numSamples; j++) {
@@ -299,7 +301,7 @@ index f2c3817..77eab12 100644
          extra_buf_size -= numSamples;
          
          // flush the events, they will be process in the next cycle
-@@ -229,18 +242,16 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+@@ -229,18 +243,16 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
              processMidiMessage(midiMsg);
          }
      } else {
@@ -323,7 +325,7 @@ index f2c3817..77eab12 100644
              int32_t lfovalue = lfo.getsample();
              int32_t lfodelay = lfo.getdelay();
              
-@@ -255,8 +266,39 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+@@ -255,8 +267,39 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
                      
                      voices[note].dx7_note->compute(audiobuf.get(), lfovalue, lfodelay, &controllers);
                      
@@ -365,7 +367,7 @@ index f2c3817..77eab12 100644
                          
                          val = val >> 4;
                          int clip_val = val < -(1 << 24) ? 0x8000 : val >= (1 << 24) ? 0x7fff : val >> 9;
-@@ -264,18 +306,15 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+@@ -264,18 +307,15 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
                          if( f > 1 ) f = 1;
                          if( f < -1 ) f = -1;
                          sumbuf[j] += f;
@@ -389,7 +391,7 @@ index f2c3817..77eab12 100644
              }
          }
          extra_buf_size = i - numSamples;
-@@ -286,10 +325,23 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
+@@ -286,10 +326,23 @@ void DexedAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mi
      }
  
      fx.process(channelData, numSamples);
