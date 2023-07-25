@@ -1,0 +1,19 @@
+commit 476a25114f4917fb52ed6f69baba8176a8024973
+Author: Robert Scott <code@humanleg.org.uk>
+Date:   Sat Jul 8 11:56:26 2023 +0100
+
+    TMP add optimization flags for `Release` builds
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6a1afa7..9bf477d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -41,6 +41,8 @@ option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Enable Module Source Groups" ON)
+ option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
+ option(JUCE_BUILD_EXAMPLES "Build JUCE Examples" OFF)
+ 
++string(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3 -march=native -mtune=native -msse4.1 ")
++
+ add_subdirectory(libs)
+ add_subdirectory(Resources)
+ add_subdirectory(Source)

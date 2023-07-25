@@ -36,6 +36,7 @@ stdenv.mkDerivation rec {
   patches = [
     ./sysex.patch
     ./hwy.patch
+#     ./just-cflags.patch
   ];
 
   postPatch = let
