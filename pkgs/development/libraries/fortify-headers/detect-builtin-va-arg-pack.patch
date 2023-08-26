@@ -1,0 +1,35 @@
+sprintf, snprintf: skip if compiler has no __builtin_va_arg_pack
+
+--- a/include/fortify/fortify-headers.h
++++ b/include/fortify/fortify-headers.h
+@@ -21,4 +21,10 @@
+ #define _FORTIFY_FN(fn) _FORTIFY_ORIG(__USER_LABEL_PREFIX__,fn); \
+ 	extern __inline__ __attribute__((__always_inline__,__gnu_inline__,__artificial__))
+ 
++#if defined(__has_builtin)
++#  if __has_builtin(__builtin_va_arg_pack)
++#    define HAS_BUILTIN_VA_ARG_PACK
++#  endif
++#endif
++
+ #endif
+--- a/include/fortify/stdio.h
++++ b/include/fortify/stdio.h
+@@ -92,6 +92,8 @@ _FORTIFY_FN(vsprintf) int vsprintf(char *__s, const char *__f, __builtin_va_list
+ 	return __r;
+ }
+ 
++#ifdef HAS_BUILTIN_VA_ARG_PACK
++
+ _FORTIFY_FN(snprintf) int snprintf(char *__s, size_t __n, const char *__f, ...)
+ {
+ 	size_t __b = __builtin_object_size(__s, 0);
+@@ -116,6 +118,8 @@ _FORTIFY_FN(sprintf) int sprintf(char *__s, const char *__f, ...)
+ 	return __r;
+ }
+ 
++#endif /*HAS_BUILTIN_VA_ARG_PACK*/
++
+ #ifdef __cplusplus
+ }
+ #endif

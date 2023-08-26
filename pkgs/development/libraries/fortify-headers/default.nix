@@ -15,6 +15,10 @@ stdenv.mkDerivation {
     hash = "sha256-A67NzUv+dldARY+MTaoVnezTg+Es8ZK/b7XOxA6KzpI=";
   };
 
+  patches = [
+    ./detect-builtin-va-arg-pack.patch  # needed for clang
+  ];
+
   installPhase = ''
     runHook preInstall
 
