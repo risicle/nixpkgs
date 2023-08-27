@@ -116,6 +116,12 @@ in stdenv.mkDerivation rec {
   # the qt mkDerivation - the latter forcibly overrides this.
   cmakeBuildType = "MinSizeRel";
 
+  postFixup = lib.optionalString stdenv.isLinux ''
+    find $out/lib/hal_plugins -name '*.so*' | while read -r f ; do
+      patchelf --set-rpath "$(patchelf --print-rpath "$f"):$out/lib/hal_plugins" "$f"
+    done
+  '';
+
   meta = with lib; {
     description = "A comprehensive reverse engineering and manipulation framework for gate-level netlists";
     homepage = "https://github.com/emsec/hal";
