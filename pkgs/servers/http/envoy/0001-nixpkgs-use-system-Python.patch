@@ -14,7 +14,7 @@ index 37c0183664..0bee5feb7e 100644
 +++ b/bazel/python_dependencies.bzl
 @@ -1,24 +1,20 @@
  load("@rules_python//python:pip.bzl", "pip_parse")
--load("@python3_10//:defs.bzl", "interpreter")
+-load("@python3_11//:defs.bzl", "interpreter")
  
  def envoy_python_dependencies():
      pip_parse(
@@ -41,18 +41,24 @@ diff --git a/bazel/repositories_extra.bzl b/bazel/repositories_extra.bzl
 index 9d1b31c5d6..ac5605eb30 100644
 --- a/bazel/repositories_extra.bzl
 +++ b/bazel/repositories_extra.bzl
-@@ -1,23 +1,12 @@
+@@ -1,29 +1,12 @@
  load("@emsdk//:deps.bzl", emsdk_deps = "deps")
 -load("@rules_python//python:repositories.bzl", "python_register_toolchains")
  load("@proxy_wasm_cpp_host//bazel/cargo/wasmtime:crates.bzl", "wasmtime_fetch_remote_crates")
  load("//bazel/external/cargo:crates.bzl", "raze_fetch_remote_crates")
  load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+-
+-def _python_minor_version(python_version):
+-    return "_".join(python_version.split(".")[:-1])
  
 -# Python version for `rules_python`
--PYTHON_VERSION = "3.10.2"
+-PYTHON_VERSION = "3.11.3"
+-PYTHON_MINOR_VERSION = _python_minor_version(PYTHON_VERSION)
 -
  # Envoy deps that rely on a first stage of dependency loading in envoy_dependencies().
--def envoy_dependencies_extra(python_version = PYTHON_VERSION):
+-def envoy_dependencies_extra(
+-        python_version = PYTHON_VERSION,
+-        ignore_root_user_error = False):
 +def envoy_dependencies_extra():
      emsdk_deps()
      raze_fetch_remote_crates()
@@ -60,9 +66,9 @@ index 9d1b31c5d6..ac5605eb30 100644
  
 -    # Registers underscored Python minor version - eg `python3_10`
 -    python_register_toolchains(
--        name = "python%s" % ("_".join(python_version.split(".")[:-1])),
+-        name = "python%s" % _python_minor_version(python_version),
 -        python_version = python_version,
--        ignore_root_user_error = True,
+-        ignore_root_user_error = ignore_root_user_error,
 -    )
 -
      aspect_bazel_lib_dependencies()

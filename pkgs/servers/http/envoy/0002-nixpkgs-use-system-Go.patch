@@ -30,9 +30,9 @@ index 681617f1b8..a10c560baf 100644
      apple_rules_dependencies()
      pip_dependencies()
 @@ -146,29 +145,3 @@ def envoy_dependency_imports(go_version = GO_VERSION, jq_version = JQ_VERSION, y
-         # use_category = ["api"],
-         # source = "https://github.com/bufbuild/protoc-gen-validate/blob/v0.6.1/dependencies.bzl#L23-L28"
      )
+ 
+     protoc_gen_jsonschema_go_dependencies()
 -
 -def envoy_download_go_sdks(go_version):
 -    go_download_sdk(
