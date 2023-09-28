@@ -32,6 +32,7 @@
 , targetPackages ? {}
 , useMacosReexportHack ? false
 , wrapGas ? false
+, ldSupportsNoDynamicLinker ? !stdenvNoCC.isDarwin
 
 # Darwin code signing support utilities
 , postLinkSignHook ? null, signingUtils ? null
@@ -336,6 +337,10 @@ stdenv.mkDerivation {
       substituteAll ${./add-flags.sh} $out/nix-support/add-flags.sh
       substituteAll ${./add-hardening.sh} $out/nix-support/add-hardening.sh
       substituteAll ${../wrapper-common/utils.bash} $out/nix-support/utils.bash
+    ''
+
+    + optionalString ldSupportsNoDynamicLinker ''
+      substituteAll ${./add-no-dynamic-linker.sh} $out/nix-support/add-no-dynamic-linker.sh
     ''
 
     ###

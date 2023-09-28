@@ -191,6 +191,10 @@ if [[ "$link32" == "1" && "$linkType" == dynamic && -e "@out@/nix-support/dynami
     )
 fi
 
+if [ -e @out@/nix-support/add-no-dynamic-linker.sh ]; then
+    source @out@/nix-support/add-no-dynamic-linker.sh
+fi
+
 # Add all used dynamic libraries to the rpath.
 if [[ "$NIX_DONT_SET_RPATH_@suffixSalt@" != 1 && "$linkType" != static-pie ]]; then
     # For each directory in the library search path (-L...),
