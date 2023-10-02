@@ -33,6 +33,26 @@
 , useMacosReexportHack ? false
 , wrapGas ? false
 
+, defaultHardeningFlags ? with stdenvNoCC; [
+    "bindnow"
+    "format"
+    "fortify"
+    "fortify3"
+    "pic"
+    "relro"
+    "stackprotector"
+    "strictoverflow"
+  ] ++ lib.optional (
+    # Musl-based platforms will keep "pie", other platforms will not.
+    # If you change this, make sure to update section `{#sec-hardening-in-nixpkgs}`
+    # in the nixpkgs manual to inform users about the defaults.
+    targetPlatform.libc == "musl"
+    # Except when:
+    #    - static aarch64, where compilation works, but produces segfaulting dynamically linked binaries.
+    #    - static armv7l, where compilation fails.
+    && !(hostPlatform.isAarch && hostPlatform.isStatic)
+  ) "pie"
+
 # Darwin code signing support utilities
 , postLinkSignHook ? null, signingUtils ? null
 }:
@@ -124,6 +144,8 @@ stdenv.mkDerivation {
             (setenv "NIX_LDFLAGS_${suffixSalt}" (concat (getenv "NIX_LDFLAGS_${suffixSalt}") " -L" arg "/lib64"))))
         '(${concatStringsSep " " (map (pkg: "\"${pkg}\"") pkgs)}))
     '';
+
+    inherit defaultHardeningFlags;
   };
 
   dontBuild = true;
@@ -386,6 +408,7 @@ stdenv.mkDerivation {
     wrapperName = "BINTOOLS_WRAPPER";
     inherit dynamicLinker targetPrefix suffixSalt coreutils_bin;
     inherit bintools_bin libc_bin libc_dev libc_lib;
+    default_hardening_flags_str = builtins.toString defaultHardeningFlags;
   };
 
   meta =

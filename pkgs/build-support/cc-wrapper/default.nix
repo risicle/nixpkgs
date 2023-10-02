@@ -159,6 +159,8 @@ let
     else
       false;
 
+  defaultHardeningFlags = bintools.defaultHardeningFlags or [];
+
 
   darwinPlatformForCC = optionalString stdenv.targetPlatform.isDarwin (
     if (targetPlatform.darwinPlatform == "macos" && isGNU) then "macosx"
@@ -213,6 +215,8 @@ stdenv.mkDerivation {
     inherit expand-response-params;
 
     inherit nixSupport;
+
+    inherit defaultHardeningFlags;
   };
 
   dontBuild = true;
@@ -652,6 +656,7 @@ stdenv.mkDerivation {
     inherit suffixSalt coreutils_bin bintools;
     inherit libc_bin libc_dev libc_lib;
     inherit darwinPlatformForCC darwinMinVersion darwinMinVersionVariable;
+    default_hardening_flags_str = builtins.toString defaultHardeningFlags;
   };
 
   meta =
