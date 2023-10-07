@@ -276,6 +276,28 @@ let
         gcc.abi = "elfv2";
       };
     });
+
+    pkgsStaticLLVM = nixpkgsFun ({
+      overlays = [
+        (self': super': {
+          stdenv = super'.stdenvAdapters.withDefaultHardeningFlags (super'.stdenv.cc.bintools.defaultHardeningFlags ++ [ "safestack" ]) super'.stdenv;
+        })
+        (self': super': {
+          pkgsStaticLLVM = super';
+        })
+      ] ++ overlays;
+      crossSystem = {
+        isStatic = true;
+        useLLVM = true;
+        linker = "lld";
+        parsed =
+          if stdenv.isLinux
+          then makeMuslParsedPlatform stdenv.hostPlatform.parsed
+          else stdenv.hostPlatform.parsed;
+      } // lib.optionalAttrs (stdenv.hostPlatform.system == "powerpc64-linux") {
+        gcc.abi = "elfv2";
+      };
+    });
   };
 
   # The complete chain of package set builders, applied from top to bottom.
