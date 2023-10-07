@@ -103,6 +103,10 @@ for flag in "${!hardeningEnableMap[@]}"; do
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling format >&2; fi
       hardeningCFlagsBefore+=('-Wformat' '-Wformat-security' '-Werror=format-security')
       ;;
+    safestack)
+      if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling safestack >&2; fi
+      hardeningCFlagsBefore+=('-fsanitize=safe-stack')
+      ;;
     *)
       # Ignore unsupported. Checked in Nix that at least *some*
       # tool supports each flag.

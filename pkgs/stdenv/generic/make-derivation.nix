@@ -199,6 +199,7 @@ let
     "pic"
     "pie"
     "relro"
+    "safestack"
     "stackprotector"
     "strictoverflow"
   ];
