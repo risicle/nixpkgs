@@ -280,9 +280,6 @@ let
     pkgsStaticLLVM = nixpkgsFun ({
       overlays = [
         (self': super': {
-          stdenv = super'.stdenvAdapters.withDefaultHardeningFlags (super'.stdenv.cc.bintools.defaultHardeningFlags ++ [ "safestack" ]) super'.stdenv;
-        })
-        (self': super': {
           pkgsStaticLLVM = super';
         })
       ] ++ overlays;
@@ -297,6 +294,11 @@ let
       } // lib.optionalAttrs (stdenv.hostPlatform.system == "powerpc64-linux") {
         gcc.abi = "elfv2";
       };
+      crossOverlays = [
+        (self': super': {
+          stdenv = super'.stdenvAdapters.withDefaultHardeningFlags (super'.stdenv.cc.bintools.defaultHardeningFlags ++ [ "safestack" ]) super'.stdenv;
+        })
+      ];
     });
   };
 
