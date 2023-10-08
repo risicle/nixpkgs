@@ -249,6 +249,7 @@ let
     "relro"
     "stackprotector"
     "strictoverflow"
+    "zerocallusedregs"
   ];
   defaultHardeningFlags = stdenv.cc.defaultHardeningFlags or
     # fallback safe-ish set of flags
