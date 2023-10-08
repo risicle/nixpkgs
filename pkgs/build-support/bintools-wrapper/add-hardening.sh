@@ -54,10 +54,6 @@ for flag in "${!hardeningEnableMap[@]}"; do
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling bindnow >&2; fi
       hardeningLDFlags+=('-z' 'now')
       ;;
-    safestack)
-      if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling safestack >&2; fi
-      hardeningLDFlags+=('-fsanitize=safe-stack')
-      ;;
     *)
       # Ignore unsupported. Checked in Nix that at least *some*
       # tool supports each flag.
