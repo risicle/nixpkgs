@@ -411,8 +411,9 @@ lib.pipe ((callFile ./common/builder.nix {}) ({
   passthru = {
     inherit langC langCC langObjC langObjCpp langAda langFortran langGo langD version;
     isGNU = true;
-  } // lib.optionalAttrs (!atLeast12) {
-    hardeningUnsupportedFlags = lib.optionals is48 [ "stackprotector" ] ++ [ "fortify3" ];
+    hardeningUnsupportedFlags = lib.optional is48 "stackprotector"
+      ++ lib.optional (!atLeast12) "fortify3"
+      ++ lib.optionals (langFortran) [ "fortify" "format" ];
   };
 
   enableParallelBuilding = true;
