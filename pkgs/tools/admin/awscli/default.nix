@@ -14,6 +14,8 @@ python3.pkgs.buildPythonApplication rec {
     hash = "sha256-8SmOu79FZESL1Hd15wdd1m1Uewswqaum2y8LOZAl9P8=";
   };
 
+  outputs = [ "bin" "out" ];
+
   # https://github.com/aws/aws-cli/issues/4837
   postPatch = ''
     substituteInPlace setup.py \
@@ -35,13 +37,16 @@ python3.pkgs.buildPythonApplication rec {
   ];
 
   postInstall = ''
-    mkdir -p $out/share/bash-completion/completions
-    echo "complete -C $out/bin/aws_completer aws" > $out/share/bash-completion/completions/awscli
+    moveToOutput bin "$bin"
+    moveToOutput share "$bin"
 
-    mkdir -p $out/share/zsh/site-functions
-    mv $out/bin/aws_zsh_completer.sh $out/share/zsh/site-functions
+    mkdir -p $bin/share/bash-completion/completions
+    echo "complete -C $bin/bin/aws_completer aws" > $bin/share/bash-completion/completions/awscli
 
-    rm $out/bin/aws.cmd
+    mkdir -p $bin/share/zsh/site-functions
+    mv $bin/bin/aws_zsh_completer.sh $bin/share/zsh/site-functions
+
+    rm $bin/bin/aws.cmd
   '';
 
   passthru = {
@@ -53,8 +58,8 @@ python3.pkgs.buildPythonApplication rec {
   installCheckPhase = ''
     runHook preInstallCheck
 
-    $out/bin/aws --version | grep "${python3.pkgs.botocore.version}"
-    $out/bin/aws --version | grep "${version}"
+    $bin/bin/aws --version | grep "${python3.pkgs.botocore.version}"
+    $bin/bin/aws --version | grep "${version}"
 
     runHook postInstallCheck
   '';
