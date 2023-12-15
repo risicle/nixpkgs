@@ -297,7 +297,7 @@ in
         enableGold = false;
       }).overrideAttrs (a: {
         passthru = a.passthru // {
-          hardeningUnsupportedFlags = (a.hardeningUnsupportedFlags or []) ++ [ "pie" ];
+          hardeningUnsupportedFlags = [ "pie" ];
         };
       });
       inherit (prevStage)
