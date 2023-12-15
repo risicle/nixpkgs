@@ -308,7 +308,8 @@ stdenv.mkDerivation {
 
     # some linkers on some platforms don't support specific -z flags
     + ''
-      export hardening_unsupported_flags=""
+      export hardening_unsupported_flags="${builtins.concatStringsSep " " (bintools.hardeningUnsupportedFlags or [])}"
+
       if [[ "$($ldPath/${targetPrefix}ld -z now 2>&1 || true)" =~ un(recognized|known)\ option ]]; then
         hardening_unsupported_flags+=" bindnow"
       fi
