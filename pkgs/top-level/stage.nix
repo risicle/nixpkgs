@@ -283,6 +283,7 @@ let
           pkgsExtraHardening = super';
           stdenv = super'.withDefaultHardeningFlags (
             super'.stdenv.cc.defaultHardeningFlags ++ [
+              "pie"
               "zerocallusedregs"
             ]
           ) super'.stdenv;
