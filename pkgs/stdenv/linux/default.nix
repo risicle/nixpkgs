@@ -293,9 +293,13 @@ in
 
     # Rebuild binutils to use from stage2 onwards.
     overrides = self: super: {
-      binutils-unwrapped = super.binutils-unwrapped.override {
+      binutils-unwrapped = (super.binutils-unwrapped.override {
         enableGold = false;
-      };
+      }).overrideAttrs (a: {
+        passthru = a.passthru // {
+          hardeningUnsupportedFlags = (a.hardeningUnsupportedFlags or []) ++ [ "pie" ];
+        };
+      });
       inherit (prevStage)
         ccWrapperStdenv
         gcc-unwrapped coreutils gnugrep binutils;
