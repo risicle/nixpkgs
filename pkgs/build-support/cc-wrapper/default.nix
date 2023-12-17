@@ -220,6 +220,10 @@ let
 
   defaultHardeningFlags = bintools.defaultHardeningFlags or [];
 
+  ccHardeningUnsupportedFlags = if cc ? hardeningUnsupportedFlagsByTargetPlatform
+    then cc.hardeningUnsupportedFlagsByTargetPlatform targetPlatform
+    else (cc.hardeningUnsupportedFlags or []);
+
   darwinPlatformForCC = optionalString stdenv.targetPlatform.isDarwin (
     if (targetPlatform.darwinPlatform == "macos" && isGNU) then "macosx"
     else targetPlatform.darwinPlatform
@@ -581,7 +585,7 @@ stdenv.mkDerivation {
     ## Hardening support
     ##
     + ''
-      export hardening_unsupported_flags="${builtins.concatStringsSep " " (cc.hardeningUnsupportedFlags or [])}"
+      export hardening_unsupported_flags="${builtins.concatStringsSep " " ccHardeningUnsupportedFlags}"
     ''
 
     # Machine flags. These are necessary to support

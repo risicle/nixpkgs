@@ -7,7 +7,7 @@
 }:
 
 let
-  self = stdenv.mkDerivation (rec {
+  self = stdenv.mkDerivation (finalAttrs: rec {
     pname = "clang";
     inherit version;
 
@@ -98,9 +98,13 @@ let
       isClang = true;
       hardeningUnsupportedFlags = [
         "fortify3"
-        # supported on x86_64/aarch64 only
-        "zerocallusedregs"
       ];
+      hardeningUnsupportedFlagsByTargetPlatform = targetPlatform: (
+        if !(targetPlatform.isx86_64 || targetPlatform.isAarch64) then
+          [ "zerocallusedregs" ]
+        else
+          []
+      ) ++ (finalAttrs.passthru.hardeningUnsupportedFlags or []);
     };
 
     meta = llvm_meta // {
