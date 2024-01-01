@@ -20729,6 +20729,8 @@ with pkgs;
 
   c-blosc = callPackage ../development/libraries/c-blosc { };
 
+  c-blosc2 = callPackage ../development/libraries/c-blosc2 { };
+
   # justStaticExecutables is needed due to https://github.com/NixOS/nix/issues/2990
   # ghc94: https://discourse.haskell.org/t/facing-mmap-4096-bytes-at-nil-cannot-allocate-memory-youre-not-alone/6259
   cachix = haskell.lib.justStaticExecutables haskell.packages.ghc94.cachix;
