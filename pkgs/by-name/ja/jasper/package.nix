@@ -3,6 +3,7 @@
 , fetchFromGitHub
 , cmake
 , pkg-config
+, which
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -31,6 +32,12 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   strictDeps = true;
+
+  doCheck = true;
+  checkInputs = [ which ];
+  preCheck = ''
+    patchShebangs test/bin ../test/bin ../build/sysinfo
+  '';
 
   meta = {
     homepage = "https://jasper-software.github.io/jasper/";
