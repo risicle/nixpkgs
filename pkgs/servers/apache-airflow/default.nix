@@ -7,6 +7,41 @@
 let
   python = python3.override {
     packageOverrides = pySelf: pySuper: {
+      # airflow isn't ready for connexion 3.x
+      connexion = pySuper.connexion.overridePythonAttrs (o: rec {
+        version = "2.14.2";
+        src = fetchFromGitHub {
+          owner = "spec-first";
+          repo = "connexion";
+          rev = "refs/tags/${version}";
+          hash = "sha256-1v1xCHY3ZnZG/Vu9wN/it7rLKC/StoDefoMNs+hMjIs=";
+        };
+        format = "setuptools";
+        pyproject = null;
+        nativeBuildInputs = [];
+        propagatedBuildInputs = with pySelf; [
+          aiohttp
+          aiohttp-jinja2
+          aiohttp-swagger
+          clickclick
+          flask
+          inflection
+          jsonschema
+          openapi-spec-validator
+          packaging
+          pyyaml
+          requests
+          swagger-ui-bundle
+        ];
+        nativeCheckInputs = with pySelf; [
+          aiohttp-remotes
+          decorator
+          pytest-aiohttp
+          pytestCheckHook
+          testfixtures
+        ];
+      });
+      # airflow isn't ready for flask 3.x
       flask = pySuper.flask.overridePythonAttrs (o: rec {
         version = "2.2.5";
         src = fetchPypi {
@@ -53,6 +88,21 @@ let
       # apache-airflow doesn't work with sqlalchemy 2.x
       # https://github.com/apache/airflow/issues/28723
       sqlalchemy = pySuper.sqlalchemy_1_4;
+      # a knock-on effect from overriding the connexion version
+      swagger-ui-bundle = pySuper.swagger-ui-bundle.overridePythonAttrs (o: rec {
+        version = "0.0.9";
+        src = fetchPypi {
+          pname = "swagger_ui_bundle";
+          version = version;
+          hash = "sha256-tGKqFGAmF5areP1GY5Yaf280fOAXYPEwO7vfYw8R9RY=";
+        };
+        format = "setuptools";
+        pyproject = null;
+        postPatch = ''
+          substituteInPlace setup.py --replace "setup_requires=['pytest-runner', 'flake8']" "setup_requires=[]"
+        '';
+        nativeBuildInputs = [];
+      });
 
       apache-airflow = pySelf.callPackage ./python-package.nix { };
     };

@@ -25,14 +25,16 @@
 , flask-caching
 , flask-session
 , flask-wtf
+, fsspec
 , gitpython
 , google-re2
 , graphviz
 , gunicorn
+, hatchling
 , httpx
 , iso8601
-, importlib-resources
 , importlib-metadata
+, importlib-resources
 , inflection
 , itsdangerous
 , jinja2
@@ -48,9 +50,11 @@
 , openapi-spec-validator
 , opentelemetry-api
 , opentelemetry-exporter-otlp
+, packaging
 , pandas
 , pathspec
 , pendulum
+, pluggy
 , psutil
 , pydantic
 , pygments
@@ -66,14 +70,17 @@
 , rich
 , rich-argparse
 , setproctitle
+, smmap
 , sqlalchemy
 , sqlalchemy-jsonfield
 , swagger-ui-bundle
 , tabulate
 , tenacity
 , termcolor
+, tomli
 , typing-extensions
 , unicodecsv
+, universal-pathlib
 , werkzeug
 , freezegun
 , pytest-asyncio
@@ -84,10 +91,12 @@
 , writeScript
 
 # Extra airflow providers to enable
-, enabledProviders ? []
+, enabledProviders ? [
+  "cncf_kubernetes"
+]
 }:
 let
-  version = "2.7.3";
+  version = "2.8.1";
 
   airflow-src = fetchFromGitHub rec {
     owner = "apache";
@@ -96,7 +105,7 @@ let
     # Download using the git protocol rather than using tarballs, because the
     # GitHub archive tarballs don't appear to include tests
     forceFetchGit = true;
-    hash = "sha256-+YbiKFZLigSDbHPaUKIl97kpezW1rIt/j09MMa6lwhQ=";
+    hash = "sha256-YYV9fVrxzskgKwyVRNaqofpq1uxor8ZRgRp8pygZkTY=";
   };
 
   # airflow bundles a web interface, which is built using webpack by an undocumented shell script in airflow's source tree.
@@ -110,15 +119,15 @@ let
 
     offlineCache = fetchYarnDeps {
       yarnLock = "${src}/yarn.lock";
-      hash = "sha256-WQKuQgNp35fU6z7owequXOSwoUGJDJYcUgkjPDMOops=";
+      hash = "sha256-SvhVBAyvoMjSVeKGt8CgN2NoJlB3fdIlsJrAPlrZtio=";
     };
 
     distPhase = "true";
 
-    # The webpack license plugin tries to create /licenses when given the
+    # The webpack license plugin tries to create /3rd-party-licenses when given the
     # original relative path
     postPatch = ''
-      sed -i 's!../../../../licenses/LICENSES-ui.txt!licenses/LICENSES-ui.txt!' webpack.config.js
+      sed -i 's!../../../../3rd-party-licenses/LICENSES-ui.txt!3rd-party-licenses/LICENSES-ui.txt!' webpack.config.js
     '';
 
     configurePhase = ''
@@ -148,8 +157,17 @@ buildPythonPackage rec {
   pname = "apache-airflow";
   inherit version;
   src = airflow-src;
+  pyproject = true;
 
-  disabled = pythonOlder "3.7";
+  disabled = pythonOlder "3.8";
+
+  nativeBuildInputs = [
+    gitpython
+    hatchling
+    pythonRelaxDepsHook
+    smmap
+    tomli
+  ];
 
   propagatedBuildInputs = [
     alembic
@@ -157,9 +175,9 @@ buildPythonPackage rec {
     asgiref
     attrs
     blinker
-    cached-property
-    cattrs
-    clickclick
+#     cached-property
+#     cattrs
+#     clickclick
     colorlog
     configupdater
     connexion
@@ -171,17 +189,18 @@ buildPythonPackage rec {
     flask
     flask-appbuilder
     flask-caching
+    flask-login
     flask-session
     flask-wtf
-    flask-login
-    gitpython
+    fsspec
     google-re2
-    graphviz
+    #graphviz
     gunicorn
     httpx
-    iso8601
+    #iso8601
+    importlib-metadata
     importlib-resources
-    inflection
+    #inflection
     itsdangerous
     jinja2
     jsonschema
@@ -192,13 +211,14 @@ buildPythonPackage rec {
     markupsafe
     marshmallow-oneofschema
     mdit-py-plugins
-    numpy
-    openapi-spec-validator
+    #numpy
+    #openapi-spec-validator
     opentelemetry-api
     opentelemetry-exporter-otlp
-    pandas
+    #pandas
     pathspec
     pendulum
+    pluggy
     psutil
     pydantic
     pygments
@@ -207,19 +227,20 @@ buildPythonPackage rec {
     python-dateutil
     python-nvd3
     python-slugify
-    python3-openid
-    pyyaml
+    #python3-openid
+    #pyyaml
     rich
     rich-argparse
     setproctitle
     sqlalchemy
     sqlalchemy-jsonfield
-    swagger-ui-bundle
+    #swagger-ui-bundle
     tabulate
     tenacity
     termcolor
-    typing-extensions
+    #typing-extensions
     unicodecsv
+    universal-pathlib
     werkzeug
   ] ++ lib.optionals (pythonOlder "3.9") [
     importlib-metadata
@@ -227,7 +248,6 @@ buildPythonPackage rec {
 
   buildInputs = [
     airflow-frontend
-    pythonRelaxDepsHook
   ];
 
   nativeCheckInputs = [
@@ -237,15 +257,9 @@ buildPythonPackage rec {
     time-machine
   ];
 
-  # By default, source code of providers is included but unusable due to missing
-  # transitive dependencies. To enable a provider, add it to extraProviders
-  # above
-  INSTALL_PROVIDERS_FROM_SOURCES = "true";
-
   postPatch = ''
-    # https://github.com/apache/airflow/issues/33854
-    substituteInPlace pyproject.toml \
-      --replace '[project]' $'[project]\nname = "apache-airflow"\nversion = "${version}"'
+    # pythonRelaxDeps doesn't appear to work on build deps
+    sed -E -i 's/==.+",/",/' pyproject.toml
   '' + lib.optionalString stdenv.isDarwin ''
     # Fix failing test on Hydra
     substituteInPlace airflow/utils/db.py \
@@ -254,9 +268,25 @@ buildPythonPackage rec {
 
   pythonRelaxDeps = [
     "colorlog"
-    "flask-appbuilder"
-    "opentelemetry-api"
-    "pathspec"
+#     "flask-appbuilder"
+#     "opentelemetry-api"
+#     "pathspec"
+  ];
+
+  pythonRemoveDeps = [
+    # pythonRuntimeDepsCheckHook is confused by this
+    "connexion"
+
+    # airflow doesn't normally expect to be installing providers from the
+    # in-tree source, and now the INSTALL_PROVIDERS_FROM_SOURCES mechanism
+    # has been removed so we need some trickery to prevent it requiring
+    # these as "external" packages
+    "apache-airflow-providers-common-io"
+    "apache-airflow-providers-common-sql"
+    "apache-airflow-providers-ftp"
+    "apache-airflow-providers-http"
+    "apache-airflow-providers-imap"
+    "apache-airflow-providers-sqlite"
   ];
 
   # allow for gunicorn processes to have access to Python packages
