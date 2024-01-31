@@ -15,12 +15,12 @@ let
     inherit jdk;
   };
 
-  version = "3.7.6";
+  version = "3.7.7";
   src = fetchFromGitHub {
     owner = "openrefine";
     repo = "openrefine";
     rev = version;
-    hash = "sha256-dv2z+iXDDJ77zBxCRqofb3I2HLBB/qkCR5dny6P0JPk=";
+    hash = "sha256-/Txx+r+eFizxaTV5u/nOJwum8nJW6jsR6kYA0YbRsJs=";
   };
 
   npmPkg = buildNpmPackage {
