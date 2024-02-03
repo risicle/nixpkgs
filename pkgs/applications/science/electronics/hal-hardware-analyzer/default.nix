@@ -37,6 +37,11 @@ let
         url = "https://github.com/igraph/igraph/commit/5ad464be5ae2f6ebb69c97cb0140c800cc8d97d6.patch";
         hash = "sha256-adU5SctH+H54UaAmr5BZInytD3wjUzLtQbCwngAWs4o=";
       })
+      (fetchpatch {
+        name = "libxml2-2.12-compat.patch";
+        url = "https://github.com/igraph/igraph/commit/b5922352e77efd74c80a730a27f811106d5e7eaa.patch";
+        hash = "sha256-l0knBoV0Ipv/0O4slkcV0Ts7hud5z0Ws3ignNOIKFcg=";
+      })
     ];
     postPatch = prev.postPatch + lib.optionalString stdenv.isAarch64 ''
       # https://github.com/igraph/igraph/issues/1694
