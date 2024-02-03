@@ -42,6 +42,11 @@ let
         url = "https://github.com/igraph/igraph/commit/b5922352e77efd74c80a730a27f811106d5e7eaa.patch";
         hash = "sha256-l0knBoV0Ipv/0O4slkcV0Ts7hud5z0Ws3ignNOIKFcg=";
       })
+      (fetchpatch {
+        name = "fix-incomplete-prototypes.patch";
+        url = "https://github.com/igraph/igraph/commit/12666a732a206b7c2c27960ff208aaf5f4532127.patch";
+        hash = "sha256-ArvZRI8eQRLmVxrW6R2Wy9NEXTfxuAisvxXEZZubflM=";
+      })
     ];
     postPatch = prev.postPatch + lib.optionalString stdenv.isAarch64 ''
       # https://github.com/igraph/igraph/issues/1694
