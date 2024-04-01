@@ -68,7 +68,7 @@ while read new_commit_sha ; do
         fi
 
         # move on to next commit
-        continue 3
+        continue 99
       fi
     done
   done
