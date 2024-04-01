@@ -35,10 +35,7 @@ while read new_commit_sha ; do
   for branch_pattern in $PICKABLE_BRANCHES ; do
     set +f # re-enable pathname expansion
 
-    git for-each-ref \
-      --format="%(refname)" \
-      "refs/remotes/origin/$branch_pattern" | while read -r picked_branch ; do
-
+    while read -r picked_branch ; do
       if git merge-base --is-ancestor "$original_commit_sha" "$picked_branch" ; then
         echo "  ✔ $original_commit_sha present in branch $picked_branch"
 
@@ -70,7 +67,11 @@ while read new_commit_sha ; do
         # move on to next commit
         continue 99
       fi
-    done
+    done <<< "$(
+      git for-each-ref \
+      --format="%(refname)" \
+      "refs/remotes/origin/$branch_pattern"
+    )"
   done
 
   if [ "$GITHUB_ACTIONS" = 'true' ] ; then
