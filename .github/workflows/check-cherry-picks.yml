@@ -10,7 +10,7 @@ permissions: {}
 jobs:
   check:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'NixOS'
+    if: github.repository_owner == 'risicle'
     steps:
     - uses: actions/checkout@v3
       with:
