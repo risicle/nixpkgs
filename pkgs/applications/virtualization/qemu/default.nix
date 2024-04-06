@@ -122,13 +122,9 @@ stdenv.mkDerivation (finalAttrs: {
     # will still be needed in nix until the macOS SDK reaches 10.13+.
     ./provide-fallback-for-utimensat.patch
     # Cocoa clipboard support only works on macOS 10.14+
-    # ./revert-ui-cocoa-add-clipboard-support.patch
+    ./revert-ui-cocoa-add-clipboard-support.patch
     # Standard about panel requires AppKit and macOS 10.13+
-    # (fetchpatch {
-    #   url = "https://gitlab.com/qemu-project/qemu/-/commit/99eb313ddbbcf73c1adcdadceba1423b691c6d05.diff";
-    #   sha256 = "sha256-gTRf9XENAfbFB3asYCXnw4OV4Af6VE1W56K2xpYDhgM=";
-    #   revert = true;
-    # })
+    ./revert-ui-cocoa-use-standard-about-panel.patch
     # Workaround for upstream issue with nested virtualisation: https://gitlab.com/qemu-project/qemu/-/issues/1008
     (fetchpatch {
       url = "https://gitlab.com/qemu-project/qemu/-/commit/3e4546d5bd38a1e98d4bd2de48631abf0398a3a2.diff";

@@ -1,8 +1,8 @@
 Based on a reversion of upstream 7e3e20d89129614f4a7b2451fe321cc6ccca3b76,
-adapted for 7.2.0
+adapted for 9.0.0
 
 diff --git a/include/ui/clipboard.h b/include/ui/clipboard.h
-index ce76aa451f..c4e1dc4ff4 100644
+index ab6acdbd8a..611e5280d8 100644
 --- a/include/ui/clipboard.h
 +++ b/include/ui/clipboard.h
 @@ -269,7 +269,7 @@ void qemu_clipboard_set_data(QemuClipboardPeer *peer,
@@ -15,10 +15,10 @@ index ce76aa451f..c4e1dc4ff4 100644
  
  G_DEFINE_AUTOPTR_CLEANUP_FUNC(QemuClipboardInfo, qemu_clipboard_info_unref)
 diff --git a/ui/clipboard.c b/ui/clipboard.c
-index 3d14bffaf8..2c3f4c3ba0 100644
+index 4264884a6c..f97de3d0e3 100644
 --- a/ui/clipboard.c
 +++ b/ui/clipboard.c
-@@ -154,7 +154,7 @@ void qemu_clipboard_set_data(QemuClipboardPeer *peer,
+@@ -168,7 +168,7 @@ void qemu_clipboard_set_data(QemuClipboardPeer *peer,
                               QemuClipboardInfo *info,
                               QemuClipboardType type,
                               uint32_t size,
@@ -28,7 +28,7 @@ index 3d14bffaf8..2c3f4c3ba0 100644
  {
      if (!info ||
 diff --git a/ui/cocoa.m b/ui/cocoa.m
-index 660d3e0935..0e6760c360 100644
+index 25e0db9dd0..249ba48aa4 100644
 --- a/ui/cocoa.m
 +++ b/ui/cocoa.m
 @@ -29,7 +29,6 @@
@@ -39,7 +39,7 @@ index 660d3e0935..0e6760c360 100644
  #include "ui/console.h"
  #include "ui/input.h"
  #include "ui/kbd-state.h"
-@@ -105,10 +104,6 @@ static void cocoa_switch(DisplayChangeListener *dcl,
+@@ -112,10 +111,6 @@ static void cocoa_switch(DisplayChangeListener *dcl,
  
  static bool allow_events;
  
@@ -47,10 +47,10 @@ index 660d3e0935..0e6760c360 100644
 -static QemuClipboardInfo *cbinfo;
 -static QemuEvent cbevent;
 -
- // Utility functions to run specified code block with iothread lock held
+ // Utility functions to run specified code block with the BQL held
  typedef void (^CodeBlock)(void);
  typedef bool (^BoolCodeBlock)(void);
-@@ -1799,107 +1794,6 @@ static void addRemovableDevicesMenuItems(void)
+@@ -1804,107 +1799,6 @@ static void addRemovableDevicesMenuItems(void)
      qapi_free_BlockInfoList(pointerToFree);
  }
  
@@ -65,7 +65,7 @@ index 660d3e0935..0e6760c360 100644
 -        return;
 -    }
 -
--    with_iothread_lock(^{
+-    with_bql(^{
 -        QemuClipboardInfo *info = qemu_clipboard_info_ref(cbinfo);
 -        qemu_event_reset(&cbevent);
 -        qemu_clipboard_request(info, QEMU_CLIPBOARD_TYPE_TEXT);
@@ -73,9 +73,9 @@ index 660d3e0935..0e6760c360 100644
 -        while (info == cbinfo &&
 -               info->types[QEMU_CLIPBOARD_TYPE_TEXT].available &&
 -               info->types[QEMU_CLIPBOARD_TYPE_TEXT].data == NULL) {
--            qemu_mutex_unlock_iothread();
+-            bql_unlock();
 -            qemu_event_wait(&cbevent);
--            qemu_mutex_lock_iothread();
+-            bql_lock();
 -        }
 -
 -        if (info == cbinfo) {
@@ -158,15 +158,15 @@ index 660d3e0935..0e6760c360 100644
  /*
   * The startup process for the OSX/Cocoa UI is complicated, because
   * OSX insists that the UI runs on the initial main thread, and so we
-@@ -1922,7 +1816,6 @@ static void cocoa_clipboard_request(QemuClipboardInfo *info,
+@@ -1927,7 +1821,6 @@ static void cocoa_clipboard_request(QemuClipboardInfo *info,
      status = qemu_default_main();
-     qemu_mutex_unlock_iothread();
+     bql_unlock();
      COCOA_DEBUG("Second thread: qemu_default_main() returned, exiting\n");
 -    [cbowner release];
      exit(status);
  }
  
-@@ -2003,18 +1896,6 @@ static void cocoa_refresh(DisplayChangeListener *dcl)
+@@ -1998,18 +1891,6 @@ static void cocoa_refresh(DisplayChangeListener *dcl)
              [cocoaView setAbsoluteEnabled:YES];
          });
      }
@@ -185,10 +185,10 @@ index 660d3e0935..0e6760c360 100644
      [pool release];
  }
  
-@@ -2071,12 +1952,6 @@ static void cocoa_display_init(DisplayState *ds, DisplayOptions *opts)
- 
+@@ -2076,12 +1957,6 @@ static void cocoa_display_init(DisplayState *ds, DisplayOptions *opts)
      // register vga output callbacks
      register_displaychangelistener(&dcl);
+     [cocoaView updateUIInfo];
 -
 -    qemu_event_init(&cbevent, false);
 -    cbowner = [[QemuCocoaPasteboardTypeOwner alloc] init];
