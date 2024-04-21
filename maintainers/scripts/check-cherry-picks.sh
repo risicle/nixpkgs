@@ -139,13 +139,13 @@ if [ "$GITHUB_ACTIONS" = 'true' ] && [ "$has_warning" != '0' ] ; then
 
 EOF
 
-  HEAD_SHA="$2" EXTERNAL_ID="$RANDOM" curl -L \
+  curl -L \
     -X POST \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "$REPO_API_URL/check-runs" \
-    -d "$(jq --raw-input --slurp '{
+    -d "$(HEAD_SHA="$2" EXTERNAL_ID="$RANDOM" jq --raw-input --slurp '{
       name: "cherry-picks-warrant-inspection",
       status: "completed",
       conclusion: "neutral",
