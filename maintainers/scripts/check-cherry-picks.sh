@@ -139,7 +139,7 @@ if [ "$GITHUB_ACTIONS" = 'true' ] && [ "$has_warning" != '0' ] ; then
 
 EOF
 
-  HEAD_SHA="$2" curl -L \
+  HEAD_SHA="$2" EXTERNAL_ID="$RANDOM" curl -L \
     -X POST \
     -H "Accept: application/vnd.github+json" \
     -H "Authorization: Bearer $GITHUB_TOKEN" \
@@ -149,6 +149,7 @@ EOF
       name: "cherry-picks-warrant-inspection",
       status: "completed",
       conclusion: "neutral",
+      external_id: env.EXTERNAL_ID,
       details_url: env.SELF_RUN_URL,
       head_sha: env.HEAD_SHA,
       output: {
