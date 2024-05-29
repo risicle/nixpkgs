@@ -30,6 +30,22 @@ buildPythonPackage rec {
     hash = "sha256-lCxadY+Y15Dq7Ropy27vx/+w0c968Fw9J5Flbb1q0eE=";
   };
 
+  patches = [
+    (fetchpatch {
+      name = "CVE-2024-35195.patch";
+      url = "https://github.com/psf/requests/commit/a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac.patch";
+      stripLen = 1;
+      includes = [ "requests/adapters.py" ];
+      hash = "sha256-UORUDFsWFLMl/mRapa4dtfRxaLz3XuJMsD+G07Q5MVc=";
+    })
+    (fetchpatch {
+      name = "CVE-2024-35195.tests.patch";
+      url = "https://github.com/psf/requests/commit/a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac.patch";
+      includes = [ "tests/test_requests.py" ];
+      hash = "sha256-ZNxgrqNfccV7DQyCRN7fWpZgR5ehvcifQ8YBfl5eiEU=";
+    })
+  ];
+
   propagatedBuildInputs = [
     brotlicffi
     certifi
