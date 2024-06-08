@@ -32,7 +32,7 @@ if [[ -n "${hardeningEnableMap[fortify3]-}" ]]; then
 fi
 
 if (( "${NIX_DEBUG:-0}" >= 1 )); then
-  declare -a allHardeningFlags=(fortify fortify3 stackprotector stackclashprotection pie pic strictoverflow format trivialautovarinit zerocallusedregs)
+  declare -a allHardeningFlags=(fortify fortify3 stackprotector stackclashprotection pacret pie pic strictoverflow format trivialautovarinit zerocallusedregs)
   declare -A hardeningDisableMap=()
 
   # Determine which flags were effectively disabled so we can report below.
@@ -74,6 +74,10 @@ for flag in "${!hardeningEnableMap[@]}"; do
           # Ignore unsupported.
           ;;
       esac
+      ;;
+    pacret)
+      if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling pacret >&2; fi
+      hardeningCFlagsBefore+=('-mbranch-protection=pac-ret')
       ;;
     stackprotector)
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling stackprotector >&2; fi

@@ -115,6 +115,7 @@ let
     "format"
     "fortify"
     "fortify3"
+    "pacret"
     "pic"
     "pie"
     "relro"
