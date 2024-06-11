@@ -77,7 +77,11 @@ for flag in "${!hardeningEnableMap[@]}"; do
       ;;
     hardbackedgecfi)
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling hardbackedgecfi >&2; fi
-      hardeningCFlagsBefore+=('-fcf-protection=return')
+      if (( @isPacRetTarget@ )); then
+        hardeningCFlagsBefore+=('-mbranch-protection=pac-ret')
+      else
+        hardeningCFlagsBefore+=('-fcf-protection=return')
+      fi
       ;;
     stackprotector)
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling stackprotector >&2; fi
