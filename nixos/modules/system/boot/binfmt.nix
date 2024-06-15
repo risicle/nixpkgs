@@ -20,11 +20,11 @@ let
                  optionalString fixBinary "F";
   in ":${name}:${type}:${offset'}:${magicOrExtension}:${mask'}:${interpreter}:${flags}";
 
-  mkInterpreter = name: { interpreter, wrapInterpreterInShell, ... }:
+  mkInterpreter = name: { interpreter, wrapInterpreterInShell, interpreterExtraArgs, ... }:
     if wrapInterpreterInShell
     then pkgs.writeShellScript "${name}-interpreter" ''
            #!${pkgs.bash}/bin/sh
-           exec -- ${interpreter} "$@"
+           exec -- ${interpreter} ${lib.escapeShellArgs interpreterExtraArgs} "$@"
          ''
     else interpreter;
 
@@ -194,6 +194,11 @@ in {
                 limit doesn't apply.
               '';
               type = types.path;
+            };
+
+            interpreterExtraArgs = mkOption {
+              type = types.listOf types.string;
+              default = [];
             };
 
             preserveArgvZero = mkOption {
