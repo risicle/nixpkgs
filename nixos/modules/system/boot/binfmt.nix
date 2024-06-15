@@ -197,6 +197,7 @@ in {
             };
 
             interpreterExtraArgs = mkOption {
+              description = "blah blah blah";
               type = types.listOf types.str;
               default = [];
             };
