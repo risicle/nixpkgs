@@ -24,6 +24,8 @@ stdenv.mkDerivation rec {
       attr keyutils libaio libapparmor libcap lksctp-tools libglvnd mesa
     ];
 
+  hardeningDisable = [ "hardbackedgecfi" ];
+
   makeFlags = [
     "BINDIR=${placeholder "out"}/bin"
     "MANDIR=${placeholder "out"}/share/man/man1"
