@@ -293,6 +293,7 @@ let
           stdenv = super'.withDefaultHardeningFlags (
             super'.stdenv.cc.defaultHardeningFlags ++ [
               "hardbackedgecfi"
+              "pie"
               "stackclashprotection"
               "trivialautovarinit"
             ]
