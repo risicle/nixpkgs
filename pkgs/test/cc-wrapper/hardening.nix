@@ -130,6 +130,25 @@ let
     touch $out
   '';
 
+  pacRetTest = testBin: expectFailure: runCommand "exec-test" {
+    buildInputs = [
+      testBin
+    ];
+    meta.platforms = [ "aarch64-linux" ];
+  } ''
+    if objdump -d \
+      --no-addresses \
+      --no-show-raw-insn \
+      "$(PATH=$HOST_PATH type -P test-bin)" \
+      | grep -E '\bpaciasp\b' > /dev/null ; then
+      echo "Found PAC-RET instructions" >&2
+      ${lib.optionalString expectFailure "exit 1"}
+    else
+      echo "Did not find PAC-RET instructions" >&2
+      ${lib.optionalString (!expectFailure) "exit 1"}
+    fi
+  '';
+
   brokenIf = cond: drv: if cond then drv.overrideAttrs (old: { meta = old.meta or {} // { broken = true; }; }) else drv;
 
 in nameDrvAfterAttrName ({
@@ -198,6 +217,10 @@ in nameDrvAfterAttrName ({
     ignoreStackClashProtection = false;
   });
 
+  pacRetExplicitEnabled = pacRetTest (helloWithStdEnv stdenv {
+    hardeningEnable = [ "pacret" ];
+  }) true;
+
   bindNowExplicitDisabled = checkTestBin (f2exampleWithStdEnv stdenv {
     hardeningDisable = [ "bindnow" ];
   }) {
@@ -264,6 +287,10 @@ in nameDrvAfterAttrName ({
     ignoreStackClashProtection = false;
     expectFailure = true;
   };
+
+  pacRetExplicitDisabled = pacRetTest (helloWithStdEnv stdenv {
+    hardeningDisable = [ "pacret" ];
+  }) false;
 
   # most flags can't be "unsupported" by compiler alone and
   # binutils doesn't have an accessible hardeningUnsupportedFlags
@@ -466,4 +493,8 @@ in {
     ignoreStackClashProtection = false;
     expectFailure = true;
   };
+
+  allExplicitDisabledPacRet = pacRetTest (helloWithStdEnv stdenv {
+    hardeningDisable = [ "all" ];
+  }) false;
 }))
