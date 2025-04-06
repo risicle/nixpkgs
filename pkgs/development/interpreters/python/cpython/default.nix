@@ -454,6 +454,8 @@ stdenv.mkDerivation (finalAttrs: {
     PYTHONHASHSEED = 0;
   };
 
+  hardeningDisable = ["strictflexarrays3"];
+
   # https://docs.python.org/3/using/configure.html
   configureFlags =
     [
