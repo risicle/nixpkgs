@@ -295,6 +295,7 @@ stdenv.mkDerivation (
         ++ lib.optional (
           (lib.versionOlder release_version "15") || !(targetPlatform.isx86_64 || targetPlatform.isAarch64)
         ) "zerocallusedregs"
+        ++ lib.optional (lib.versionOlder release_version "16") "strictflexarrays3"
         ++ (finalAttrs.passthru.hardeningUnsupportedFlags or [ ]);
     };
 

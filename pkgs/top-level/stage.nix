@@ -419,6 +419,7 @@ let
             stdenv = super'.withDefaultHardeningFlags (
               super'.stdenv.cc.defaultHardeningFlags
               ++ [
+                "strictflexarrays3"
                 "shadowstack"
                 "pacret"
                 "trivialautovarinit"

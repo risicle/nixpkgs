@@ -118,6 +118,7 @@ let
     "format"
     "fortify"
     "fortify3"
+    "strictflexarrays3"
     "shadowstack"
     "pacret"
     "pic"
