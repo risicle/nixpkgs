@@ -428,6 +428,7 @@ pipe
             "fortify3"
             "trivialautovarinit"
           ]
+          ++ optional (!atLeast13) "strictflexarrays1"
           ++ optional (
             !(targetPlatform.isLinux && targetPlatform.isx86_64 && targetPlatform.libc == "glibc")
           ) "shadowstack"

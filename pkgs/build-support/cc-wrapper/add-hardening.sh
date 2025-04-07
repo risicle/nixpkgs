@@ -32,7 +32,7 @@ if [[ -n "${hardeningEnableMap[fortify3]-}" ]]; then
 fi
 
 if (( "${NIX_DEBUG:-0}" >= 1 )); then
-  declare -a allHardeningFlags=(fortify fortify3 shadowstack stackprotector stackclashprotection pacret pie pic strictoverflow format trivialautovarinit zerocallusedregs)
+  declare -a allHardeningFlags=(fortify fortify3 shadowstack stackprotector stackclashprotection strictflexarrays1 pie pic strictoverflow format trivialautovarinit zerocallusedregs)
   declare -A hardeningDisableMap=()
 
   # Determine which flags were effectively disabled so we can report below.
@@ -78,6 +78,12 @@ for flag in "${!hardeningEnableMap[@]}"; do
     shadowstack)
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling shadowstack >&2; fi
       hardeningCFlagsBefore+=('-fcf-protection=return')
+      ;;
+    strictflexarrays1)
+      if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling strictflexarrays1 >&2; fi
+      hardeningCFlagsBefore+=('-fstrict-flex-arrays=1')
+      # strictflexarrays2 and strictflexarrays3 could potentially be
+      # supported too using a similar mechanism to fortify/fortify3
       ;;
     pacret)
       if (( "${NIX_DEBUG:-0}" >= 1 )); then echo HARDENING: enabling pacret >&2; fi
