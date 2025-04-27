@@ -50,6 +50,7 @@
       "format"
       "fortify"
       "fortify3"
+      "glibcxxassertions"
       "pic"
       "relro"
       "stackclashprotection"

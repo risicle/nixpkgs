@@ -399,6 +399,7 @@ let
                 "nostrictaliasing"
                 "pacret"
                 "trivialautovarinit"
+                #"glibcxxassertions"
               ]
             ) super'.stdenv;
             glibc = super'.glibc.override rec {
