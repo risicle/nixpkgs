@@ -361,14 +361,14 @@ let
 
       concretizeFlagImplications =
         flag: impliesFlags: list:
-        if any (x: x == flag) list then unique (list ++ impliesFlags) else list;
+        if any (x: x == flag) list then (list ++ impliesFlags) else list;
 
-      hardeningDisable' = pipe hardeningDisable [
+      hardeningDisable' = unique (pipe hardeningDisable [
         # disabling fortify implies fortify3 should also be disabled
         (concretizeFlagImplications "fortify" [ "fortify3" ])
         # disabling strictflexarrays1 implies strictflexarrays3 should also be disabled
         (concretizeFlagImplications "strictflexarrays1" [ "strictflexarrays3" ])
-      ];
+      ]);
       defaultHardeningFlags =
         (if stdenv.hasCC then stdenv.cc else { }).defaultHardeningFlags or
         # fallback safe-ish set of flags
